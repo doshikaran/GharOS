@@ -18,6 +18,12 @@ Open [http://localhost:3000](http://localhost:3000) with your browser to see the
 
 You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
 
+## Environment variables
+
+See `.env.example` for the full list. Notably:
+
+- `NEXT_PUBLIC_API_BASE_URL` — base URL of the `gharos-api` backend, read by the `/status` page (see `lib/api-base-url.ts`). Defaults to `http://localhost:8000` when unset. This is a Next.js `NEXT_PUBLIC_*` variable, so in a deployed build it must be supplied at `next build` time (it gets inlined into the client bundle, not read at container runtime) — pass it as a build/deploy-time env var when deploying `gharos-web`.
+
 This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
 
 ## Learn More

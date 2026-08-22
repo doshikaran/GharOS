@@ -125,7 +125,7 @@ Each must be **impossible to violate in code**, and each must have a test provin
 
 | Layer | Choice | Notes |
 |---|---|---|
-| Backend | **Python 3.12 + FastAPI** | async throughout, uvicorn |
+| Backend | **Python 3.13 + FastAPI** | async throughout, uvicorn. Migrated from 3.12 in Phase 2 — see ADR-006; Google Cloud's buildpack builder dropped 3.12 support after this table was originally written |
 | Agents | **Google ADK** | mandatory requirement #2 |
 | Model | **Gemini 3.5+ via Vertex AI** | mandatory requirement #1 |
 | Database | **Firestore (Native)** | mandatory requirement #3 — the knowledge graph |
@@ -472,7 +472,11 @@ cd backend && uv init
 uv add fastapi "uvicorn[standard]" google-cloud-firestore google-cloud-pubsub \
        google-cloud-aiplatform google-adk pydantic pydantic-settings structlog tenacity
 uv add --dev pytest pytest-asyncio pytest-cov mypy ruff hypothesis
-uv export --no-hashes --format requirements-txt > requirements.txt
+uv export -q --no-hashes --format requirements-txt > requirements.txt
+# -q is required, not cosmetic: without it, some uv versions print a
+# "Resolved N packages in Xms" progress line to STDOUT (not stderr) as the
+# file's first line, which buildpacks' pip install then rejects outright as
+# an invalid requirement — this broke the Phase 2 deploy in practice.
 ```
 
 - `scripts/emulators.sh` — Firestore + Pub/Sub emulators

@@ -4,10 +4,13 @@ Kept up to date at the end of every work session. See `PHASES.md` for the full g
 
 ## Status
 
-**Current phase:** 1 — Graph substrate — **GATED 2026-08-22** (see `verification.md`)
+**Current phase:** 2 — Mandatory Stack Proof — **GATED 2026-08-22** (see `verification.md`)
 **Phase 0 gate:** SIGNED 2026-08-22
-**Phase 1 gate:** SIGNED 2026-08-22 — 138 tests passed/6 skipped/0 failed, 97.6%/96.9%/100% coverage (graph/persistence/provenance-guard), all independently reproduced by the CTO against a cold-started emulator, not just accepted from E1's report. Two contract corrections made this phase (ADR-004, ADR-005). DEBT-001 (billing) still open, unaffected; DEBT-002 opened (ACTION_RECORD/APPROVAL_REQUEST graph connectivity, repayment Phase 5).
-**Next:** Phase 2 (Mandatory Stack Proof) — awaiting operator go-ahead. Note: Phase 2 hard-requires live GCP (DEBT-001 must be resolved first, unlike Phase 1 which didn't need it).
+**Phase 1 gate:** SIGNED 2026-08-22 — 138 tests passed/6 skipped/0 failed, 97.6%/96.9%/100% coverage (graph/persistence/provenance-guard), all independently reproduced by the CTO. Two contract corrections (ADR-004, ADR-005). DEBT-002 opened (repayment Phase 5).
+**Phase 2 gate: SIGNED 2026-08-22.** Both `gharos-api` and `gharos-web` deployed live to Cloud Run and independently verified working — real Vertex AI Gemini call, real Google ADK agent+tool call, real Scheduler→Pub/Sub→Cloud Run round trip, real Secret Manager read, real CORS-verified cross-origin frontend↔backend connectivity, `min-instances=0` confirmed on both services. 184 backend tests passing (0 failed), clean `mypy --strict`/`ruff` across 70 files. Hit and fixed **six real deployment bugs** along the way (Python 3.12 support dropped by Google's buildpack builder → ADR-006; `contracts/` unreachable in the deployed container → ADR-007; `uv export` stderr corrupting `requirements.txt`; `NEXT_PUBLIC_API_BASE_URL` never reaching the remote build; CORS entirely missing between the two Cloud Run origins; a `--set-env-vars` comma-delimiter collision with a multi-value CORS setting) plus one real code-review bug (swapped agent-ID comments in the Pro-tier allowlist, doc-only, allowlist behavior was always correct). Full detail in `verification.md` and `docs/DEPLOYMENT_PROOF.md`.
+**DEBT-001 RESOLVED 2026-08-22** (billing activation — see `docs/DEBT.md`). **DEBT-003 opened this phase** (Pro-tier Gemini unavailable in `asia-south1`, works via "global" — repayment before Phase 4).
+**Both Cloud Run services are currently live/serving** (not yet scaled to zero) — run `./infra/teardown.sh` when done inspecting.
+**Next:** Phase 3 (Perception & Document Registry) — awaiting operator go-ahead.
 
 ## Log
 

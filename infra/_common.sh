@@ -112,3 +112,33 @@ require_file() {
   local path="$1" what="$2"
   [[ -f "$path" ]] || die "$what not found at: $path (required for a buildpack source deploy)."
 }
+
+# Every Cloud Run service is reachable at TWO distinct, independently
+# resolving URLs — a `<service>-<hash>.<region>.run.app` alias (what
+# `gcloud run services describe --format='value(status.url)'` reports) and
+# a `<service>-<project-number>.<region>.run.app` canonical form (what
+# `gcloud run deploy`'s own success message prints). Discovered live in
+# Phase 2: a browser can legitimately arrive at a frontend via either form,
+# so anything that needs "the frontend's real origin" (CORS_ALLOWED_ORIGINS
+# in deploy_backend.sh) must allow both, not just whichever one `status.url`
+# happens to report — an allowlist of only one is a real, silent breakage
+# waiting for whoever loads the app from the other URL.
+#
+# Echoes a comma-separated list of both URLs for $1 (a deployed service
+# name), or nothing (empty string, exit 1) if the service isn't deployed.
+service_urls() {
+  local service="$1" project_id="$2"
+  local alias_url project_number canonical_url
+  alias_url="$(gcloud run services describe "$service" \
+    --project "$project_id" --region "$GHAROS_REGION" --format='value(status.url)' 2>/dev/null || true)"
+  [[ -n "$alias_url" ]] || { echo ""; return 1; }
+
+  project_number="$(gcloud projects describe "$project_id" --format='value(projectNumber)' 2>/dev/null || true)"
+  if [[ -n "$project_number" ]]; then
+    canonical_url="https://${service}-${project_number}.${GHAROS_REGION}.run.app"
+    echo "${alias_url},${canonical_url}"
+  else
+    echo "$alias_url"
+  fi
+  return 0
+}

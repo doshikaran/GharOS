@@ -10,19 +10,42 @@
 # step 3 does this) — if none is found, this script says so explicitly and
 # exits non-zero. It never silently skips the alert.
 #
+# Currency-aware: `gcloud billing budgets create --budget-amount` requires
+# an amount denominated in the billing account's OWN currency — passing a
+# mismatched currency code (e.g. "25USD" on an INR-denominated account)
+# fails with an opaque INVALID_ARGUMENT and no mention of currency at all.
+# This script reads the billing account's real `currencyCode` first and
+# never assumes USD.
+#
 # Usage:
 #   ./infra/budget_alert.sh
-#   BUDGET_AMOUNT_USD=25 ./infra/budget_alert.sh   # override the default
+#   BUDGET_AMOUNT_USD=25 ./infra/budget_alert.sh    # only used if account currency is USD
+#   BUDGET_AMOUNT_NATIVE=2000 ./infra/budget_alert.sh   # explicit amount in the account's own currency, any currency
 
 set -euo pipefail
 cd "$(dirname "${BASH_SOURCE[0]}")"
 source ./_common.sh
 
 readonly BUDGET_DISPLAY_NAME="GharOS monthly budget"
-readonly BUDGET_AMOUNT_USD="${BUDGET_AMOUNT_USD:-25}"
+# Rough USD-equivalent defaults for non-USD accounts, so the ~$25 guardrail
+# from PHASES.md §6.2.7 stays meaningful in the account's native currency
+# without requiring the operator to do currency math. This is intentionally
+# a short, explicit table, not a live FX lookup (a live conversion API is
+# both unnecessary precision for a budget *guardrail* and one more external
+# dependency this script would need to fail gracefully around) — if your
+# account's currency isn't listed, set BUDGET_AMOUNT_NATIVE explicitly.
+default_native_amount_for_currency() {
+  case "$1" in
+    USD) echo "25" ;;
+    INR) echo "2000" ;;
+    EUR) echo "23" ;;
+    GBP) echo "20" ;;
+    *)   echo "" ;;
+  esac
+}
 
 echo "=================================================================="
-echo " GharOS — budget alert (\$${BUDGET_AMOUNT_USD}, 50%/90% thresholds)"
+echo " GharOS — budget alert (~\$25 guardrail, 50%/90% thresholds)"
 echo "=================================================================="
 
 require_gcloud
@@ -65,6 +88,26 @@ fi
 
 log "Billing account: $billing_account"
 
+# --- determine the account's currency, and the amount to use in it -------
+
+currency_code="$(gcloud billing accounts describe "$billing_account" \
+  --format='value(currencyCode)' 2>/dev/null || true)"
+[[ -n "$currency_code" ]] || die "Could not read the billing account's currencyCode from 'gcloud billing accounts describe $billing_account'."
+log "Billing account currency: $currency_code"
+
+if [[ -n "${BUDGET_AMOUNT_NATIVE:-}" ]]; then
+  budget_amount="$BUDGET_AMOUNT_NATIVE"
+  log "Using explicit BUDGET_AMOUNT_NATIVE=$budget_amount $currency_code"
+elif [[ "$currency_code" == "USD" ]]; then
+  budget_amount="${BUDGET_AMOUNT_USD:-25}"
+else
+  budget_amount="$(default_native_amount_for_currency "$currency_code")"
+  if [[ -z "$budget_amount" ]]; then
+    die "No default guardrail amount known for currency '$currency_code'. Set BUDGET_AMOUNT_NATIVE=<amount> and re-run (e.g. BUDGET_AMOUNT_NATIVE=2000 for roughly \$25 in a ~80/USD currency)."
+  fi
+  log "Account currency ($currency_code) isn't USD — using ~\$25-equivalent default: $budget_amount $currency_code. Override with BUDGET_AMOUNT_NATIVE if you want a different amount."
+fi
+
 # --- check billing budgets API is usable ---------------------------------
 
 if ! gcloud billing budgets list --billing-account="$billing_account" >/dev/null 2>&1; then
@@ -87,19 +130,20 @@ if [[ -n "$existing" ]]; then
   log "To change the amount or thresholds, edit it in the console:"
   log "  https://console.cloud.google.com/billing/${billing_account}/budgets"
 else
-  log "Creating budget '$BUDGET_DISPLAY_NAME' — \$${BUDGET_AMOUNT_USD}, alerts at 50% and 90%..."
+  log "Creating budget '$BUDGET_DISPLAY_NAME' — ${budget_amount} ${currency_code}, alerts at 50% and 90%..."
+  project_number="$(gcloud projects describe "$project_id" --format='value(projectNumber)')"
   gcloud billing budgets create \
     --billing-account="$billing_account" \
     --display-name="$BUDGET_DISPLAY_NAME" \
-    --budget-amount="${BUDGET_AMOUNT_USD}USD" \
+    --budget-amount="${budget_amount}${currency_code}" \
     --threshold-rule=percent=0.5 \
     --threshold-rule=percent=0.9 \
-    --filter-projects="projects/$project_id" \
+    --filter-projects="projects/${project_number}" \
     --quiet
   log "Budget created. Default GCP billing alert emails go to Billing Account Administrators/Users."
 fi
 
 echo "=================================================================="
-log "Budget alert active for project $project_id (\$${BUDGET_AMOUNT_USD}, 50%/90%)."
+log "Budget alert active for project $project_id (${budget_amount} ${currency_code}, 50%/90%)."
 log "This must stay active for the life of the project (PHASES.md §6.2.7)."
 echo "=================================================================="

@@ -1,0 +1,28 @@
+.board {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.baseUrl {
+  margin: 0;
+  font-size: 0.875rem;
+  color: var(--ink-muted);
+}
+
+.baseUrl code {
+  font-family: var(--font-body), monospace;
+  color: var(--ink-secondary);
+}
+
+.summary {
+  margin: 0;
+  font-weight: 600;
+  color: var(--ink-primary);
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(20rem, 1fr));
+  gap: var(--space-4);
+}

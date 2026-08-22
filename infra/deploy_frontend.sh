@@ -52,6 +52,35 @@ if [[ "${GHAROS_FRONTEND_MIN_INSTANCES:-0}" != "0" ]]; then
 fi
 log "min-instances=0 confirmed (never overridden). max-instances=$MAX_INSTANCES."
 
+# --- backend URL (build-time, not runtime) --------------------------------
+#
+# Next.js inlines `NEXT_PUBLIC_*` vars into the client JS bundle at `next
+# build` time — a runtime-only `--set-env-vars` (as used for the backend)
+# has no effect on them at all, since by the time the container starts,
+# the build has already finished and the value is either baked in or it
+# isn't. Buildpacks expose build-time vars via `--set-build-env-vars`,
+# distinct from `--set-env-vars`. Passing this only via the calling shell's
+# environment (as an earlier version of this script implicitly assumed)
+# does NOT reach the remote Cloud Build execution — discovered when the
+# first real Phase 2 deploy shipped with the `/status` page's documented
+# `http://localhost:8000` fallback baked in instead of the real backend URL.
+#
+# Default: look up the already-deployed gharos-api's own URL, so this
+# script works standalone without the caller needing to know it. Override
+# with NEXT_PUBLIC_API_BASE_URL if gharos-api isn't deployed yet or you
+# want to point at something else (e.g. a local backend for a hybrid test).
+if [[ -n "${NEXT_PUBLIC_API_BASE_URL:-}" ]]; then
+  api_base_url="$NEXT_PUBLIC_API_BASE_URL"
+  log "Using explicit NEXT_PUBLIC_API_BASE_URL=$api_base_url"
+else
+  api_base_url="$(gcloud run services describe "$GHAROS_API_SERVICE" \
+    --project "$project_id" --region "$GHAROS_REGION" --format='value(status.url)' 2>/dev/null || true)"
+  if [[ -z "$api_base_url" ]]; then
+    die "gharos-api is not deployed yet and NEXT_PUBLIC_API_BASE_URL was not set. Deploy the backend first (./infra/deploy_backend.sh) or pass NEXT_PUBLIC_API_BASE_URL explicitly."
+  fi
+  log "Looked up gharos-api's live URL: $api_base_url"
+fi
+
 # --- deploy ----------------------------------------------------------------
 
 log "Deploying $GHAROS_WEB_SERVICE from $FRONTEND_DIR (source build, no Dockerfile)..."
@@ -62,6 +91,7 @@ gcloud run deploy "$GHAROS_WEB_SERVICE" \
   --min-instances=0 \
   --max-instances="$MAX_INSTANCES" \
   --allow-unauthenticated \
+  --set-build-env-vars="NEXT_PUBLIC_API_BASE_URL=${api_base_url}" \
   --quiet
 
 service_url="$(gcloud run services describe "$GHAROS_WEB_SERVICE" \

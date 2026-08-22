@@ -74,6 +74,7 @@ google-api-core==2.34.0
     #   google-cloud-firestore
     #   google-cloud-pubsub
     #   google-cloud-resource-manager
+    #   google-cloud-secret-manager
     #   google-cloud-storage
 google-auth==2.56.3
     # via
@@ -85,6 +86,7 @@ google-auth==2.56.3
     #   google-cloud-firestore
     #   google-cloud-pubsub
     #   google-cloud-resource-manager
+    #   google-cloud-secret-manager
     #   google-cloud-storage
     #   google-genai
 google-cloud-aiplatform==1.165.1
@@ -102,6 +104,8 @@ google-cloud-pubsub==2.39.1
     # via gharos-backend
 google-cloud-resource-manager==1.18.0
     # via google-cloud-aiplatform
+google-cloud-secret-manager==2.30.0
+    # via gharos-backend
 google-cloud-storage==3.13.1
     # via google-cloud-aiplatform
 google-crc32c==1.8.0
@@ -127,12 +131,14 @@ grpc-google-iam-v1==0.14.5
     # via
     #   google-cloud-pubsub
     #   google-cloud-resource-manager
+    #   google-cloud-secret-manager
 grpcio==1.83.0
     # via
     #   google-api-core
     #   google-cloud-firestore
     #   google-cloud-pubsub
     #   google-cloud-resource-manager
+    #   google-cloud-secret-manager
     #   googleapis-common-protos
     #   grpc-google-iam-v1
     #   grpcio-status
@@ -211,6 +217,7 @@ proto-plus==1.28.3
     #   google-cloud-firestore
     #   google-cloud-pubsub
     #   google-cloud-resource-manager
+    #   google-cloud-secret-manager
 protobuf==6.33.6
     # via
     #   google-api-core
@@ -218,6 +225,7 @@ protobuf==6.33.6
     #   google-cloud-firestore
     #   google-cloud-pubsub
     #   google-cloud-resource-manager
+    #   google-cloud-secret-manager
     #   googleapis-common-protos
     #   grpc-google-iam-v1
     #   grpcio-status
@@ -297,9 +305,6 @@ tenacity==9.1.4
     #   google-genai
 typing-extensions==4.16.0
     # via
-    #   aiohttp
-    #   aiosignal
-    #   anyio
     #   fastapi
     #   google-adk
     #   google-cloud-aiplatform
@@ -311,9 +316,6 @@ typing-extensions==4.16.0
     #   opentelemetry-semantic-conventions
     #   pydantic
     #   pydantic-core
-    #   pytest-asyncio
-    #   referencing
-    #   starlette
     #   typing-inspection
 typing-inspection==0.4.4
     # via

@@ -53,4 +53,4 @@ Every role loads the relevant ones before implementation work:
 
 ## Tech stack (fixed — see PHASES.md §3)
 
-Python 3.12 + FastAPI · Google ADK · Gemini 3.5+ via Vertex AI · Firestore (Native) · Cloud Pub/Sub · Cloud Run (source deploys, `min-instances=0`) · Cloud Scheduler · Next.js 15 + TypeScript · Tailwind CSS v4 · D3 (or Cytoscape.js) · `uv` / `pnpm` · `ruff` + `mypy` / `eslint` + `prettier` · `pytest` / `vitest`.
+Python 3.13 + FastAPI (migrated from 3.12 in Phase 2, ADR-006 — Google's buildpack builder dropped 3.12) · Google ADK · Gemini 3.5+ via Vertex AI · Firestore (Native) · Cloud Pub/Sub · Cloud Run (source deploys, `min-instances=0`) · Cloud Scheduler · Next.js 15 + TypeScript · Tailwind CSS v4 · D3 (or Cytoscape.js) · `uv` / `pnpm` · `ruff` + `mypy` / `eslint` + `prettier` · `pytest` / `vitest`.

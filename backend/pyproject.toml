@@ -2,13 +2,14 @@
 name = "gharos-backend"
 version = "0.1.0"
 description = "Add your description here"
-requires-python = ">=3.12"
+requires-python = ">=3.13"
 dependencies = [
     "fastapi>=0.141.1",
     "google-adk>=2.7.1",
     "google-cloud-aiplatform>=1.165.1",
     "google-cloud-firestore>=2.28.1",
     "google-cloud-pubsub>=2.39.1",
+    "google-cloud-secret-manager>=2.30.0",
     "pydantic>=2.13.4",
     "pydantic-settings>=2.15.0",
     "structlog>=26.1.0",
@@ -34,6 +35,9 @@ dev = [
 # top-level module the parent path might otherwise shadow.
 pythonpath = [".", ".."]
 testpaths = ["tests"]
+markers = [
+    "live_gcp: hits the real GCP project over the network (Secret Manager has no emulator); skipped unless GHAROS_RUN_LIVE_GCP_TESTS=1 and GCP_PROJECT_ID are set — see backend/tests/test_secret_manager_adapter.py",
+]
 
 [tool.mypy]
 mypy_path = ".."

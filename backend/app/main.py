@@ -1,18 +1,45 @@
 """GharOS backend — FastAPI application entrypoint.
 
 Phase 0: a minimal app exposing `/health` only, matching the Procfile's
-`app.main:app` target (`backend/Procfile`, owned by E3). Routers for the
-graph, agents, and tools are added by their owning roles in later phases —
-this module stays thin; it wires, it does not implement.
+`app.main:app` target (`backend/Procfile`, owned by E3). Phase 2 adds two
+routers — the Pub/Sub push receiver (`app.api.pubsub_receiver`, E3 —
+PHASES.md Phase 2 work items 2/5) and the mandatory-stack-proof diagnostic
+endpoints (`app.api.debug`, E2 — PHASES.md Gate 2 requirements 1/2) — and
+CORS support, since `gharos-web` (E4's `/status` page) fetches these
+endpoints cross-origin from a separately-deployed Cloud Run service.
+Routers for the graph and tools are added by their owning roles in later
+phases — this module stays thin; it wires, it does not implement.
 """
 
 from __future__ import annotations
 
 from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
 
+from app.api.debug import router as debug_router
+from app.api.pubsub_receiver import router as pubsub_router
 from app.settings import get_settings
 
 app = FastAPI(title="GharOS backend")
+
+_settings = get_settings()
+_allowed_origins = _settings.cors_allowed_origins_list
+if _allowed_origins:
+    # Exact-origin allowlist only — never a wildcard (see
+    # Settings.cors_allowed_origins's docstring). GET-only today (every
+    # Phase 2 endpoint is a read/debug check); revisit `allow_methods` when
+    # a real T3+ write endpoint is ever meant to be called directly from
+    # the browser, which is not the plan (writes go through the Approval
+    # Gate, not a client-side fetch).
+    app.add_middleware(
+        CORSMiddleware,
+        allow_origins=_allowed_origins,
+        allow_methods=["GET"],
+        allow_headers=["*"],
+    )
+
+app.include_router(pubsub_router)
+app.include_router(debug_router)
 
 
 @app.get("/health")

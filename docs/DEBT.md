@@ -4,25 +4,34 @@ Every entry needs an owner and a repayment phase, per `PHASES.md` §2.1 rule 1 a
 
 ---
 
-## OPEN
+## RESOLVED
 
-### DEBT-001 — GCP billing account not active
+### ~~DEBT-001 — GCP billing account not active~~ — RESOLVED 2026-08-22
 
-**Opened:** Phase 0, 2026-08-22
-**Owner:** operator (this is an external Google Cloud console action, not a code fix)
-**Repayment phase:** before Phase 2 (Mandatory Stack Proof) gates — Phase 2 hard-requires a live deployed Cloud Run service, live Firestore, live Pub/Sub, and a live Scheduler job, none of which are reachable until billing is active.
+Operator activated a new billing account (`01EC81-ACAC3A-3D4415`, "main billing account", currency INR, confirmed `OPEN: True`) and linked it to `blissful-trail-506312-t0`. `infra/setup_gcp.sh` re-run to completion: all required APIs enabled, Firestore (Native, `asia-south1`) created.
 
-**What's blocked:** `infra/setup_gcp.sh` cannot proceed past step 3/5 (API enablement, Firestore database creation). `infra/budget_alert.sh` cannot create a budget (GCP Budgets require a billing account). Both scripts are written, idempotent, and were reviewed directly by the CTO — the code is not the gap, the account state is.
+`infra/budget_alert.sh` also required a real fix while resolving this (not just a re-run): it hardcoded `--budget-amount="${AMOUNT}USD"`, which fails with an opaque `INVALID_ARGUMENT` on any non-USD-denominated billing account — this billing account is INR. Root-caused by testing the underlying `gcloud billing budgets create` call directly, isolating the currency mismatch (confirmed by checking `gcloud billing accounts describe`'s `currencyCode` field), and fixing the script to detect the account's real currency and use a currency-aware default amount (`BUDGET_AMOUNT_NATIVE` override available) instead of assuming USD. Verified end to end: budget alert now active, ₹2,000/month, 50%/90% thresholds, on the real project.
 
-**Root cause:** the operator's billing account (`016373-05772C-CB9E99`, display name "Main") shows `OPEN: False` in `gcloud billing accounts list`, independent of which GCP project it's linked to (confirmed across two different projects). This points to the billing account itself not being fully activated on Google's side — most likely a pending payment-method verification step in the console that hasn't been completed, rather than anything project-specific.
+Original entry, for the record:
 
-**Why this does NOT block Phase 0 or Phase 1:** Gate 0's other six items are all independently verified and passing (see `verification.md`, Phase 0 section) — only the "budget alert active" item is affected. Phase 1 (graph substrate) runs entirely against the Firestore *emulator* per its own gate checklist; it has no dependency on a live GCP project at all.
-
-**Repayment condition:** operator confirms the billing account shows `OPEN: True` in `gcloud billing accounts list`; CTO (or whoever's running the session) re-runs `infra/setup_gcp.sh` and `infra/budget_alert.sh`, confirms both complete, and strikes this entry with the date.
+> **Owner:** operator. **Repayment phase:** before Phase 2 gates.
+> Billing account showed `OPEN: False` regardless of project; blocked `infra/setup_gcp.sh` past step 3/5 and `infra/budget_alert.sh` entirely.
 
 ---
 
-### DEBT-002 — ACTION_RECORD and APPROVAL_REQUEST are not yet reachable by any graph edge
+## OPEN
+
+### DEBT-003 — Pro-tier Gemini not available in `asia-south1` for this project
+
+**Opened:** Phase 2, 2026-08-22
+**Owner:** e2 (routing fix) + cto (settings/region decision)
+**Repayment phase:** before Phase 4 (Consequence Engine) gates — Phase 4's flagship Implication Agent is Pro-tier, elevated thinking, and cannot ship without a working Pro-tier call path.
+
+**What's the gap:** E2 live-tested Vertex AI Gemini calls against `blissful-trail-506312-t0`. Flash-tier (`gemini-2.5-flash`) works correctly in `asia-south1`. Pro-tier (`gemini-2.5-pro`) 404s in `asia-south1` after ~15 model-id variants tried, but works via the "global" Vertex AI location. This is a real regional Model Garden availability gap on this project/account, not a code defect.
+
+**Why this doesn't block Phase 2:** Gate 2 only requires Flash-tier plumbing proof (`/debug/gemini-ping`), which passed live. Pro-tier isn't exercised by any real agent until Phase 4.
+
+**Repayment condition:** before Phase 4 starts, decide and implement one of: (a) route Pro-tier calls through `location="global"` while Flash stays regional for latency (needs a second location field, e.g. `vertex_ai_location_pro`, and `model_router.py`/`gemini_client.py` routing logic to use it based on `ModelTier`), or (b) request/confirm regional Pro-tier access for this project and keep single-region routing. Whichever is chosen gets a short ADR (it's a real infra/latency trade-off, not a trivial config tweak) and this entry is struck with the date. — ACTION_RECORD and APPROVAL_REQUEST are not yet reachable by any graph edge
 
 **Opened:** Phase 1, 2026-08-22
 **Owner:** cto (contract) + e1 (integrity checker's current special-case) + e3 (the actual producer of these nodes)
