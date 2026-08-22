@@ -1,0 +1,32 @@
+// GharOS — infra/firestore.rules
+//
+// PHASES.md §0.C / §4: minimal, secure-by-default Firestore security rules.
+//
+// Deny-all client access is correct here, not a placeholder to loosen
+// later: every read and write to the household graph goes through the
+// backend service (backend/app/persistence/, owned by E1) using
+// server-side Admin SDK credentials, which are NOT subject to these
+// rules at all. No client (web, mobile, direct SDK) talks to Firestore
+// directly — that's the whole point of routing every mutation through
+// the FastAPI backend's repository layer + audit log
+// (contracts/repositories.py, safety invariant #2: "every action writes
+// its audit record before execution").
+//
+// If a future phase genuinely needs client-side Firestore reads (e.g. a
+// realtime listener for the graph-visualisation UI), that is a deliberate
+// architecture change requiring a CTO-approved ADR — not a rule change
+// slipped in quietly. Until such an ADR exists, this file stays deny-all.
+
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Deny all client reads and writes, on every collection, by default.
+    // The backend service (Admin SDK / service account) is not evaluated
+    // against these rules and is unaffected by this block.
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

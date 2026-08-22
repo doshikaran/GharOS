@@ -1,0 +1,42 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+.mypy_cache/
+.ruff_cache/
+.pytest_cache/
+.coverage
+htmlcov/
+backend/.env
+
+# Node
+node_modules/
+.next/
+out/
+.turbo/
+frontend/.env*
+!frontend/.env.example
+
+# Firestore/Pub/Sub emulator state
+.firebase/
+firestore-debug.log
+pubsub-emulator/
+.emulator-pids/
+.emulator-logs/
+
+# Secrets and local env
+.env
+.env.local
+*.pem
+*.key
+gcp-service-account*.json
+
+# Editors/OS
+.DS_Store
+.vscode/
+.idea/
+
+# Claude Code local state (keep .claude/agents and .claude/skills, ignore scratch)
+.claude/settings.local.json

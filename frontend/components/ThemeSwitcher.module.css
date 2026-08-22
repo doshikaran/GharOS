@@ -1,0 +1,44 @@
+.group {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  padding: var(--space-1);
+  background: var(--surface-raised);
+  border: 1px solid var(--royal-soft);
+  border-radius: var(--radius-full);
+}
+
+.option {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-1);
+  min-width: 2.25rem;
+  min-height: 2.25rem;
+  padding: var(--space-1) var(--space-3);
+  border: none;
+  border-radius: var(--radius-full);
+  background: transparent;
+  color: var(--ink-muted);
+  cursor: pointer;
+  font-family: var(--font-body), ui-sans-serif, sans-serif;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  transition: background-color var(--motion-fast) var(--motion-ease-standard),
+    color var(--motion-fast) var(--motion-ease-standard);
+}
+
+.option[data-active="true"] {
+  background: var(--royal-primary);
+  color: var(--on-royal);
+}
+
+.option:hover:not([data-active="true"]) {
+  background: var(--surface-overlay);
+  color: var(--ink-primary);
+}
+
+.option:focus-visible {
+  outline: 2px solid var(--royal-primary);
+  outline-offset: 2px;
+}

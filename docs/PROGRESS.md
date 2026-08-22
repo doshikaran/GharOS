@@ -1,0 +1,44 @@
+# GharOS build progress
+
+Kept up to date at the end of every work session. See `PHASES.md` for the full gated plan.
+
+## Status
+
+**Current phase:** 1 — Graph substrate — **GATED 2026-08-22** (see `verification.md`)
+**Phase 0 gate:** SIGNED 2026-08-22
+**Phase 1 gate:** SIGNED 2026-08-22 — 138 tests passed/6 skipped/0 failed, 97.6%/96.9%/100% coverage (graph/persistence/provenance-guard), all independently reproduced by the CTO against a cold-started emulator, not just accepted from E1's report. Two contract corrections made this phase (ADR-004, ADR-005). DEBT-001 (billing) still open, unaffected; DEBT-002 opened (ACTION_RECORD/APPROVAL_REQUEST graph connectivity, repayment Phase 5).
+**Next:** Phase 2 (Mandatory Stack Proof) — awaiting operator go-ahead. Note: Phase 2 hard-requires live GCP (DEBT-001 must be resolved first, unlike Phase 1 which didn't need it).
+
+## Log
+
+### 2026-08-22
+
+- Read `GharOS_Build_Spec_v2.md` (full, 28 sections) and `PHASES.md` (full) — no code existed before this session.
+- Decisions made with the operator:
+  - **Execution model:** five roles implemented as native Claude Code subagents in `.claude/agents/` (`cto`, `e1`, `e2`, `e3`, `e4`), each with a hard-boundary owned-directory charter drawn from PHASES.md §1. Two shared skills in `.claude/skills/` (`gharos-standards`, `gharos-gate-review`) that every role loads before implementation work. CTO work is done inline in the primary session (already carries full spec context); E1-E4 are dispatched via the `Agent` tool, typically in parallel once contracts are frozen.
+  - **GCP provisioning:** provision for real now rather than deferring — gcloud CLI installed via Homebrew, project created, APIs enabled, budget alert configured, as part of Phase 0.C.
+- Created: `.claude/agents/{cto,e1,e2,e3,e4}.md`, `.claude/skills/{gharos-standards,gharos-gate-review}/SKILL.md`, root `CLAUDE.md`, this file.
+- gcloud CLI install kicked off in background via Homebrew.
+
+### 2026-08-22 (continued)
+
+- CTO work (0.A) complete: `contracts/` frozen (graph_types.py, repositories.py, errors.py, actions.py, tools.py, events.py, agents.py) — verified importable in isolation, no infra leaks, `mypy --strict` and `ruff` clean, provenance guard sanity-checked. Six diagrams committed to `docs/diagrams/`. Three ADRs written: 001 (Firestore edge layout), 002 (Result-vs-exception policy), 003 (prompt versioning). Root `.gitignore`, `.env.example`, `Makefile` added; git repo initialized.
+- Note: `.claude/agents/*.md` custom subagent types do not hot-load mid-session — dispatched E1/E3/E4 as `general-purpose` agents instructed to read their charter file first (functionally equivalent). Expect `cto`/`e1`/`e2`/`e3`/`e4` to appear as native subagent types starting next session.
+- Dispatched in parallel (background, in progress as of this log entry): E1 on 0.B (backend uv project, stub repositories against `contracts/repositories.py`, emulator script, safety-invariant placeholder tests), E3 on 0.C (infra scripts only — NOT executing `gcloud auth`/project creation, which needs interactive human auth), E4 on 0.D (Next.js scaffold, design tokens, `/tokens` route, design-system components).
+- gcloud CLI installed via Homebrew (581.0.0). Operator ran `gcloud auth login` (account: doshikaran005@gmail.com) and `gcloud auth application-default login` requested.
+- Operator asked to stop all in-flight work; all three background subagents (E1/E3/E4) were stopped via TaskStop. No partial work was lost — files already written to disk remain (backend/ uv project scaffold, infra/ scripts complete, frontend/ Next.js scaffold with deps installed).
+- Operator gave three standing instructions: (1) `.claude/agents/*.md` and `.claude/skills/*/SKILL.md` must be very detailed/in-depth — rewritten accordingly (all 5 agent charters + gharos-standards + gharos-gate-review deepened; added 3 new reference skills: gharos-graph-model, gharos-agent-roster, gharos-tool-permissions). (2) Run phases strictly one at a time — complete Phase 0, gate it, summarize into `verification.md` at repo root, present the summary, and stop until told to proceed to Phase 1. (3) gcloud auth confirmed working.
+- Ran `infra/setup_gcp.sh`: created GCP project `gharos-20260822-50c6`, but this Google account has zero billing accounts — blocked pending operator creating one in the console and linking it. Re-dispatched E1 and E4 to finish their remaining Phase 0.B/0.D deliverables (E3's infra/ work was reviewed directly and accepted as complete).
+
+## Gaps
+
+- **Formalized as `docs/DEBT.md` DEBT-001** as of Phase 0 gate — see that file for the canonical, kept-current version of this item going forward. Snapshot at time of discovery kept below for narrative continuity.
+- **GCP billing account not active (blocking Phase 2, not Phase 0/1).** Operator initially created project `gharos-506312` and linked billing account `016373-05772C-CB9E99`, but it showed `OPEN: False`. Operator then deleted that project (now `DELETE_REQUESTED`, harmless, auto-purges) and created a new one via console, `blissful-trail-506312-t0` (display name "GharOS") — this is the project now correctly referenced in `backend/.env`. Re-checked billing on the new project: **still `billingEnabled: false`**, and the billing account itself (`016373-05772C-CB9E99`, now named "Main") **still shows `OPEN: False`** regardless of which project it's linked to. This confirms the blocker is the billing account's own activation status on Google's side, not a per-project issue — switching projects won't fix it. Operator needs to check the billing account's own console page directly for a pending-verification banner or error (common cause: payment-method verification step not completed, sometimes an extra step for India-issued cards). Until resolved, `infra/setup_gcp.sh` cannot proceed past step 3/5 and `infra/budget_alert.sh` cannot run.
+  - Orphaned/deleted projects (`gharos-20260822-50c6` — no billing, no cost; `gharos-506312` — `DELETE_REQUESTED`) need no action, both harmless.
+  - **Scope check:** this does NOT block Phase 1 (Graph substrate) — Gate 1's checklist (node/edge round-trips, all 14 traversals, provenance guard, audit-before-execute, idempotency, integrity checker) runs entirely against the Firestore *emulator*, no live project needed. It DOES block Phase 2 (Mandatory Stack Proof), which hard-requires an actual deployed Cloud Run service and live Firestore/Pub/Sub/Scheduler — cannot gate Phase 2 until this is resolved.
+  - **Also affects Gate 0's "Budget alert active" item** specifically — everything else in Gate 0 (contracts, diagrams, `/tokens`, emulators-run-locally, lint/types clean, no Dockerfile) is code-side and unaffected by this gap.
+- **E1 (Phase 0.B backend foundation) still in progress** as of this log entry — settings.py, app/main.py, persistence stubs, scripts/emulators.sh, test_safety_invariants.py placeholders. Will update this section and move the full picture into `verification.md` once it completes and its output is verified.
+
+## Open questions carried from spec §27.2
+
+Not yet resolved — revisit as the relevant phase approaches. See spec §27.2 for full list (15 items): primary ingestion adapter for demo, exact fairness guarantee wording, OUTCOME history seeding volume, which exception beat to use live, payment tool sandbox-vs-stub, minimum graph density for surprising conflict catches, Council demo scenario (car vs. house), Firestore traversal performance at demo scale, registry-type floor for the demo, product-category normalisation approach, whether the `absent_from` verification beat fits the time budget, which two languages get full depth, Hinglish ASR viability (test in week one), speaker-ID reliability for gating approvals, kinship-term bootstrapping approach.

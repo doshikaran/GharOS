@@ -1,0 +1,30 @@
+.card {
+  background: var(--surface-raised);
+  color: var(--ink-primary);
+  border: 1px solid var(--royal-soft);
+  border-radius: var(--radius-lg);
+  padding: var(--space-5);
+  box-shadow: var(--elevation-1);
+}
+
+.raisedOnHover {
+  transition: box-shadow var(--motion-base) var(--motion-ease-standard),
+    transform var(--motion-base) var(--motion-ease-standard);
+}
+.raisedOnHover:hover {
+  box-shadow: var(--elevation-2);
+}
+
+.title {
+  margin: 0 0 var(--space-2) 0;
+  font-family: var(--font-display), serif;
+  font-size: 1.125rem;
+  font-weight: 600;
+  color: var(--ink-primary);
+}
+
+.body {
+  color: var(--ink-secondary);
+  font-size: 0.9375rem;
+  line-height: 1.5;
+}

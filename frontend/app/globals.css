@@ -1,0 +1,28 @@
+@import "tailwindcss";
+@import "../styles/tokens.css";
+
+body {
+  background: var(--surface-base);
+  color: var(--ink-primary);
+  font-family: var(--font-body), ui-sans-serif, system-ui, sans-serif;
+  transition: background-color var(--motion-base) var(--motion-ease-standard),
+    color var(--motion-base) var(--motion-ease-standard);
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  font-family: var(--font-display), var(--font-body), ui-sans-serif, sans-serif;
+}
+
+* {
+  border-color: var(--ink-muted);
+}
+
+::selection {
+  background: var(--royal-soft);
+  color: var(--on-royal);
+}
