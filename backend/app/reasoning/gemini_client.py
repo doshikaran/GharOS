@@ -21,16 +21,30 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from datetime import UTC, datetime
+from typing import Any, cast
 
 import structlog
 from contracts.agents import ModelTier
 from contracts.graph_types import AgentId
 from google.genai import errors as genai_errors
+from google.genai import types
 
 from .errors import GeminiCallFailed
 from .model_router import ModelRouter
 
 logger = structlog.get_logger(__name__)
+
+
+@dataclass(frozen=True, slots=True)
+class MediaPart:
+    """One inline binary part (an image or PDF page) for a multimodal
+    Gemini call — `GeminiClient.generate_multimodal`'s input shape for the
+    real image/PDF bytes A3 (Document Extraction) and A3b (Line-Item
+    Extraction) send Gemini, never a description of the bytes (spec §15.2
+    A3: extraction reads the actual document)."""
+
+    data: bytes
+    mime_type: str
 
 
 @dataclass(frozen=True, slots=True)
@@ -90,13 +104,115 @@ class GeminiClient:
                 returned a response with no text content — a failed or
                 empty call is never reinterpreted as an empty success.
         """
+        return self._invoke(agent_id=agent_id, tier=tier, contents=prompt, response_mime_type=None)
+
+    def generate_structured(
+        self, *, agent_id: AgentId, tier: ModelTier, prompt: str
+    ) -> GeminiCallResult:
+        """Like `generate_text`, but asks Vertex AI to constrain its
+        response to `application/json` — used by every Phase 3 intake
+        agent (A2, A4, A5, A6) whose output this codebase parses as JSON
+        rather than free text. Prompts using this method must still spell
+        out the exact expected JSON shape themselves; `response_mime_type`
+        alone only constrains the *envelope*, not the schema within it.
+
+        Raises: same as `generate_text`.
+        """
+        return self._invoke(
+            agent_id=agent_id, tier=tier, contents=prompt, response_mime_type="application/json"
+        )
+
+    def generate_multimodal(
+        self,
+        *,
+        agent_id: AgentId,
+        tier: ModelTier,
+        prompt: str,
+        media: tuple[MediaPart, ...] = (),
+        response_mime_type: str | None = "application/json",
+    ) -> GeminiCallResult:
+        """Makes one live multimodal call to Vertex AI Gemini — the entry
+        point A3 (Document Extraction) and A3b (Line-Item Extraction) use
+        to send real image/PDF bytes alongside a text prompt (spec §15.2:
+        "Gemini multimodal — Flash for clean, Pro-tier for degraded/
+        handwriting"). `media` is empty for a text-shaped source document
+        (an email body, an SMS, a chat export) — those go through
+        `generate_structured` instead, since there is nothing to attach.
+
+        Args:
+            agent_id: as `generate_text`.
+            tier: as `generate_text`.
+            prompt: the text instruction/schema description.
+            media: zero or more `MediaPart`s (real image/PDF bytes) to
+                attach — each becomes one inline `types.Part` alongside
+                the prompt text, in a single user turn.
+            response_mime_type: forwarded into `types.GenerateContentConfig`
+                when set (the default, `"application/json"`, matches every
+                current caller's structured-extraction use case); pass
+                `None` for a call that wants free text back.
+
+        Returns: same shape as `generate_text`.
+
+        Raises: same as `generate_text`.
+        """
+        parts: list[types.Part] = [types.Part(text=prompt)]
+        for part in media:
+            parts.append(types.Part.from_bytes(data=part.data, mime_type=part.mime_type))
+        return self._invoke(
+            agent_id=agent_id, tier=tier, contents=parts, response_mime_type=response_mime_type
+        )
+
+    def _invoke(
+        self,
+        *,
+        agent_id: AgentId,
+        tier: ModelTier,
+        contents: str | list[types.Part],
+        response_mime_type: str | None,
+    ) -> GeminiCallResult:
+        """Shared call path behind `generate_text`/`generate_structured`/
+        `generate_multimodal` — resolves the model once, makes exactly one
+        `generate_content` call, and applies the one failure-handling
+        policy (safety invariant #7) uniformly regardless of which public
+        method the caller used.
+
+        `generate_text` passes `contents` through as the bare prompt
+        string it always has, unchanged from this module's original
+        (pre-multimodal) behaviour — callers and tests that depend on the
+        exact `generate_content(model=..., contents=<str>)` call shape for
+        a plain text call are unaffected by this method's existence.
+
+        The `cast(Any, ...)` below is a narrow, justified interop
+        boundary: the installed `google-genai` SDK spells
+        `generate_content(contents=...)`'s parameter type as an inline
+        `Union` (not a named, importable alias) whose `list[...]` members
+        are *invariant* under mypy's variance rules (see mypy's own "list
+        is invariant" note) — a genuinely-valid `list[types.Part]` does
+        not structurally match the SDK's broader `list[Part | ...]`
+        member even though every element satisfies it, and there is no
+        SDK-exported alias this module can cast to instead that mypy
+        accepts. `contents` here is only ever a bare `str` (from
+        `generate_text`/`generate_structured`) or a `list[types.Part]`
+        this module itself builds (`generate_multimodal`) — both real,
+        valid values the SDK accepts at runtime; this repo's
+        `reasoning.errors.GeminiCallFailed` handling below still applies
+        if that assumption is ever wrong.
+        """
         routed = self._router.route(agent_id=agent_id, requested_tier=tier)
+        config = (
+            types.GenerateContentConfig(response_mime_type=response_mime_type) if response_mime_type else None
+        )
+        sdk_contents = cast(Any, contents)
 
         try:
-            response = routed.client.models.generate_content(
-                model=routed.model_name,
-                contents=prompt,
-            )
+            if config is not None:
+                response = routed.client.models.generate_content(
+                    model=routed.model_name, contents=sdk_contents, config=config
+                )
+            else:
+                response = routed.client.models.generate_content(
+                    model=routed.model_name, contents=sdk_contents
+                )
         except genai_errors.APIError as exc:
             logger.warning(
                 "reasoning.gemini_client.call_failed",

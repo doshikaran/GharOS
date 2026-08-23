@@ -1,0 +1,10 @@
+{
+  "_comment": "agent_id -> active prompt version (ADR-003). The model router / agent orchestration layer reads this at construction time, never a hardcoded version string. Pinning a version for demo day (Phase 15) is a one-file change here.",
+  "A2": "v1",
+  "A3": "v1",
+  "A3b": "v1",
+  "A3c": "v1",
+  "A4": "v1",
+  "A5": "v1",
+  "A6": "v1"
+}

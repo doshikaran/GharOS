@@ -32,9 +32,9 @@ The design reference is Graphify's core discipline: **the answer is a path, not 
 | **PURCHASE_ITEM** | description, normalized product category, quantity, unit price, line total | **The finest-grained evidence node in the system** |
 | **PATTERN** | a mined regularity, e.g. "Dad's appointments always slip when scheduled on Mondays" | |
 
-## The 29 edge types
+## The 30 edge types
 
-*(The spec §5.3 table below has 29 rows, same as spec v2's original — but `supports`/`opposes` is one row for two distinct enum members, so the actual pre-Phase-1 `EdgeType` member count was 30. ADR-005 (Phase 1) removed `argued_by` — `AGENT` is not a graph node type, so `argued_by` (COUNCIL_POSITION → AGENT) could never resolve; `CouncilPosition.held_by_agent: AgentId` already carries this information directly on the node — leaving 29 actual enum members, matching the row count below coincidentally.)*
+*(The spec §5.3 table below has 29 rows, same as spec v2's original — but `supports`/`opposes` is one row for two distinct enum members, so the actual original `EdgeType` member count was 30. ADR-005 (Phase 1) removed `argued_by` — `AGENT` is not a graph node type, so `argued_by` (COUNCIL_POSITION → AGENT) could never resolve; `CouncilPosition.held_by_agent: AgentId` already carries this information directly on the node — bringing it to 29. ADR-009 (Phase 3) added `covers` (OBLIGATION → PURCHASE_ITEM) — spec §5.4.2's WARRANTY entry names this relationship explicitly ("links back to the originating RECEIPT's PURCHASE_ITEM") but the original table never gave it its own edge type — bringing it back to 30, one more than the table below shows.)*
 
 | Edge | From → To | Meaning |
 |---|---|---|
@@ -66,8 +66,9 @@ The design reference is Graphify's core discipline: **the answer is a path, not 
 | `absent_from` | CONSTRAINT → SOURCE_DOCUMENT[] | Expected evidence never appeared — silent non-compliance |
 | `substitutes` | PURCHASE_ITEM → PURCHASE_ITEM | Bought instead of the planned item |
 | `evidences_effort` | PURCHASE_ITEM \| LEDGER_EVENT → PERSON | Who actually did this run — behavioural valuation input |
+| `covers` | OBLIGATION → PURCHASE_ITEM | Added Phase 3, ADR-009 — a warranty claim-or-lose obligation back to the purchase it protects |
 
-The last seven (`line_item_of` through `evidences_effort`) are the **verification/receipt edges** — they are what closes the loop (see below) and they are frequently the ones a first draft forgets. `contracts/graph_types.py:EdgeType` is the frozen enum; never add an edge type there without going through the CTO.
+The seven `line_item_of` through `evidences_effort` are the **verification/receipt edges** — they are what closes the loop (see below) and they are frequently the ones a first draft forgets. `contracts/graph_types.py:EdgeType` is the frozen enum; never add an edge type there without going through the CTO.
 
 ## Provenance — the single most important discipline in the system
 

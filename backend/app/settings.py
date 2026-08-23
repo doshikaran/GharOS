@@ -83,6 +83,17 @@ class Settings(BaseSettings):
     # PUBSUB_PUSH_AUDIENCE once gharos-api's own URL is known).
     cors_allowed_origins: str = ""
 
+    # Raw payload storage (app.persistence.raw_payload_store) — backs
+    # SOURCE_DOCUMENT.raw_payload_ref (Phase 3: "source-document storage
+    # with region references"). Local-filesystem-backed for now, a
+    # deliberate choice for local dev and the hackathon demo (see
+    # raw_payload_store.py's module docstring for the full swap-point
+    # rationale); a later phase's GCSPayloadStore reads a bucket name from
+    # its own settings field instead of this one, added when that phase
+    # actually needs it. Relative paths resolve against the process's
+    # working directory (backend/ for `uv run uvicorn` / `uv run pytest`).
+    raw_payload_storage_dir: str = "./data/raw_payloads"
+
     # App
     env: str = "local"
     log_level: str = "INFO"

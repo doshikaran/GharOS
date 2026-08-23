@@ -9,6 +9,15 @@ safety invariant #3), the durable node/edge store with versioning and
 supersession (`firestore_store.py`), and the durable idempotency store
 (`idempotency_store.py`, spec §19.1).
 
+Phase 3 added SOURCE_DOCUMENT raw-payload storage and region-reference
+resolution: `raw_payload_store.py` (the `RawPayloadStore` protocol and its
+first concrete implementation, `LocalFilesystemPayloadStore`, backing
+`SourceDocument.raw_payload_ref`) and `region_resolver.py` (resolves a
+`contracts.graph_types.SourceRef` to real payload bytes plus a validated
+region locator — see that module's docstring for the two supported
+region-locator conventions). `errors.py` holds this package's own typed
+errors (not `contracts/errors.py`, which is CTO-owned and frozen).
+
 This package replaces Phase 0's in-memory stub repositories entirely —
 nothing here is a stand-in. The higher-level, protocol-facing repository
 implementations (`GraphReader`, `GraphWriter`, `PersonRepository`, ...)

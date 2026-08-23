@@ -31,7 +31,11 @@ Original entry, for the record:
 
 **Why this doesn't block Phase 2:** Gate 2 only requires Flash-tier plumbing proof (`/debug/gemini-ping`), which passed live. Pro-tier isn't exercised by any real agent until Phase 4.
 
-**Repayment condition:** before Phase 4 starts, decide and implement one of: (a) route Pro-tier calls through `location="global"` while Flash stays regional for latency (needs a second location field, e.g. `vertex_ai_location_pro`, and `model_router.py`/`gemini_client.py` routing logic to use it based on `ModelTier`), or (b) request/confirm regional Pro-tier access for this project and keep single-region routing. Whichever is chosen gets a short ADR (it's a real infra/latency trade-off, not a trivial config tweak) and this entry is struck with the date. — ACTION_RECORD and APPROVAL_REQUEST are not yet reachable by any graph edge
+**Repayment condition:** before Phase 4 starts, decide and implement one of: (a) route Pro-tier calls through `location="global"` while Flash stays regional for latency (needs a second location field, e.g. `vertex_ai_location_pro`, and `model_router.py`/`gemini_client.py` routing logic to use it based on `ModelTier`), or (b) request/confirm regional Pro-tier access for this project and keep single-region routing. Whichever is chosen gets a short ADR (it's a real infra/latency trade-off, not a trivial config tweak) and this entry is struck with the date.
+
+---
+
+### DEBT-002 — ACTION_RECORD and APPROVAL_REQUEST are not yet reachable by any graph edge
 
 **Opened:** Phase 1, 2026-08-22
 **Owner:** cto (contract) + e1 (integrity checker's current special-case) + e3 (the actual producer of these nodes)
@@ -42,3 +46,17 @@ Original entry, for the record:
 **Why this isn't being fixed right now:** closing this properly needs two things together — a contract change (new edge types, e.g. something like `authorizes`: APPROVAL_REQUEST → ACTION_RECORD, and `approved_by`: APPROVAL_REQUEST → PERSON) AND real code that actually populates those edges when an approval/action genuinely happens. Adding the edge types alone, now, with nothing using them, would just be a different flavor of the same "contract defines something nothing produces" problem ADR-005 just removed. Phase 5 is where the Approval Gate and Action Record become real — that's the right place to design these edges against actual usage, not speculatively now.
 
 **Repayment condition:** Phase 5's CTO contract freeze includes the connecting edge type(s) for ACTION_RECORD/APPROVAL_REQUEST, Phase 5's implementation actually writes them, the integrity checker's special-case is removed, and this entry is struck with the date.
+
+---
+
+### DEBT-004 — no graph node shape for per-day attendance marks
+
+**Opened:** Phase 3, 2026-08-23
+**Owner:** cto (contract) + e1/e2 (whoever builds Phase 7's Staff Payroll pipeline)
+**Repayment phase:** Phase 7 (Household Ledger — A34 Staff Payroll Agent), before its gate.
+
+**What's the gap:** `contracts.graph_types.Person` has no field or related node type for per-day presence marks. E2's `attendance_register` `ExtractionStrategy` (Phase 3) therefore writes zero graph nodes for a successfully-extracted register — the extracted marks are summarized into `GraphMappingResult.verification_findings` (text) only, nothing durable or queryable.
+
+**Why this isn't being fixed now:** Phase 7's A34 Staff Payroll Agent is what actually consumes attendance data ("days worked − absences − advances → salary due"). Designing the right node/edge shape (e.g. an `ATTENDANCE_RECORD` node per day, or a per-month aggregate, or something else) needs Phase 7's real consumption pattern in view — guessing now risks the same "declared a shape nothing produces or nothing consumes correctly" mistake this exact gate review just corrected twice (utility_bill/insurance_document target_edge_types, see `verification.md` Phase 3).
+
+**Repayment condition:** Phase 7's CTO contract freeze adds the real node/edge shape for attendance data; `attendance_register`'s `ExtractionStrategy` is updated to actually write it (not just summarize into findings text); this entry struck with the date.

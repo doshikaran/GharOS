@@ -37,6 +37,20 @@ logger = structlog.get_logger(__name__)
 PRO_TIER_ALLOWLIST: frozenset[AgentId] = frozenset(
     AgentId(agent_id)
     for agent_id in (
+        # spec §21.1 "Multimodal ingestion... Flash / Pro-tier for
+        # degraded" — Document Extraction Agent (Phase 3): Flash for
+        # clean documents, Pro-tier only for degraded scans/handwriting
+        # (spec §15.2 A3).
+        "A3",
+        # spec §21.1 "Multimodal ingestion... Flash / Pro-tier for
+        # degraded" — Line-Item Extraction Agent (Phase 3): Pro-tier
+        # multimodal specifically for degraded thermal receipts (spec
+        # §15.2 A3b).
+        "A3b",
+        # spec §15.2 A3c Verification Agent (Phase 3) — Pro-tier per the
+        # roster: interpreting whether a purchased item verifies or
+        # contradicts a household constraint is judgment, not extraction.
+        "A3c",
         # spec §21.1 "Cross-script entity resolution" — Entity Resolution
         # Agent (Phase 3), Flash by default, escalates to Pro-tier only on
         # ambiguity (spec §15.2 A5: never guess on hard-constraint-bearing

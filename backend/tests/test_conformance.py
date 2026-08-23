@@ -8,6 +8,8 @@ Firestore client, not just that the type annotations line up.
 
 from __future__ import annotations
 
+from pathlib import Path
+
 from google.cloud import firestore
 
 from app.audit.conformance import _audit_log_conforms
@@ -20,12 +22,12 @@ from app.graph.conformance import (
     _pattern_repository_conforms,
     _person_repository_conforms,
 )
-from app.persistence.conformance import _idempotency_store_conforms
+from app.persistence.conformance import _idempotency_store_conforms, _raw_payload_store_conforms
 from app.persistence.firestore_store import FirestoreGraphStore
 
 
 def test_all_graph_protocol_conformance_factories_construct(
-    store: FirestoreGraphStore, firestore_client: firestore.Client
+    store: FirestoreGraphStore, firestore_client: firestore.Client, tmp_path: Path
 ) -> None:
     assert _graph_reader_conforms(store) is not None
     assert _graph_writer_conforms(store) is not None
@@ -36,3 +38,4 @@ def test_all_graph_protocol_conformance_factories_construct(
     assert _graph_integrity_checker_conforms(store) is not None
     assert _audit_log_conforms(firestore_client) is not None
     assert _idempotency_store_conforms(firestore_client) is not None
+    assert _raw_payload_store_conforms(tmp_path / "raw_payloads") is not None

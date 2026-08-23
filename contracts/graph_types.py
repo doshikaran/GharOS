@@ -20,7 +20,7 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 from datetime import datetime
 from enum import Enum
-from typing import Literal, NewType
+from typing import Literal, NewType, Protocol
 
 # ---------------------------------------------------------------------------
 # Identifiers
@@ -431,6 +431,13 @@ class EdgeType(str, Enum):
     ABSENT_FROM = "absent_from"
     SUBSTITUTES = "substitutes"
     EVIDENCES_EFFORT = "evidences_effort"
+    COVERS = "covers"
+    """OBLIGATION -> PURCHASE_ITEM. A warranty/purchase-protection claim-or-
+    lose OBLIGATION back to the originating receipt's PURCHASE_ITEM (spec
+    §5.4.2 WARRANTY: "links back to the originating RECEIPT's PURCHASE_ITEM
+    — this is why receipt line-item extraction matters months later").
+    Added Phase 3 (ADR-009) — spec named this relationship explicitly but
+    the original 29-edge table never gave it its own edge type."""
 
 
 @dataclass(frozen=True, slots=True)
@@ -469,13 +476,99 @@ class FieldSchema:
 @dataclass(frozen=True, slots=True)
 class DocumentTypeSpec:
     """One entry in the open Document-Type Registry (spec §5.4). Adding a
-    document type means adding one of these plus an edge-mapping function —
-    never modifying the extraction pipeline (strategy pattern, PHASES.md §2.2).
+    document type means adding one of these plus an `ExtractionStrategy`
+    (below) — never modifying the extraction pipeline (strategy pattern,
+    PHASES.md §2.2). The registry (owned by E3, `backend/app/adapters/`)
+    maps `type_id` to a `(DocumentTypeSpec, ExtractionStrategy)` pair; the
+    pipeline (A2 route -> A3 extract, schema-driven off `field_schema` ->
+    `ExtractionStrategy.map_to_graph`) never branches on `type_id` itself.
     """
 
     type_id: str
     detection_signals: tuple[str, ...]
     field_schema: tuple[FieldSchema, ...]
     target_node_types: tuple[str, ...]
+    target_edge_types: tuple[EdgeType, ...]
     downstream_subsystems: tuple[str, ...]
     verification_duties: tuple[str, ...]
+
+
+@dataclass(frozen=True, slots=True)
+class ExtractedField:
+    """One field's extracted value, with the provenance that lets it become
+    part of a node's own `Provenance` once written — extraction confidence
+    and source region are per-field, not per-document (spec §5.4.1: "field-
+    level confidence and source-region pointers")."""
+
+    name: str
+    value: object
+    """Loosely typed on purpose — a `FieldSchema.field_type` of "string",
+    "number", "date", or "list" all flow through here; the concrete
+    `ExtractionStrategy` for a given type knows how to interpret its own
+    schema's field types, and mypy --strict on `ExtractionStrategy`
+    implementations is where real type safety per type actually lives."""
+    confidence: float
+    source_region: str
+    """Pairs with `SourceRef.region` — never empty for a field derived from
+    the document itself (spec §5.4.3 rule 5: every extracted field carries
+    a source-region pointer, no exceptions)."""
+    derivation: Derivation
+
+
+@dataclass(frozen=True, slots=True)
+class GraphMappingResult:
+    """What one `ExtractionStrategy.map_to_graph()` call produces: the
+    concrete graph writes this document implies, plus any verification
+    findings — never applied directly by the strategy itself (strategies
+    return data; only `GraphWriter`, via the writer-agent pipeline, ever
+    touches Firestore — Layer 3/Layer 5 separation, spec §6.2)."""
+
+    nodes: tuple[object, ...]
+    """Concrete `contracts.graph_types` node instances (frozen dataclasses
+    from this module) ready to write — each already carrying full
+    `Provenance`."""
+    edges: tuple[Edge, ...]
+    verification_findings: tuple[str, ...] = ()
+    """Human-readable notes for verification-document types (spec §5.5) —
+    e.g. an `absent_from` signal or a `contradicts` discrepancy this
+    mapping detected. Empty for non-verification types."""
+    registry_gap: bool = False
+    """True only for the generic fallback strategy (spec §5.4.3 rule 4:
+    unknown type -> generic extraction + human triage + logged registry
+    gap) — never true for a real registered type's own strategy."""
+
+
+class ExtractionStrategy(Protocol):
+    """The Strategy-pattern interface every document type's edge-mapping
+    logic implements (PHASES.md §2.2, spec §5.4). One concrete
+    implementation per `DocumentTypeSpec.type_id`, owned by E2
+    (`backend/app/agents/consequence/` or a type-specific module — E2's
+    call), registered into E3's registry (`backend/app/adapters/`). Adding
+    a new document type means writing one new class satisfying this
+    Protocol and registering it — the shared pipeline (A2 route -> A3
+    extract -> this call -> GraphWriter) never changes.
+    """
+
+    def map_to_graph(
+        self,
+        *,
+        source_document_id: NodeId,
+        extracted_fields: tuple[ExtractedField, ...],
+        deriving_agent: AgentId,
+    ) -> GraphMappingResult:
+        """Interprets one document's extracted fields into graph writes.
+
+        Args:
+            source_document_id: the SOURCE_DOCUMENT node this extraction
+                came from — every produced node's `Provenance.source_ref`
+                traces back to it.
+            extracted_fields: A3's (or A3b's) output for this document,
+                shaped by this type's own `DocumentTypeSpec.field_schema`.
+            deriving_agent: which agent is calling this strategy (for
+                `Provenance.deriving_agent` on every node/edge produced).
+
+        Returns:
+            The nodes and edges this document implies, plus any
+            verification findings.
+        """
+        ...

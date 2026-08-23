@@ -202,3 +202,58 @@ Every claim above was independently reproduced — re-ran `ruff check`, `mypy --
 2. Both Cloud Run services are currently live and serving (not scaled to zero) — run `./infra/teardown.sh` when done inspecting the live proof to stop compute cost, matching PHASES.md §6.2.6's standing rule. Deferred to the operator's discretion since the services may still be useful to poke at right after this gate.
 
 **Phase 2 gate: SIGNED.** Both mandatory Google Cloud requirements not just implemented but verified *live, from the actually-deployed services* — the strongest form of proof this gate can produce. Ready for Phase 3 pending operator go-ahead.
+
+---
+
+## Phase 3 — Perception & Document Registry
+
+**Gated:** 2026-08-23
+**Roles active:** e2 (lead), e3, e1, cto
+
+### What was built
+
+**CTO (contract freeze before work started):** `contracts/graph_types.py` extended with `ExtractionStrategy` (a `Protocol` — the Strategy-pattern interface between the registry and per-type edge-mapping logic), `ExtractedField`, `GraphMappingResult`, `DocumentTypeSpec.target_edge_types` (ADR-008) — froze this before dispatching E2/E3 so both could build in parallel against one shape instead of guessing at each other. Mid-phase, added `EdgeType.COVERS` (OBLIGATION→PURCHASE_ITEM, ADR-009) after E3 found spec §5.4.2 names the WARRANTY→PURCHASE_ITEM relationship explicitly but no edge type existed for it.
+
+**E1:** `backend/app/persistence/raw_payload_store.py` — `RawPayloadStore` Protocol + `LocalFilesystemPayloadStore` (content-addressed by sha256, atomic writes, documented GCS swap point). `region_resolver.py` — resolves a `SourceRef` to real bytes + a validated region locator, two documented conventions (byte-offset spans for text, `page;bbox` for images).
+
+**E3:** `backend/app/adapters/document_registry.py` (register/resolve, no module-level singleton), all 14 `DocumentTypeSpec` entries in `document_type_specs.py` (field-traced to spec §5.4.2), `registry_gap_log.py` (a genuinely retrievable gap record, not just a log line), four channel adapters (email/upload/chat-export/SMS) with the SMS/WhatsApp no-official-API limitation stated directly in code, not just docs.
+
+**E2:** all 7 intake-layer agents (A2 Intake Router, A3 Document Extraction, A3b Line-Item Extraction, A3c Verification, A4 Message Normalization, A5 Entity Resolution, A6 Relevance Classifier) and all 14 `ExtractionStrategy` implementations, registered into E3's registry. A 20-document golden-file suite covering all 14 registered types (8 Pillow-rendered degraded images with real computed regions, 12 hand-authored messy text documents with real code-mixed Hindi/English).
+
+### Gate 3 checklist result — every item independently re-verified, not just accepted from reports
+
+- [x] 20+ golden documents extract correctly across 8+ types — 20 documents, all 14 types, individually re-run
+- [x] Every field carries a source-region pointer — enforced by `ExtractedField.source_region`, validated against E1's two region conventions
+- [x] Attendance register below floor surfaces the image, never infers — `test_attendance_register_illegible_surfaces_below_floor_never_infers`, re-run individually, passes
+- [x] A receipt produces LEDGER_EVENT + PURCHASE_ITEM with correct edges — `test_receipt_grocery_produces_ledger_event_and_purchase_items`, re-run individually, passes
+- [x] Planted mismatch → `contradicts` edge + escalation, no overwrite — `test_contradicting_verdict_opens_discrepancy_never_overwrites_prior_edge`, re-run individually against the real Firestore emulator, confirms the prior edge is still readable
+- [x] Unknown type → registry gap logged, routed to triage — `test_unrecognizable_document_logs_registry_gap`, re-run individually, confirms a real, queryable `RegistryGapLog` record, not just a raised exception
+- [x] Extraction and implication are separate agents, code-reviewed — `TestNeverInfers` (AST-based, not substring matching — proves A3's code never constructs `Derivation.INFERRED` and imports nothing implication-named); CTO independently read `document_extraction.py` in full and confirms no implication logic present
+
+### Verified personally (not just reported)
+
+- Re-ran `ruff check .`, `mypy --strict .` (140 source files), and the full offline `pytest` suite myself — **394 passed, 11 skipped, 0 failed**, exact match to E2's reported numbers.
+- Re-ran the live Gemini suite myself (`-m live_gcp`, real Vertex AI, real project) — **5 passed**, exact match.
+- Individually re-ran all 7 specifically-called-out planted Gate 3 test cases in isolation (not just as part of the full suite) — all pass.
+- Read `document_type_specs.py` in full and found two real metadata inconsistencies E2 had flagged but not fixed (outside their ownership): `utility_bill` declared a `STATES` edge with no `OBLIGATION` target node in the same entry (spec's own Nodes: line never lists OBLIGATION for this type — that's Phase 4's Consequence Engine's job, not Phase 3 extraction's); `insurance_document` declared a `BELONGS_TO` edge with no `LEDGER_EVENT` source node (spec's own Nodes: line has no LEDGER_EVENT for this type at all). Fixed both directly, re-verified full suite still passes (394/11, unchanged).
+- Confirmed E2's flagged `attendance_register` gap (no graph node shape for per-day marks) is real by reading the strategy's own code — it genuinely writes zero graph nodes on success, only `verification_findings` text. Opened as DEBT-004 rather than guessing a shape without Phase 7's real requirements in view.
+- Ran the full placeholder/TODO/bare-except/debate-word scan across all Phase 3 code myself — clean (two incidental string matches, both false positives from spec quotations, read and confirmed harmless).
+- `find . -iname "Dockerfile*"` — empty.
+
+### Decisions / ADRs
+
+- ADR-008: `ExtractionStrategy` Protocol — the registry/strategy interface, frozen before E2/E3 started in parallel.
+- ADR-009: `EdgeType.COVERS` addition — a real spec-named relationship (WARRANTY→PURCHASE_ITEM) that had no edge type.
+
+### Debt / deferred items
+
+- **DEBT-001, DEBT-002:** unaffected this phase.
+- **DEBT-003:** unaffected, still open, still blocking before Phase 4.
+- **DEBT-004** (opened this phase): no graph node shape for per-day attendance marks — real data is extracted but not durably written to the graph yet. Owner: cto + whoever builds Phase 7. Repayment: before Phase 7's gate.
+
+### Open items for the operator
+
+1. DEBT-003 (Pro-tier region) must be resolved before Phase 4 starts — Phase 4's flagship Implication Agent is Pro-tier and needs a working call path.
+2. Nothing else blocking — Phase 3 is clean.
+
+**Phase 3 gate: SIGNED.** The largest single phase so far (7 agents, 14 document types, 20-document golden-file suite, 3 architectural gaps caught and either fixed or properly deferred) — ready for Phase 4 pending operator go-ahead, once DEBT-003 is addressed.
