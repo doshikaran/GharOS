@@ -18,6 +18,7 @@ from contracts.graph_types import Constraint, ConstraintKind, ConstraintSeverity
 
 from app.agents.consequence.implication_agent import AGENT_ID, ImplicationAgent
 from app.agents.consequence.types import HouseholdContext, ImplicationRequest
+from app.prompts.loader import load_prompt
 from app.reasoning.gemini_client import GeminiClient
 from tests.conftest import make_person
 
@@ -125,10 +126,17 @@ class TestCanonicalFieldTripCase:
             assert candidate.citation.source_document_id == "doc-field-trip"
 
     def test_model_tier_and_prompt_version_recorded(self) -> None:
+        """Asserts against `manifest.json`'s live-loaded version, not a
+        hardcoded literal — a hand-copied version string here already
+        silently drifted once (PRO_TIER_ALLOWLIST's parametrized test hit
+        the identical failure mode in Phase 4's own gate review) when A12
+        was bumped from v1 to v2 (DEBT-007's fix); deriving the expected
+        value from `load_prompt` itself makes that class of drift
+        structurally impossible to repeat."""
         agent = _agent({"candidates": _FIVE_VALID_CANDIDATES})
         result = agent.imply(_request(_FIELD_TRIP_TEXT))
         assert result.model_tier == "pro"
-        assert result.prompt_version == "v1"
+        assert result.prompt_version == load_prompt(AGENT_ID).version
 
     def test_dependency_labels_resolve_to_real_candidate_ids(self) -> None:
         agent = _agent({"candidates": _FIVE_VALID_CANDIDATES})
