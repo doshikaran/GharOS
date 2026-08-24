@@ -13,18 +13,24 @@ from datetime import timedelta
 from contracts.graph_types import (
     Constraint,
     Decision,
+    Edge,
+    EdgeId,
     EdgeType,
     LedgerEvent,
     NodeId,
     Obligation,
+    ObligationDerivation,
+    ObligationStatus,
     Outcome,
     Person,
     PurchaseItem,
 )
 
 from app.graph.reader import FirestoreGraphReader
+from app.graph.writer import FirestoreGraphWriter
 from app.persistence.firestore_store import FirestoreGraphStore
 from seeds.demo_household import NOW, SeedResult
+from tests.conftest import make_provenance
 
 PRIYA = NodeId("person-priya")
 AARAV = NodeId("person-aarav")
@@ -119,6 +125,168 @@ class TestLoad:
     def test_empty_window_returns_zero(self, reader: FirestoreGraphReader, seeded: SeedResult) -> None:
         window = (NOW - timedelta(days=100), NOW - timedelta(days=90))
         assert reader.load(PRIYA, window) == 0.0
+
+    def test_closed_status_obligations_excluded(
+        self, reader: FirestoreGraphReader, writer: FirestoreGraphWriter, seeded: SeedResult
+    ) -> None:
+        """Phase 4 hardening (PHASES.md Phase 4, E1 work item 2): a
+        DROPPED obligation is no longer real work and must not inflate a
+        person's load — added atop the seeded graph so this proves the
+        hardening against real Firestore-backed data, not just a fixture
+        written to expect it."""
+        window = (NOW - timedelta(hours=1), NOW + timedelta(days=1))
+        baseline = reader.load(PRIYA, window)
+
+        dropped = Obligation(
+            id=NodeId("obligation-dropped-fair-picnic"),
+            provenance=make_provenance(),
+            title="Organise the fair's picnic stall (dropped)",
+            obligation_type="errand",
+            due_at=NOW + timedelta(hours=2),
+            must_start_by=None,
+            effort_estimate_minutes=500,
+            status=ObligationStatus.DROPPED,
+            stated_or_implied=ObligationDerivation.STATED,
+        )
+        writer.write_node(dropped)
+        writer.write_edge(
+            Edge(
+                id=EdgeId("e-owned-by-dropped-picnic"),
+                provenance=make_provenance(),
+                edge_type=EdgeType.OWNED_BY,
+                from_id=dropped.id,
+                to_id=PRIYA,
+            )
+        )
+
+        assert reader.load(PRIYA, window) == baseline
+
+
+class TestDependencyChain:
+    """`FirestoreGraphReader.dependency_chain` — a Phase 4 addition, NOT
+    one of spec §5.7's 14 traversals (see its docstring in
+    `app/graph/reader.py` for why it lives outside `contracts.
+    repositories.GraphReader`). Directed transitive closure over
+    DEPENDS_ON, following `from_id -> to_id` (dependent -> prerequisite)
+    only."""
+
+    def test_direct_prerequisite_from_seeded_data(
+        self, reader: FirestoreGraphReader, seeded: SeedResult
+    ) -> None:
+        chain = reader.dependency_chain(NodeId("obligation-visit-pharmacy"))
+        assert len(chain) == 1
+        assert chain[0].id == NodeId("obligation-renew-prescription")
+
+    def test_no_dependencies_returns_empty(self, reader: FirestoreGraphReader, seeded: SeedResult) -> None:
+        assert reader.dependency_chain(NodeId("obligation-weekly-groceries")) == ()
+
+    def test_unknown_obligation_returns_empty(
+        self, reader: FirestoreGraphReader, seeded: SeedResult
+    ) -> None:
+        assert reader.dependency_chain(NodeId("does-not-exist")) == ()
+
+    def test_transitive_chain_and_direction_is_respected(
+        self, reader: FirestoreGraphReader, writer: FirestoreGraphWriter, seeded: SeedResult
+    ) -> None:
+        """A -> depends_on -> B -> depends_on -> C: A's chain must include
+        both B and C; C's chain (the root prerequisite) must stay empty,
+        proving direction is honoured rather than walked both ways like
+        `neighbours`."""
+
+        def _obligation(node_id: str, title: str) -> Obligation:
+            return Obligation(
+                id=NodeId(node_id),
+                provenance=make_provenance(),
+                title=title,
+                obligation_type="errand",
+                due_at=NOW + timedelta(days=1),
+                must_start_by=None,
+                effort_estimate_minutes=10,
+                status=ObligationStatus.DERIVED,
+                stated_or_implied=ObligationDerivation.STATED,
+            )
+
+        a = _obligation("obligation-chain-a", "A depends on B")
+        b = _obligation("obligation-chain-b", "B depends on C")
+        c = _obligation("obligation-chain-c", "C has no dependencies")
+        for node in (a, b, c):
+            writer.write_node(node)
+        writer.write_edge(
+            Edge(
+                id=EdgeId("e-chain-a-b"),
+                provenance=make_provenance(),
+                edge_type=EdgeType.DEPENDS_ON,
+                from_id=a.id,
+                to_id=b.id,
+            )
+        )
+        writer.write_edge(
+            Edge(
+                id=EdgeId("e-chain-b-c"),
+                provenance=make_provenance(),
+                edge_type=EdgeType.DEPENDS_ON,
+                from_id=b.id,
+                to_id=c.id,
+            )
+        )
+
+        chain_from_a = reader.dependency_chain(a.id)
+        assert {n.id for n in chain_from_a} == {b.id, c.id}
+        assert reader.dependency_chain(c.id) == ()
+
+    def test_cycle_is_safe_and_terminates(
+        self, reader: FirestoreGraphReader, writer: FirestoreGraphWriter, seeded: SeedResult
+    ) -> None:
+        """A malformed graph with a DEPENDS_ON cycle must not infinite-loop
+        — `max_depth` and the `seen` set both guard against it."""
+        x = Obligation(
+            id=NodeId("obligation-cycle-x"),
+            provenance=make_provenance(),
+            title="X depends on Y",
+            obligation_type="errand",
+            due_at=NOW + timedelta(days=1),
+            must_start_by=None,
+            effort_estimate_minutes=10,
+            status=ObligationStatus.DERIVED,
+            stated_or_implied=ObligationDerivation.STATED,
+        )
+        y = Obligation(
+            id=NodeId("obligation-cycle-y"),
+            provenance=make_provenance(),
+            title="Y depends on X",
+            obligation_type="errand",
+            due_at=NOW + timedelta(days=1),
+            must_start_by=None,
+            effort_estimate_minutes=10,
+            status=ObligationStatus.DERIVED,
+            stated_or_implied=ObligationDerivation.STATED,
+        )
+        writer.write_node(x)
+        writer.write_node(y)
+        writer.write_edge(
+            Edge(
+                id=EdgeId("e-cycle-x-y"),
+                provenance=make_provenance(),
+                edge_type=EdgeType.DEPENDS_ON,
+                from_id=x.id,
+                to_id=y.id,
+            )
+        )
+        writer.write_edge(
+            Edge(
+                id=EdgeId("e-cycle-y-x"),
+                provenance=make_provenance(),
+                edge_type=EdgeType.DEPENDS_ON,
+                from_id=y.id,
+                to_id=x.id,
+            )
+        )
+
+        chain = reader.dependency_chain(x.id, max_depth=8)
+        # x's own root is never included in its own chain; y is the one
+        # real prerequisite discovered before the cycle closes back on x
+        # (already `seen`, so it is not re-added or re-walked).
+        assert {n.id for n in chain} == {y.id}
 
 
 class TestSeries:

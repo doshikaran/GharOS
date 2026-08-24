@@ -60,6 +60,17 @@ class GraphReader(Protocol):
         """spec §5.7 — all unresolved conflicts_with/violates edges in scope."""
         ...
 
+    def dependency_chain(self, obligation_id: NodeId, *, max_depth: int = 25) -> tuple[Obligation, ...]:
+        """spec §7.3 Stage 4 — the directed transitive closure of
+        `obligation_id`'s DEPENDS_ON prerequisites, depth-bounded and
+        cycle-safe. The primitive "must-start-by computed backwards through
+        dependencies" needs. Added Phase 4 (E1 built a concrete reference
+        implementation first; promoted to the Protocol here so every
+        Protocol-typed caller, not just E1's own code, can reach it —
+        `neighbours()` is deliberately bidirectional and cannot alone walk
+        a single directed edge type the way this method does)."""
+        ...
+
     def load(self, person_id: NodeId, window: tuple[datetime, datetime]) -> float:
         """spec §5.7 — a person's obligation load in a time window, used
         by the Fair Allocator."""

@@ -34,6 +34,34 @@ Original entry, for the record:
 
 ## OPEN
 
+### DEBT-005 — `Obligation` has no field expressing required-resource identity
+
+**Opened:** Phase 4, 2026-08-24
+**Owner:** cto (contract)
+**Repayment phase:** whichever phase first needs real resource-conflict detection demonstrated (not gated by Phase 4 — Gate 4's checklist doesn't require it).
+
+**What's the gap:** spec §7.3 names "resource" (e.g. the car, cash on hand) as one of four conflict types the Conflict Radar checks. E1's Phase 4 deterministic pre-pass (`app/solvers/conflict_prepass.py`) can detect temporal, capability, and load conflicts against real `Obligation`/`Person` fields, but resource conflicts have no field to check — `contracts.graph_types.Obligation` has no notion of "this obligation needs resource X," and no edge/metadata convention for it exists anywhere in the codebase (confirmed by E1 grepping for one before reporting this as a gap rather than inventing an ungrounded heuristic). The pre-pass is wired via an injectable `ResourceIdentityResolver` Protocol that honestly no-ops (`resource_detection_skipped=True`) when none is supplied, rather than fabricating a check.
+
+**Why this isn't being fixed now:** no demo scenario or gate item currently needs resource-conflict detection demonstrated. Adding a field speculatively risks the exact "declared a shape nothing produces or consumes correctly" mistake already corrected twice this project (Phase 3's `utility_bill`/`insurance_document` edge-type mismatches).
+
+**Repayment condition:** when a real scenario needs it (e.g. the demo's "book a dentist" flow implies a car/resource conflict, or a later phase's worked example names one explicitly), add the field with that concrete use in view, wire `ResourceIdentityResolver`, strike this entry.
+
+---
+
+### DEBT-006 — no `Person.availability` field; no `Obligation.location` field
+
+**Opened:** Phase 4, 2026-08-24
+**Owner:** cto (contract)
+**Repayment phase:** Phase 9 (Intention→Action — A25 Window Scheduling, "business-hours-aware window finding," is the first agent that structurally needs real availability data) for `Person.availability`; whenever travel-time-aware conflict detection is first demonstrated, for `Obligation.location`.
+
+**What's the gap:** spec §5.2's PERSON node description names an "availability model" as part of the node, and spec §7.3 Stage 4 names "must-start-by computed backwards through dependencies and availability" — but `contracts.graph_types.Person` has no availability field at all; it was never added when the node was first frozen in Phase 0. Similarly, spec's field-trip worked example implies travel-time buffering ("cash must travel with the child"), which needs some notion of location on an OBLIGATION — also absent. Phase 4's must-start-by computation (E2, this phase) works from `depends_on` chains and due dates alone, which is real and correct as far as it goes, but is not availability-aware — a person's actual free/busy windows never factor in, because there is nowhere on the graph to read them from.
+
+**Why this isn't being fixed now:** Phase 9's A25 Window Scheduling is the real, spec-named consumer of availability data ("person free AND counterparty open AND historically likely") — designing the field now, without that phase's actual query patterns in view, risks guessing wrong. Same reasoning as DEBT-004/DEBT-005.
+
+**Repayment condition:** Phase 9's CTO contract freeze adds a real `Person.availability` shape (and `Obligation.location` if the travel-time-aware conflict work lands then too) designed against Phase 9's actual needs; must-start-by computation is revisited to use it; this entry struck.
+
+---
+
 ### DEBT-002 — ACTION_RECORD and APPROVAL_REQUEST are not yet reachable by any graph edge
 
 **Opened:** Phase 1, 2026-08-22

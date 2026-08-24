@@ -11,7 +11,8 @@ Kept up to date at the end of every work session. See `PHASES.md` for the full g
 **DEBT-001 RESOLVED 2026-08-22** (billing activation — see `docs/DEBT.md`). **DEBT-003 opened this phase** (Pro-tier Gemini unavailable in `asia-south1`, works via "global" — repayment before Phase 4).
 **Both Cloud Run services are currently live/serving** (not yet scaled to zero) — run `./infra/teardown.sh` when done inspecting.
 **Phase 3 gate: SIGNED 2026-08-23.** All 7 intake agents (A2-A6, A3b, A3c) built, all 14 `ExtractionStrategy` implementations registered, 20-document golden-file suite covering all 14 types, 394 tests passing (0 failed), 5 live Gemini tests passing. CTO independently re-verified every number and every specifically-called-out Gate 3 planted test case individually. Two real metadata bugs found in code review and fixed (`utility_bill`/`insurance_document` had edge types with no matching target node in the same registry entry). DEBT-004 opened (attendance-register data has no durable graph shape yet — deferred to Phase 7, same pattern as DEBT-002). Full detail in `verification.md` and `docs/DEBT.md`.
-**Next:** Phase 4 (Consequence Engine) — awaiting operator go-ahead. **DEBT-003 (Pro-tier Gemini region gap) must be resolved first** — Phase 4's flagship Implication Agent is Pro-tier.
+**DEBT-003 RESOLVED 2026-08-24** (ADR-010: per-tier Vertex AI location routing — Pro-tier through "global", Flash stays regional; verified with a real live Pro-tier call). Also caught and fixed a stale allowlist test that had silently drifted out of sync with Phase 3's allowlist additions.
+**Phase 4 — IN PROGRESS 2026-08-24:** E2 (A12 Implication Agent — the flagship — plus A13-A16, must-start-by computation, and the honest hallucination-rate evaluation) and E1 (deterministic conflict pre-pass, load computation queries) dispatched in parallel.
 
 ## Log
 

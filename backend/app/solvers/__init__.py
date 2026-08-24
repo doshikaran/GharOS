@@ -2,6 +2,11 @@
 Phase 7 salary arithmetic, Phase 8 fairness (MNW/EF1+PO), Phase 11
 calibration/variance, Phase 12 council mechanism arbiter.
 
+Phase 4 adds the first solver proper: `app.solvers.conflict_prepass`
+(`DeterministicConflictPrepass`) — spec §7.3 Stage 3's temporal, resource,
+capability, and load conflict checks, run before A14 (Conflict Radar,
+E2) spends a Pro-tier reasoning call.
+
 Phase 1's two deterministic-tool line items from this same spec section —
 the idempotency key generator and the graph integrity checker — are
 implemented elsewhere because they are graph/persistence primitives, not

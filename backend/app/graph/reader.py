@@ -45,10 +45,16 @@ from contracts.graph_types import (
     PurchaseItem,
 )
 
+from app.graph.obligation_lifecycle import CLOSED_OBLIGATION_STATUSES
 from app.persistence.firestore_store import FirestoreGraphStore
 from app.persistence.provenance_guard import subject_from_raw_document, validate_provenance
 
 _UNRESTRICTED_SCOPES = ("all", "")
+
+_MAX_DEPENDENCY_CHAIN_DEPTH = 64
+"""Cycle/runaway-safety bound for `dependency_chain`. A well-formed
+household's DEPENDS_ON chains are tiny (single digits of hops); this is a
+defensive ceiling against malformed/cyclic data, not a tuning knob."""
 
 
 def _scope_node_id(scope: str) -> NodeId | None:
@@ -156,6 +162,66 @@ class FirestoreGraphReader:
             frontier = next_frontier
         return tuple(result)
 
+    # -- dependency_chain (Phase 4 addition, NOT one of the 14 spec §5.7 ops) --
+
+    def dependency_chain(
+        self, obligation_id: NodeId, *, max_depth: int = _MAX_DEPENDENCY_CHAIN_DEPTH
+    ) -> tuple[Obligation, ...]:
+        """Directed transitive closure of `obligation_id`'s DEPENDS_ON
+        prerequisites — the primitive spec §7.3 Stage 4's "must-start-by
+        computed backwards through dependencies" needs (PHASES.md Phase 4,
+        E1 work item 3).
+
+        **Not part of `contracts.repositories.GraphReader`.** `neighbours`
+        is deliberately bidirectional (its own docstring: "returns the
+        node at the *other* end of every edge_type edge touching node_id,
+        regardless of which end node_id sits at") — correct for most of
+        spec §5.7's examples, but it cannot alone distinguish "obligations
+        this one depends on" from "obligations that depend on this one."
+        Nothing else in the 14-method Protocol exposes directed edges for
+        an arbitrary edge type the way `conflicts()` does for exactly
+        CONFLICTS_WITH/VIOLATES. Rather than editing `contracts/
+        repositories.py` (frozen, CTO-owned) to add a Protocol method
+        myself, this is a concrete-only addition: a working reference
+        implementation, reachable by E1's own callers, and the basis for a
+        Protocol-addition recommendation reported back to the CTO/E2.
+        Callers holding only the `GraphReader` Protocol type cannot call
+        this — that limitation is real and is called out in this phase's
+        report, not hidden.
+
+        Follows `Edge.from_id -> Edge.to_id` only (`depends_on`: OBLIGATION
+        -> OBLIGATION per spec §5.3 — the *from* side is the dependent
+        obligation, the *to* side is its prerequisite). Cycle-safe: a node
+        already discovered is never re-queued. BFS discovery order.
+        """
+        adjacency: dict[NodeId, list[NodeId]] = {}
+        for edge in self._store.all_edges():
+            if edge.edge_type is EdgeType.DEPENDS_ON:
+                adjacency.setdefault(edge.from_id, []).append(edge.to_id)
+
+        seen = {obligation_id}
+        frontier = [obligation_id]
+        discovered_ids: list[NodeId] = []
+        depth = 0
+        while frontier and depth < max_depth:
+            next_frontier: list[NodeId] = []
+            for node_id in frontier:
+                for prerequisite_id in adjacency.get(node_id, ()):
+                    if prerequisite_id in seen:
+                        continue
+                    seen.add(prerequisite_id)
+                    discovered_ids.append(prerequisite_id)
+                    next_frontier.append(prerequisite_id)
+            frontier = next_frontier
+            depth += 1
+
+        obligations: list[Obligation] = []
+        for node_id in discovered_ids:
+            node = self._store.get_node(node_id)
+            if isinstance(node, Obligation):
+                obligations.append(node)
+        return tuple(obligations)
+
     # -- 4. conflicts ------------------------------------------------------------
 
     def conflicts(self, scope: str) -> tuple[Edge, ...]:
@@ -188,13 +254,25 @@ class FirestoreGraphReader:
 
     def load(self, person_id: NodeId, window: tuple[datetime, datetime]) -> float:
         """spec §5.7 — a person's obligation load in a time window (Fair
-        Allocator input): total `effort_estimate_minutes` across
-        obligations `owned_by` this person, due within `window`."""
+        Allocator input, and Phase 4's load-conflict pre-pass primitive —
+        PHASES.md Phase 4, E1 work item 2): total `effort_estimate_minutes`
+        across obligations `owned_by` this person, due within `window`.
+
+        Hardened in Phase 4 to exclude closed-status obligations
+        (`CLOSED_OBLIGATION_STATUSES`: completed, dropped, superseded) —
+        without this, a superseded obligation's old version would double-
+        count against a person's load alongside its replacement, and a
+        dropped (explicitly abandoned) obligation would count against a
+        person's fairness threshold despite no longer being real work. This
+        matches the "open obligations" convention `FirestoreObligation
+        Repository.open_obligations_for` already established in Phase 1."""
         start, end = window
         total_minutes = 0.0
         for edge in self._store.edges_to(person_id, EdgeType.OWNED_BY):
             obligation = self._store.get_node(edge.from_id)
             if not isinstance(obligation, Obligation):
+                continue
+            if obligation.status in CLOSED_OBLIGATION_STATUSES:
                 continue
             if obligation.due_at is None or not (start <= obligation.due_at <= end):
                 continue

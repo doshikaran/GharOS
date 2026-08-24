@@ -3,11 +3,10 @@
 
 from __future__ import annotations
 
-from contracts.graph_types import EdgeType, NodeId, Obligation, ObligationStatus
+from contracts.graph_types import EdgeType, NodeId, Obligation
 
+from app.graph.obligation_lifecycle import CLOSED_OBLIGATION_STATUSES
 from app.persistence.firestore_store import FirestoreGraphStore
-
-_CLOSED_STATUSES = (ObligationStatus.COMPLETED, ObligationStatus.DROPPED, ObligationStatus.SUPERSEDED)
 
 
 class FirestoreObligationRepository:
@@ -25,7 +24,7 @@ class FirestoreObligationRepository:
         return tuple(
             obligation
             for obligation in self._store.all_current_nodes((Obligation,))
-            if obligation.id in owned_ids and obligation.status not in _CLOSED_STATUSES
+            if obligation.id in owned_ids and obligation.status not in CLOSED_OBLIGATION_STATUSES
         )
 
     def unassigned(self) -> tuple[Obligation, ...]:
