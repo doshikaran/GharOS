@@ -34,6 +34,34 @@ Original entry, for the record:
 
 ## OPEN
 
+### DEBT-007 — A12 Implication Agent does not reliably recognize "nothing is genuinely implied"
+
+**Opened:** Phase 4, 2026-08-24
+**Owner:** e2 (prompt fix) + cto (re-run must be independently re-verified before this is struck)
+**Repayment phase:** before Phase 5 (Arbitration, Approval & Action Layer) gates — PHASES.md's own words: "everything downstream assumes this agent is trustworthy," and Phase 5 builds the Approval Gate that will route this agent's output toward real (if gated) action.
+
+**What's the gap:** the honest evaluation (`docs/IMPLICATION_BASELINE.md`, 20 held-out documents, real live Gemini calls) included two deliberate hallucination-rate control documents — ordinary documents with zero genuine implied obligations by design. A12 produced 2 plausible-sounding but fabricated candidates for *each* — a 100% failure rate on both designed "nothing to imply" tests, out of 4 candidates total. Organic hallucination rate on the other 18 real-world-shaped documents is a more modest 9% (5/56), and recall on those same 18 documents is strong (81%) — this is a narrow, specific, well-understood gap (no working "produce zero candidates" output path), not evidence of broad unreliability.
+
+**Why this isn't being fixed in the same session:** the fix is a specific prompt change (`backend/app/prompts/a12_implication_agent/`, a new version per ADR-003 — explicit instruction/worked example for the zero-candidate case). Validating that fix honestly requires a full 20-document re-run scored with the same rigor as the baseline, not a quick partial check under time pressure — conflating "fix the prompt" with "re-score quickly to get a cleaner number" would undermine the rigor this evaluation exists to enforce.
+
+**Repayment condition:** a new A12 prompt version explicitly handling the "nothing genuinely implied" case; a full re-run against the same 20 held-out documents (openly labeled as no-longer-strictly-blind, per `IMPLICATION_BASELINE.md`'s own honesty requirement); the control-document hallucination rate drops to 0%; the CTO independently re-verifies the new numbers before this entry is struck.
+
+---
+
+### DEBT-008 — citation-validator's span-length safeguard has a short-document blind spot
+
+**Opened:** Phase 4, 2026-08-24
+**Owner:** cto (design decision) + e2 (implementation)
+**Repayment phase:** whenever chat/SMS-shaped documents (naturally short) become a demo-relevant citation case — not urgent, causes a real miss but not a hallucination.
+
+**What's the gap:** `citation_validator.py`'s `_MAX_SPAN_FRACTION_OF_DOCUMENT = 0.6` (reject a located span covering >60% of the whole document — a deliberate anti-gaming measure against "cite the whole email") discarded A12's single best inference in the entire Phase 4 evaluation: a correct, accurately-cited insight from a ~140-character WhatsApp message, discarded solely because the necessarily-short document meant the specific citation covered 80% of the whole message. The reasoning was right; the citation was real and specific; a structural, document-length-blind threshold discarded it anyway.
+
+**Why this isn't being fixed now:** the current behavior (reject rather than risk gaming) is the safer default while a better design is worked out — patching the threshold hastily, under the time pressure of finishing an evaluation write-up, risks reopening the exact "cite the whole email" vulnerability the threshold exists to prevent. A length-aware threshold (e.g. an absolute minimum span length combined with the fraction, rather than a bare fraction) needs its own considered design, not a reactive patch.
+
+**Repayment condition:** a designed, ADR-documented fix (e.g. document-length-aware thresholding) verified against both the original gaming case the 60% threshold was built for and this newly-discovered short-document false-negative case; this entry struck.
+
+---
+
 ### DEBT-005 — `Obligation` has no field expressing required-resource identity
 
 **Opened:** Phase 4, 2026-08-24
