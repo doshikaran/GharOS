@@ -59,8 +59,8 @@ class _FakeModels:
         self._error = error
         self.calls: list[dict[str, Any]] = []
 
-    def generate_content(self, *, model: str, contents: str) -> _FakeResponse:
-        self.calls.append({"model": model, "contents": contents})
+    def generate_content(self, *, model: str, contents: str, config: object = None) -> _FakeResponse:
+        self.calls.append({"model": model, "contents": contents, "config": config})
         if self._error is not None:
             raise self._error
         return _FakeResponse(self._text)
@@ -96,7 +96,7 @@ class TestGenerateTextSuccess:
         assert result.text == "pong"
         assert result.model_name == _MODEL_FLASH
         assert result.tier is ModelTier.FLASH
-        assert fake_models.calls == [{"model": _MODEL_FLASH, "contents": "ping"}]
+        assert fake_models.calls == [{"model": _MODEL_FLASH, "contents": "ping", "config": None}]
 
     def test_pro_tier_call_from_allowlisted_agent_uses_pro_model(self) -> None:
         fake_models = _FakeModels(text="deep thoughts")
@@ -143,6 +143,41 @@ class TestGenerateTextFailurePaths:
             client.generate_text(agent_id=AgentId("A99"), tier=ModelTier.PRO, prompt="ping")
 
         assert fake_models.calls == []  # never reached the SDK call
+
+
+class TestElevatedThinkingBudget:
+    """`thinking_budget` is opt-in per call (PHASES.md §2.1 rule 4:
+    "elevated thinking budgets are opt-in per agent, never global") —
+    `None` (the default, every pre-existing caller) must leave the built
+    `GenerateContentConfig` byte-for-byte as it already was; a caller that
+    passes a value gets a real `types.ThinkingConfig` attached."""
+
+    def test_no_thinking_budget_omits_thinking_config(self) -> None:
+        fake_models = _FakeModels(text='{"ok": true}')
+        router = _router_with_fake_client(fake_models)
+        client = GeminiClient(router=router)
+
+        client.generate_structured(agent_id=AgentId("A2"), tier=ModelTier.FLASH, prompt="x")
+
+        config = fake_models.calls[0]["config"]
+        assert config is not None
+        assert config.thinking_config is None
+        assert config.response_mime_type == "application/json"
+
+    def test_thinking_budget_attaches_thinking_config(self) -> None:
+        fake_models = _FakeModels(text='{"ok": true}')
+        router = _router_with_fake_client(fake_models)
+        client = GeminiClient(router=router)
+
+        client.generate_structured(
+            agent_id=AgentId("A12"), tier=ModelTier.PRO, prompt="implicate", thinking_budget=16000
+        )
+
+        config = fake_models.calls[0]["config"]
+        assert config is not None
+        assert config.thinking_config is not None
+        assert config.thinking_config.thinking_budget == 16000
+        assert config.response_mime_type == "application/json"
 
 
 _LIVE_TESTS_ENABLED = os.environ.get("GHAROS_RUN_LIVE_GCP_TESTS") == "1"

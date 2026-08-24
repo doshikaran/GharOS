@@ -107,7 +107,7 @@ class GeminiClient:
         return self._invoke(agent_id=agent_id, tier=tier, contents=prompt, response_mime_type=None)
 
     def generate_structured(
-        self, *, agent_id: AgentId, tier: ModelTier, prompt: str
+        self, *, agent_id: AgentId, tier: ModelTier, prompt: str, thinking_budget: int | None = None
     ) -> GeminiCallResult:
         """Like `generate_text`, but asks Vertex AI to constrain its
         response to `application/json` — used by every Phase 3 intake
@@ -116,10 +116,33 @@ class GeminiClient:
         out the exact expected JSON shape themselves; `response_mime_type`
         alone only constrains the *envelope*, not the schema within it.
 
+        Args:
+            agent_id: as `generate_text`.
+            tier: as `generate_text`.
+            prompt: as `generate_text`.
+            thinking_budget: opt-in elevated-thinking token budget
+                (PHASES.md §2.1 rule 4: "elevated thinking budgets are
+                opt-in per agent, never global") — `None` (the default)
+                requests no explicit thinking configuration at all, byte-
+                for-byte identical to this method's pre-existing behaviour
+                for every caller that does not pass it. A caller that does
+                pass a value (the Implication Agent, A12, is the first —
+                see `agents.consequence.implication_agent`) gets
+                `types.ThinkingConfig(thinking_budget=thinking_budget)`
+                attached to the call's `GenerateContentConfig`. This
+                module owns no policy about *which* agents should request
+                elevated thinking or what budget is "elevated" — that is
+                each calling agent's own, individually-justified constant,
+                never a value this shared client defaults or infers.
+
         Raises: same as `generate_text`.
         """
         return self._invoke(
-            agent_id=agent_id, tier=tier, contents=prompt, response_mime_type="application/json"
+            agent_id=agent_id,
+            tier=tier,
+            contents=prompt,
+            response_mime_type="application/json",
+            thinking_budget=thinking_budget,
         )
 
     def generate_multimodal(
@@ -169,6 +192,7 @@ class GeminiClient:
         tier: ModelTier,
         contents: str | list[types.Part],
         response_mime_type: str | None,
+        thinking_budget: int | None = None,
     ) -> GeminiCallResult:
         """Shared call path behind `generate_text`/`generate_structured`/
         `generate_multimodal` — resolves the model once, makes exactly one
@@ -199,9 +223,12 @@ class GeminiClient:
         if that assumption is ever wrong.
         """
         routed = self._router.route(agent_id=agent_id, requested_tier=tier)
-        config = (
-            types.GenerateContentConfig(response_mime_type=response_mime_type) if response_mime_type else None
-        )
+        config_kwargs: dict[str, Any] = {}
+        if response_mime_type:
+            config_kwargs["response_mime_type"] = response_mime_type
+        if thinking_budget is not None:
+            config_kwargs["thinking_config"] = types.ThinkingConfig(thinking_budget=thinking_budget)
+        config = types.GenerateContentConfig(**config_kwargs) if config_kwargs else None
         sdk_contents = cast(Any, contents)
 
         try:

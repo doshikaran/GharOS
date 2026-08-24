@@ -27,6 +27,10 @@ _AGENT_DIR_NAMES: dict[str, str] = {
     "A4": "a4_message_normalization",
     "A5": "a5_entity_resolution",
     "A6": "a6_relevance_classifier",
+    "A12": "a12_implication_agent",
+    "A13": "a13_constraint_checker",
+    "A14": "a14_conflict_radar",
+    "A16": "a16_constraint_learner",
 }
 """Maps a roster agent id to its `backend/app/prompts/<dir>/` directory
 name (ADR-003: "one directory per agent... named by agent ID in lowercase

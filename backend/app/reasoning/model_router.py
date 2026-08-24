@@ -60,30 +60,50 @@ PRO_TIER_ALLOWLIST: frozenset[AgentId] = frozenset(
         # Engine agent (Phase 4). Deriving unstated obligations is
         # reasoning, not extraction.
         "A12",
-        # spec §21.1 "Implication reasoning" — the flagship Consequence
-        # Engine agent (Phase 4). Deriving unstated obligations is
-        # reasoning, not extraction.
-        "A18",
+        # spec §15.4 A13: "Flash for lookup, Pro-tier for interpretation
+        # ('does may contain traces violate a nut allergy?' — yes, but
+        # that's judgment)" — Constraint Checker (Phase 4). Escalates from
+        # Flash the same way A5/A3 already do: on an ambiguous verdict, or
+        # (since a HARD constraint's ambiguity must always escalate to a
+        # human, never be guessed) whenever Flash's own confidence on a
+        # HARD constraint doesn't clear its confidence floor.
+        "A13",
+        # spec §7.3 Stage 3 DECONFLICT / spec §15.4 A14: Conflict Radar
+        # (Phase 4) reasons at Pro-tier over whatever E1's deterministic
+        # pre-pass (`app.solvers.conflict_prepass`) could not resolve on
+        # its own — newly implied candidates with no graph-resident
+        # OWNED_BY edge yet to run the deterministic arithmetic against.
+        "A14",
+        # spec §15.4 A16: Constraint Learner (Phase 4) — judging whether a
+        # repeated signal across multiple SOURCE_DOCUMENTs is genuinely a
+        # new implicit household constraint is interpretation, not lookup.
+        # Never writes anything itself (no `GraphWriter` import at all) —
+        # `CandidateConstraint.status` is structurally pinned to
+        # `"pending_confirmation"`, so this Pro-tier call can only ever
+        # produce a human-confirmation candidate, never a written
+        # constraint (spec §15.4 A16 forbidden list).
+        "A16",
         # spec §21.1 "Valuation extraction" — Fair Allocator (Phase 8).
         # Mutating complaint streams into a cardinal cost matrix.
-        "A23",
+        "A18",
         # spec §21.1 "Blocker diagnosis" — Intention->Action (Phase 9).
         # Judgment about why *this* person stalls on *this* task.
-        "A37",
+        "A23",
         # spec §21.1 "Branch simulation & critique" — Household Simulator
         # (Phase 11): A37 Path Simulator projects one branch.
-        "A38",
+        "A37",
         # spec §21.1 "Branch simulation & critique" — Household Simulator
         # (Phase 11): A38 Consistency Critic red-teams a branch.
-        "A42",
+        "A38",
         # spec §21.1 "Council specialist reasoning" — Household Council
         # (Phase 12) domain specialists, each reasoning over a distinct
-        # subgraph (Finance/Care/Education/Logistics/Legal). A41 Convener,
-        # A47 Member Delegate and A48 Adversary are also Pro-tier per the
-        # roster but are added when Phase 12 actually builds them, per
-        # gharos-agent-roster's per-agent tier table — this allowlist is
-        # extended by whichever phase builds the agent, not pre-populated
-        # ahead of the code that will use it.
+        # subgraph (Finance/Care/Education/Logistics/Legal: A42/A43/A44/
+        # A45/A46). A41 Convener, A47 Member Delegate and A48 Adversary
+        # are also Pro-tier per the roster but are added when Phase 12
+        # actually builds them, per gharos-agent-roster's per-agent tier
+        # table — this allowlist is extended by whichever phase builds the
+        # agent, not pre-populated ahead of the code that will use it.
+        "A42",
         "A43",
         "A44",
         "A45",
