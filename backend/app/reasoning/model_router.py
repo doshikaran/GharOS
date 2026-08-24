@@ -156,24 +156,39 @@ class ModelRouter:
         location: str,
         model_flash: str,
         model_pro: str,
+        location_pro: str | None = None,
         client_factory: ClientFactory = _default_client_factory,
     ) -> None:
-        """Construct a router bound to one GCP project/location/model set.
+        """Construct a router bound to one GCP project/model set, with an
+        independently-configurable location per tier.
 
         Args:
             project_id: GCP project id Gemini calls are billed/scoped to
                 (`app.settings.Settings.gcp_project_id`).
-            location: Vertex AI location for the underlying client
-                (`app.settings.Settings.vertex_ai_location`).
+            location: Vertex AI location for Flash-tier calls
+                (`app.settings.Settings.vertex_ai_location`) — regional,
+                for latency.
             model_flash: Flash-tier model name
                 (`app.settings.Settings.gemini_model_flash`).
             model_pro: Pro-tier model name
                 (`app.settings.Settings.gemini_model_pro`).
+            location_pro: Vertex AI location for Pro-tier calls
+                (`app.settings.Settings.vertex_ai_location_pro`). Defaults
+                to `location` (single-region routing) when not given —
+                but real-world Model Garden availability is genuinely
+                asymmetric per model per region (DEBT-003, resolved by
+                ADR-010: `gemini-2.5-pro` 404s in `asia-south1` for this
+                project, works via `"global"`), so Pro-tier routinely needs
+                a different location than Flash. Two separate `genai.Client`
+                instances get built (one per tier actually used in a given
+                `route()` call), never a single client whose location is
+                mutated between calls.
             client_factory: builds the underlying `genai.Client`; defaults
                 to the real Vertex AI constructor. Tests inject a fake.
         """
         self._project_id = project_id
         self._location = location
+        self._location_pro = location_pro if location_pro is not None else location
         self._model_flash = model_flash
         self._model_pro = model_pro
         self._client_factory = client_factory
@@ -209,13 +224,16 @@ class ModelRouter:
             )
             raise ProTierNotAllowlisted(agent_id=agent_id, requested_tier=requested_tier.value)
 
-        model_name = self._model_pro if requested_tier is ModelTier.PRO else self._model_flash
-        client = self._client_factory(self._project_id, self._location)
+        is_pro = requested_tier is ModelTier.PRO
+        model_name = self._model_pro if is_pro else self._model_flash
+        location = self._location_pro if is_pro else self._location
+        client = self._client_factory(self._project_id, location)
 
         logger.info(
             "reasoning.model_router.routed",
             agent_id=agent_id,
             tier=requested_tier.value,
             model_name=model_name,
+            location=location,
         )
         return RoutedModel(agent_id=agent_id, tier=requested_tier, model_name=model_name, client=client)

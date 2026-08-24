@@ -26,6 +26,7 @@ from app.reasoning.model_router import PRO_TIER_ALLOWLIST, ModelRouter, RoutedMo
 
 _PROJECT_ID = "gharos-test-project"
 _LOCATION = "asia-south1"
+_LOCATION_PRO = "global"
 _MODEL_FLASH = "gemini-2.5-flash"
 _MODEL_PRO = "gemini-2.5-pro"
 
@@ -49,10 +50,11 @@ def _fake_client_factory(project_id: str, location: str) -> genai.Client:
     return cast(genai.Client, _FakeGenaiClient(project_id=project_id, location=location))
 
 
-def _router() -> ModelRouter:
+def _router(*, location_pro: str | None = None) -> ModelRouter:
     return ModelRouter(
         project_id=_PROJECT_ID,
         location=_LOCATION,
+        location_pro=location_pro,
         model_flash=_MODEL_FLASH,
         model_pro=_MODEL_PRO,
         client_factory=_fake_client_factory,
@@ -89,16 +91,22 @@ class TestProTierAllowlistEnforcement:
         assert routed.tier is ModelTier.PRO
         assert routed.model_name == _MODEL_PRO
 
-    @pytest.mark.parametrize(
-        "agent_id_str",
-        ["A5", "A18", "A23", "A37", "A38", "A42", "A43", "A44", "A45", "A46", "A54"],
-    )
-    def test_every_currently_allowlisted_agent_can_route_pro_tier(self, agent_id_str: str) -> None:
+    @pytest.mark.parametrize("agent_id", sorted(PRO_TIER_ALLOWLIST))
+    def test_every_currently_allowlisted_agent_can_route_pro_tier(self, agent_id: AgentId) -> None:
         """Every id `PRO_TIER_ALLOWLIST` currently names actually routes
         successfully — a tripwire against an allowlist entry that looks
-        right but is spelled wrong or otherwise dead."""
+        right but is spelled wrong or otherwise dead.
+
+        Parametrized directly off the live `PRO_TIER_ALLOWLIST` set, not a
+        manually-copied literal list — a hand-maintained copy silently
+        drifted out of sync with the real allowlist once already (Phase 3
+        added A3/A3b/A3c/A12 to the allowlist without this test's list
+        being updated to match, so it was quietly testing a strict subset
+        while its own docstring claimed "every" — caught in the Phase 4
+        gate review). Deriving the parametrization from the allowlist
+        itself makes that drift structurally impossible to repeat."""
         router = _router()
-        routed = router.route(agent_id=AgentId(agent_id_str), requested_tier=ModelTier.PRO)
+        routed = router.route(agent_id=agent_id, requested_tier=ModelTier.PRO)
         assert routed.model_name == _MODEL_PRO
 
 
@@ -112,6 +120,36 @@ class TestFlashTierRouting:
 
         assert routed.tier is ModelTier.FLASH
         assert routed.model_name == _MODEL_FLASH
+
+
+class TestPerTierLocationRouting:
+    """DEBT-003 / ADR-010: Pro-tier and Flash-tier resolve through
+    independently-configurable Vertex AI locations, since real Model
+    Garden availability is genuinely asymmetric per model per region
+    (`gemini-2.5-pro` 404s in `asia-south1` for this project, works via
+    `"global"`) — the router must never silently use the same location
+    for both tiers when a caller explicitly configured them differently."""
+
+    def test_pro_tier_uses_the_configured_pro_location(self) -> None:
+        router = _router(location_pro=_LOCATION_PRO)
+        routed = router.route(agent_id=AgentId("A12"), requested_tier=ModelTier.PRO)
+        client = cast(_FakeGenaiClient, routed.client)
+        assert client.location == _LOCATION_PRO
+
+    def test_flash_tier_uses_the_regional_location_even_when_pro_location_differs(self) -> None:
+        router = _router(location_pro=_LOCATION_PRO)
+        routed = router.route(agent_id=AgentId("A99"), requested_tier=ModelTier.FLASH)
+        client = cast(_FakeGenaiClient, routed.client)
+        assert client.location == _LOCATION
+
+    def test_location_pro_defaults_to_the_regional_location_when_not_given(self) -> None:
+        """Single-region routing remains the default for any caller that
+        doesn't explicitly configure `location_pro` — this test would
+        catch an accidental change to that default."""
+        router = _router(location_pro=None)
+        routed = router.route(agent_id=AgentId("A12"), requested_tier=ModelTier.PRO)
+        client = cast(_FakeGenaiClient, routed.client)
+        assert client.location == _LOCATION
 
 
 class TestDeterministicTierRejected:

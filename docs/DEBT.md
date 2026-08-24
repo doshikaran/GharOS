@@ -19,21 +19,20 @@ Original entry, for the record:
 
 ---
 
-## OPEN
+## RESOLVED (continued)
 
-### DEBT-003 — Pro-tier Gemini not available in `asia-south1` for this project
+### ~~DEBT-003 — Pro-tier Gemini not available in `asia-south1` for this project~~ — RESOLVED 2026-08-24
 
-**Opened:** Phase 2, 2026-08-22
-**Owner:** e2 (routing fix) + cto (settings/region decision)
-**Repayment phase:** before Phase 4 (Consequence Engine) gates — Phase 4's flagship Implication Agent is Pro-tier, elevated thinking, and cannot ship without a working Pro-tier call path.
+`ModelRouter` now takes an independently-configurable `location_pro`, defaulting to `Settings.vertex_ai_location_pro` (`"global"`) for Pro-tier calls while Flash stays regional. Verified live: a real Pro-tier call (`gemini-2.5-pro`, agent `A12`) succeeded end-to-end through the fixed router. Three new regression tests in `test_model_router.py` prove the per-tier routing; a stale test (`test_every_currently_allowlisted_agent_can_route_pro_tier`, which had silently drifted to test a strict subset of the real allowlist) was fixed to derive its parametrization from the live allowlist instead of a hand-copied list. Full detail: ADR-010.
 
-**What's the gap:** E2 live-tested Vertex AI Gemini calls against `blissful-trail-506312-t0`. Flash-tier (`gemini-2.5-flash`) works correctly in `asia-south1`. Pro-tier (`gemini-2.5-pro`) 404s in `asia-south1` after ~15 model-id variants tried, but works via the "global" Vertex AI location. This is a real regional Model Garden availability gap on this project/account, not a code defect.
+Original entry, for the record:
 
-**Why this doesn't block Phase 2:** Gate 2 only requires Flash-tier plumbing proof (`/debug/gemini-ping`), which passed live. Pro-tier isn't exercised by any real agent until Phase 4.
-
-**Repayment condition:** before Phase 4 starts, decide and implement one of: (a) route Pro-tier calls through `location="global"` while Flash stays regional for latency (needs a second location field, e.g. `vertex_ai_location_pro`, and `model_router.py`/`gemini_client.py` routing logic to use it based on `ModelTier`), or (b) request/confirm regional Pro-tier access for this project and keep single-region routing. Whichever is chosen gets a short ADR (it's a real infra/latency trade-off, not a trivial config tweak) and this entry is struck with the date.
+> **Owner:** e2 (routing fix) + cto (settings/region decision). **Repayment phase:** before Phase 4 gates.
+> Pro-tier (`gemini-2.5-pro`) 404s in `asia-south1` after ~15 model-id variants tried, works via `"global"`.
 
 ---
+
+## OPEN
 
 ### DEBT-002 — ACTION_RECORD and APPROVAL_REQUEST are not yet reachable by any graph edge
 

@@ -68,6 +68,16 @@ class Settings(BaseSettings):
     gemini_model_flash: str = "gemini-2.5-flash"
     gemini_model_pro: str = "gemini-2.5-pro"
 
+    # Pro-tier calls resolve through a SEPARATE location from Flash
+    # (ModelRouter, `reasoning/model_router.py`) — resolved DEBT-003
+    # (Phase 2/3), see ADR-010. `gemini-2.5-pro` 404s regionally in
+    # `asia-south1` for this project (confirmed live, ~15 model-id
+    # variants tried) but works via Vertex AI's "global" location; Flash
+    # stays regional for latency, since it has no such gap. If this
+    # project's Pro-tier Model Garden access is ever granted regionally,
+    # set this to match `VERTEX_AI_LOCATION` instead of overriding it here.
+    vertex_ai_location_pro: str = "global"
+
     # CORS — the frontend (gharos-web) and backend (gharos-api) deploy as
     # two separate Cloud Run services with two separate origins, so the
     # browser enforces CORS on every cross-origin fetch the frontend makes

@@ -65,6 +65,7 @@ def get_model_router(settings: Annotated[Settings, Depends(get_settings)]) -> Mo
     return ModelRouter(
         project_id=settings.gcp_project_id,
         location=settings.vertex_ai_location,
+        location_pro=settings.vertex_ai_location_pro,
         model_flash=settings.gemini_model_flash,
         model_pro=settings.gemini_model_pro,
     )
