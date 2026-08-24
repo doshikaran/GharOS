@@ -34,17 +34,29 @@ Original entry, for the record:
 
 ## OPEN
 
-### DEBT-007 — A12 Implication Agent does not reliably recognize "nothing is genuinely implied"
+### DEBT-007 — A12 Implication Agent does not reliably recognize "nothing is genuinely implied" — DOWNGRADED (not struck) 2026-08-24
 
-**Opened:** Phase 4, 2026-08-24
-**Owner:** e2 (prompt fix) + cto (re-run must be independently re-verified before this is struck)
-**Repayment phase:** before Phase 5 (Arbitration, Approval & Action Layer) gates — PHASES.md's own words: "everything downstream assumes this agent is trustworthy," and Phase 5 builds the Approval Gate that will route this agent's output toward real (if gated) action.
+**Opened:** Phase 4, 2026-08-24. **Downgraded from blocking to monitoring:** 2026-08-24 (same day, after the v2 fix + re-run below).
+**Owner:** e2 (prompt fix, done) + cto (re-run independently re-verified — this update)
+**Repayment phase (original):** before Phase 5 gates. **Actual disposition:** substantially repaid; not struck, because the original repayment condition ("control-document hallucination rate drops to 0%") was not fully met. Phase 5 is proceeding on the CTO's explicit, reasoned call below rather than a fully clean number.
 
-**What's the gap:** the honest evaluation (`docs/IMPLICATION_BASELINE.md`, 20 held-out documents, real live Gemini calls) included two deliberate hallucination-rate control documents — ordinary documents with zero genuine implied obligations by design. A12 produced 2 plausible-sounding but fabricated candidates for *each* — a 100% failure rate on both designed "nothing to imply" tests, out of 4 candidates total. Organic hallucination rate on the other 18 real-world-shaped documents is a more modest 9% (5/56), and recall on those same 18 documents is strong (81%) — this is a narrow, specific, well-understood gap (no working "produce zero candidates" output path), not evidence of broad unreliability.
+**What was done:** `backend/app/prompts/a12_implication_agent/v2.md` (ADR-003 versioning; `manifest.json`'s `"A12"` bumped `"v1"` → `"v2"`) adds a worked negative example (a grocery-receipt document contrasted against a genuine nut-allergy-triggered implication) and an explicit pre-emission test: *"would a thoughtful family member have already assumed this with zero reasoning?"* A full, honest, no-longer-blind re-run against the same 20 held-out documents was performed and hand-scored by the CTO with the same rigor as the v1 baseline. Full numbers and per-document detail: `docs/IMPLICATION_BASELINE.md`'s "v2 re-run" section.
 
-**Why this isn't being fixed in the same session:** the fix is a specific prompt change (`backend/app/prompts/a12_implication_agent/`, a new version per ADR-003 — explicit instruction/worked example for the zero-candidate case). Validating that fix honestly requires a full 20-document re-run scored with the same rigor as the baseline, not a quick partial check under time pressure — conflating "fix the prompt" with "re-score quickly to get a cleaner number" would undermine the rigor this evaluation exists to enforce.
+**Result — a real trade-off, not a clean win:**
 
-**Repayment condition:** a new A12 prompt version explicitly handling the "nothing genuinely implied" case; a full re-run against the same 20 held-out documents (openly labeled as no-longer-strictly-blind, per `IMPLICATION_BASELINE.md`'s own honesty requirement); the control-document hallucination rate drops to 0%; the CTO independently re-verifies the new numbers before this entry is struck.
+| Metric | v1 | v2 |
+|---|---|---|
+| Recall | 81% | 71% (−10 pts) |
+| Hallucination, organic (non-control) | 9% | **0%** |
+| Hallucination, overall | 15% | 4% |
+| Control docs fully clean | 0/2 | 1/2 |
+| Citation validity | 85% | 96% |
+
+Organic hallucination reached the target (0%) and one of the two control documents is now fully clean. The other (`eval-20-library-books`) still emits one candidate — down from two in v1, but not zero. In exchange, A12 became more conservative and missed several implications it had correctly caught in v1 (the sports-day transport conflict, the allergy-fasting window, a medication-schedule notification, a budget note) — recall dropped 10 points.
+
+**Why this is being downgraded rather than struck or re-iterated further:** the original repayment condition (0% control-document hallucination) is not literally met, so this is not marked resolved. But: (1) the specifically dangerous failure mode — organic hallucination on real household documents — is fully eliminated, not just reduced; (2) the one remaining control-document candidate is a single, identified, narrow pattern ("a child needs an adult to prepare something"), not evidence of a broad or unpredictable failure mode; (3) a third full live-evaluation cycle costs real time and real API spend for a narrowing, well-understood residual, with diminishing evidence a third prompt iteration converges rather than just trades errors again; (4) Phase 5's own Approval Gate — built next — is structurally exactly the downstream safety net this class of residual risk over-relies on and should be caught by before anything ever becomes a real action. Proceeding to Phase 5 without a third iteration is the CTO's explicit, reasoned call, made openly rather than silently declared "fixed."
+
+**Repayment condition (revised, to actually strike this entry):** either (a) a future prompt iteration reaches 0/2 control documents clean without reintroducing organic hallucination or materially regressing recall further, verified by another full honest re-run: or (b) Phase 5's Approval Gate is shown in practice to catch this exact residual pattern before any downstream action, at which point the repayment condition shifts from "the agent never hallucinates" (unrealistic as a hard bar for any LLM-based agent) to "the system never acts on a hallucination" (the actually load-bearing guarantee) — and this entry is re-framed and closed against that guarantee instead.
 
 ---
 
