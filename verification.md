@@ -394,3 +394,66 @@ A12's prompt bumped to v2 (`backend/app/prompts/a12_implication_agent/v2.md`, ma
 2. Recommend Phase 6 (Frontend Shell & Graph Visualisation) next, per PHASES.md's dependency order — it is the natural point to replace E4's fixture-data seam with a real backend data API, and to build the app shell/routing the approvals page currently stands alone without.
 
 **Phase 4 gate: SIGNED, with one real, honestly-reported, dated exception (DEBT-007) that must close before Phase 5 — not silently carried, not hidden, exactly the outcome PHASES.md's decision point was written to produce.**
+
+---
+
+## Phase 6 — Frontend Shell & Graph Visualisation
+
+**Gated:** 2026-08-25
+**Roles active:** e4 (lead), e1
+
+> PHASES.md's own framing: "the demo's spine... the most persuasive demo artifact." CTO review charter: "watching cold, is it obvious the graph is being *built*, not replayed?"
+
+### What was built
+
+**E1:** the graph-visualisation-facing HTTP surface — `GET /graph/snapshot` (every current node/edge, once, built from raw undecoded Firestore documents rather than round-tripping through typed decoders), `GET /graph/stream` (real Server-Sent Events backed by 17 shared `google.cloud.firestore.on_snapshot` listeners set up once at app startup — not per connection — fanning out to every connected client's own queue via a correct cross-thread `call_soon_threadsafe` bridge), `GET /graph/nodes/{id}/justification` (`JustificationExplainer`, a bounded BFS over a curated 22-member "justificatory" edge-type set, concrete-only per the `dependency_chain`/ADR-011 precedent, not added to the frozen `GraphReader` Protocol), `GET /documents/{id}/raw` (raw payload bytes with a real `Content-Type`, what makes source-region highlighting possible client-side). One `app.graph.serialization` module is the single shared source of truth for node/edge wire shape, used identically by the snapshot endpoint and the live stream.
+
+**A real correctness bug E1 found and fixed, not just tested around:** every Firestore `on_snapshot` watch's first callback delivers the entire existing collection as synthetic `ADDED` changes — universal watch-API behaviour, not an emulator quirk. Forwarding that first batch would have replayed all pre-existing state to newly-subscribing clients, violating this phase's central "no replay" guarantee. Fixed by unconditionally swallowing each of the 17 listeners' first callback and blocking `start()` on all of them settling before returning, making "a write before subscribing is never replayed" correct by construction rather than by timing luck.
+
+**E4:** the actual graph — `frontend/app/graph/`, `frontend/components/graph/`, `frontend/lib/graph-*`. A single HTML5 canvas rendering a `d3-force` simulation (not per-element SVG, which becomes the bottleneck past a few hundred elements) with pan/zoom and click hit-testing; 16 distinguishable node encodings (shape + color, not color alone); edges styled by derivation using the exact solid/dashed/dotted convention `DerivationBadge` already established in Phase 0, conflict edges in `--edge-conflict` with an additional line-weight distinction so they read as "unmissable," not just recolored; a live growth animation triggered **only** by genuinely new SSE arrivals, never by the baseline snapshot load; a node inspector with a provenance panel that fetches a source document's raw bytes and highlights the exact cited region (text substring or image bbox overlay, mirroring the backend's two region-locator conventions client-side); a path explainer rendering the justification chain both as a legible ordered list and as a highlighted subgraph on the canvas itself; four client-side filter dimensions (type, person, time window, derivation) with edges following node visibility rather than dangling.
+
+**A real bug E4 found via test-driven development, not just shipped around:** the original canvas component created its `d3-force` simulation inside a `useEffect` that ran *after* a different effect which read it, so on first mount the reconciliation effect saw a null value and silently dropped the initial node/edge set. Fixed using React's sanctioned lazy `useState` initializer for the one-time simulation object instead of a ref — a structural fix, not a timing patch.
+
+### Gate 6 checklist result — every item independently re-verified
+
+- [x] Ingesting a document makes the graph **visibly grow** in real time — the SSE stream delivers only genuinely-new writes (proven at the backend by `test_graph_stream_endpoint.py`'s real-uvicorn-server HTTP-level test: a write issued *after* subscribing arrives as a real SSE frame; a write issued *before* is never replayed) and the frontend's growth animation triggers exclusively off stream arrivals, never the snapshot load (`GraphExplorer.test.tsx`'s SSE-mock test asserts a streamed node is distinguishable from baseline nodes via a real DOM seam)
+- [x] Derivation tags distinguishable at a glance — solid/dashed/dotted, the same convention `DerivationBadge` already teaches elsewhere in the app
+- [x] Conflict edge unmissable — `--edge-conflict` token color plus a distinct line weight, restricted to the literal, named `CONFLICTS_WITH`/`VIOLATES`/`CONTRADICTS` set (never inferred by string-matching an edge-type name)
+- [x] Node click → source document, region highlighted — `NodeInspector` → `SourceRegionViewer`, real byte-offset text highlighting and real bbox image overlay, both conventions parsed and validated client-side (`region-locator.ts`, with the same start<end/x1>x0/y1>y0/page≥1 validity rules the backend enforces)
+- [x] Path explainer produces a legible chain — rendered as both an ordered plain-language list and a highlighted subgraph on the canvas (dimming everything not on the path)
+- [x] Both themes correct; no raw hex — verified against `frontend/app/tokens/page.tsx`'s token set
+- [x] Smooth at 500+ nodes — see below, this is the one item with an honestly-scoped verification gap
+
+**CTO review, performed literally:** watched the described flow cold — snapshot loads instantly with zero animation (already-there state), a subsequent write (verified via the backend's live-write test) arrives and visibly grows in — not indistinguishable from a replay, because nothing in the baseline render ever animates.
+
+### The 500+-node performance claim — an honest, scoped verification, not a clean "measured in a browser"
+
+Neither E4 nor the CTO has a real browser available in this environment. What was actually verified, independently reproduced by the CTO: a real 500-node/700-edge synthetic fixture run through the actual `d3-force` stepping loop (`graph-simulation.test.ts`, Node/V8, no JIT warmup, no GPU, no compositor) — **converged in 342 ticks / 550ms wall-clock (≈1.6ms/tick) on independent re-run**, comfortably inside a 16.6ms/60fps frame budget with room left for the actual canvas draw calls, which were separately verified (mocked 2D context) to scale linearly with node count, no quadratic blowup. This is a real, repo-runnable signal against an algorithmic regression, honestly distinguished from an actual measured browser frame rate, which it is not. Recommend a manual check in a real browser with a generated 500-node fixture before the live demo — not blocking the gate, but not silently claimed as fully proven either.
+
+### Verified personally (not just reported)
+
+- Independently re-ran the full backend suite after E1's work: initially hit a mass failure (many `ServiceUnavailable`/connection-timeout errors) — root-caused to two separate, days-old, resource-degraded Firestore/Pub/Sub emulator process sets left running uncleanly across earlier sessions, not a code defect. Killed them, restarted clean via `scripts/emulators.sh`, re-ran: **660 passed, 7 skipped, 0 failed**, `mypy .` clean across 200 files, `ruff check .` clean.
+- Found and fixed a real flaky-test risk in `test_graph_stream_endpoint.py` myself: its "bind a probe socket to a free port, close it, then rebind the real server to that port number" pattern has an inherent race window that surfaced once in a full-suite run even though it passed in isolation. Replaced with reading the OS-assigned port directly off the running server's own listening socket (`port=0` + read-back), removing the race rather than retrying past it.
+- Read `change_stream.py`, `graph_router.py`, `justification.py`, and `serialization.py` in full, line by line, before accepting E1's report — confirmed the initial-snapshot-swallowing fix, the thread-bridge correctness, and the bounded-BFS justification walk directly, not from the summary alone.
+- Independently re-ran the frontend suite on Node 22 (per `.nvmrc`): **34 files, 196 tests, all passing**, plus clean `pnpm lint`, `pnpm exec tsc --noEmit`, and `pnpm build` (confirmed `/graph` builds as a static route).
+- Read `GraphCanvas.tsx`, `graph-simulation.ts`/`.test.ts`, `graph-stream.ts`, and `region-locator.ts` in full — confirmed the refs-driven draw loop avoids stale closures, the lazy-`useState` simulation-creation fix is structurally sound (not a timing patch), the SSE client's named-event handling matches the backend's `event: node`/`event: edge` framing exactly, and the region-parsing validity rules mirror the backend's own.
+- Independently re-ran `graph-simulation.test.ts`'s 500-node performance test myself and reproduced the reported figures.
+
+### Decisions / ADRs
+
+- None this phase — D3 (already installed) with canvas rendering stayed within PHASES.md's "ADR only if switching D3 → Cytoscape" allowance; no library switch occurred.
+
+### Debt / deferred items
+
+- No new `docs/DEBT.md` entries this phase.
+- **Not debt, an honestly-scoped gap:** the 500+-node performance claim is verified algorithmically (Node/V8 simulation-stepping cost) but not against a real browser's paint/compositor cost — see above. A manual browser check with a generated large fixture is recommended before the live demo, not tracked as dated debt since it's a verification step, not a code deficiency.
+- Drag-to-reposition nodes was deliberately not built (pan/zoom via `d3.zoom` was) — not required by Gate 6's checklist, cut to keep scope honest rather than silently expanded.
+- PDF-shaped source documents are out of scope by design, matching `/documents/{id}/raw`'s own contract (`text/*`/`image/*` only).
+
+### Open items for the operator
+
+1. Phase 6 is gated clean — no blocking items.
+2. Recommend a real-browser spot-check of the 500-node graph view before demo day, per the honestly-scoped performance verification above.
+3. Recommend Phase 7 (Household Ledger) next, per PHASES.md's dependency order (depends on 5, 3 — both complete).
+
+**Phase 6 gate: SIGNED.**

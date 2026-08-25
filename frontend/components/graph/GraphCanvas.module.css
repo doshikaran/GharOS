@@ -1,0 +1,22 @@
+.container {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  min-height: 420px;
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  background: var(--surface-base);
+  box-shadow: var(--elevation-1);
+}
+
+.canvas {
+  display: block;
+  width: 100%;
+  height: 100%;
+  cursor: grab;
+  touch-action: none;
+}
+
+.canvas:active {
+  cursor: grabbing;
+}

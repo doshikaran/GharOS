@@ -1,0 +1,99 @@
+.inspector {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  padding: var(--space-4);
+  background: var(--surface-raised);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--elevation-2);
+}
+
+.header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--space-3);
+}
+
+.type {
+  margin: 0 0 var(--space-1);
+  font-size: 0.6875rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--ink-muted);
+}
+
+.label {
+  margin: 0;
+  font-size: 1.125rem;
+  font-family: var(--font-display), var(--font-body), ui-sans-serif, sans-serif;
+}
+
+.closeButton {
+  border: none;
+  background: none;
+  color: var(--ink-muted);
+  font-size: 1.25rem;
+  line-height: 1;
+  cursor: pointer;
+  padding: var(--space-1);
+  flex-shrink: 0;
+}
+
+.closeButton:hover {
+  color: var(--ink-primary);
+}
+
+.section {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  border-top: 1px solid var(--ink-muted);
+  padding-top: var(--space-3);
+}
+
+.sectionHeading {
+  margin: 0;
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--ink-muted);
+}
+
+.emptyNote {
+  margin: 0;
+  font-size: 0.8125rem;
+  color: var(--ink-muted);
+  font-style: italic;
+}
+
+.fieldList {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  margin: 0;
+}
+
+.fieldRow {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  font-size: 0.8125rem;
+}
+
+.fieldKey {
+  color: var(--ink-muted);
+  font-weight: 600;
+}
+
+.fieldValue {
+  margin: 0;
+  color: var(--ink-primary);
+  word-break: break-word;
+}
+
+.sourceWrapper {
+  margin-top: var(--space-2);
+}

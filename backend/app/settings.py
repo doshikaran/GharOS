@@ -104,6 +104,12 @@ class Settings(BaseSettings):
     # working directory (backend/ for `uv run uvicorn` / `uv run pytest`).
     raw_payload_storage_dir: str = "./data/raw_payloads"
 
+    # Graph streaming (app.api.graph_router, app.graph.change_stream) —
+    # PHASES.md Phase 6: GET /graph/stream's periodic SSE comment/heartbeat
+    # interval, so Cloud Run (or any intermediate proxy) never times out an
+    # otherwise-idle connection. Seconds.
+    sse_heartbeat_interval_seconds: float = 30.0
+
     # App
     env: str = "local"
     log_level: str = "INFO"

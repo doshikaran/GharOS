@@ -1,0 +1,63 @@
+.status {
+  font-size: 0.8125rem;
+  color: var(--ink-muted);
+  margin: 0;
+}
+
+.textDocument {
+  white-space: pre-wrap;
+  word-break: break-word;
+  font-family: var(--font-body), ui-sans-serif, sans-serif;
+  font-size: 0.8125rem;
+  line-height: 1.6;
+  color: var(--ink-secondary);
+  background: var(--surface-overlay);
+  border-radius: var(--radius-md);
+  padding: var(--space-3);
+  max-height: 18rem;
+  overflow-y: auto;
+  margin: 0;
+}
+
+.highlight {
+  background: var(--accent-brass-muted);
+  color: var(--ink-primary);
+  border-radius: var(--radius-sm);
+  padding: 0 0.1em;
+}
+
+.imageDocument {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.pageLabel {
+  margin: 0;
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: var(--ink-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.imageFrame {
+  position: relative;
+  width: 100%;
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  background: var(--surface-overlay);
+}
+
+.image {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+.overlay {
+  position: absolute;
+  border: 3px solid var(--accent-brass);
+  background: color-mix(in srgb, var(--accent-brass) 18%, transparent);
+  pointer-events: none;
+}
