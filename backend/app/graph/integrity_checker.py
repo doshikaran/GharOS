@@ -19,24 +19,38 @@ from __future__ import annotations
 from typing import Any
 
 from contracts.errors import ProvenanceMissing
-from contracts.graph_types import ActionRecord, ApprovalRequest, EdgeType, NodeId
+from contracts.graph_types import ApprovalRequest, EdgeType, NodeId
 
 from app.persistence.firestore_store import FirestoreGraphStore
 from app.persistence.provenance_guard import subject_from_raw_document, validate_provenance
 
-_NEVER_EDGE_CONNECTED_NODE_TYPE_NAMES = (ActionRecord.__name__, ApprovalRequest.__name__)
-"""ACTION_RECORD and APPROVAL_REQUEST are two of the 16 node types (spec
-§5.2) but `contracts.graph_types.EdgeType`'s frozen 29-entry enum has no
-edge type naming either one as an endpoint — every other node type has at
-least one. A correctly-written ACTION_RECORD or APPROVAL_REQUEST node is
-therefore *always* an edge-orphan under the current contract, which would
-make the orphan check permanently noisy (or force excluding these two
-types from seed data entirely) if not special-cased here. Flagged to the
-CTO as a `docs/DEBT.md` candidate in this phase's final report — this is
-an interim, documented judgment call on integrity-checker behaviour, not a
-contract change (`contracts/graph_types.py` is frozen and out of scope for
-this repository). Compared by type *name* rather than `isinstance` because
-this check works over raw `(node_type, doc_id, raw_dict)` triples, where
+_NEVER_EDGE_CONNECTED_NODE_TYPE_NAMES = (ApprovalRequest.__name__,)
+"""**Narrowed in Phase 5 (ADR-012, DEBT-002's repayment).** Originally both
+ACTION_RECORD and APPROVAL_REQUEST were special-cased here, since the
+frozen `EdgeType` enum had no member naming either as an endpoint at all —
+every correctly-written node of either type was unconditionally an
+edge-orphan under the old contract. Phase 5 added `ACTS_ON`, `AUTHORIZES`,
+and `APPROVED_BY` (ADR-012) and `app.arbitration.approval_gate.
+ApprovalGate.approve_and_execute` now writes all three for real, atomically
+alongside every `ActionRecord` it creates — an ActionRecord is therefore
+now *always* edge-connected (one outgoing `ACTS_ON`, one incoming
+`AUTHORIZES`) by construction, and is removed from this list.
+
+APPROVAL_REQUEST stays special-cased, but for a different, narrower, and
+entirely expected reason now: `ApprovalGate.request_approval` deliberately
+writes a `PENDING` request with zero edges (nothing has been authorized
+yet), and `AUTHORIZES`/`APPROVED_BY` are only ever added on the successful
+tail of `approve_and_execute`. A `PENDING`, `REJECTED`, or `EXPIRED`
+request — or an `APPROVED` one whose underlying tool invocation then
+failed (see that method's own docstring: audit and status update happen
+before execution is attempted, so a tool failure still leaves a resolved,
+edge-orphaned request) — is legitimately, permanently edge-orphaned by
+design, not corruption. This is normal lifecycle state, not deferred debt;
+it is not expected to ever be narrowed further to a status-conditional
+check, since "resolved but never executed anything real" is a genuine,
+common, correct end state for a request (e.g. every REJECTED request ever
+written). Compared by type *name* rather than `isinstance` because this
+check works over raw `(node_type, doc_id, raw_dict)` triples, where
 `node_type` is already the class object from the collection registry."""
 
 

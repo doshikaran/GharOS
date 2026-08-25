@@ -7,22 +7,23 @@ lands, never `xfail`.
 |---|-----------------------------------------|-----------------------------|-------------------------------|
 | 3 | Provenance on every node/edge           | Repository write guard      | REAL (Firestore, Phase 1)     |
 | 2 | Audit before execute                    | write_before_execute        | REAL (Firestore, Phase 1)     |
-| 4 | Low confidence escalates                | Confidence Arbiter          | skip -> Phase 4               |
-| 1 | Money reasoners hold no money tools     | Tool registration           | skip -> Phase 5               |
-| 5 | Financial/irreversible need approval    | Approval Gate               | skip -> Phase 5               |
-| 7 | No fabricated tool success               | Tool error contract         | skip -> Phase 5               |
+| 4 | Low confidence escalates                | Confidence Arbiter          | REAL (Firestore, Phase 5)     |
+| 1 | Money reasoners hold no money tools     | Tool registration           | REAL (Phase 5)                |
+| 5 | Financial/irreversible need approval    | Approval Gate               | REAL (Firestore, Phase 5)     |
+| 7 | No fabricated tool success               | Tool error contract         | REAL (Firestore, Phase 5)     |
 | 6 | No debate framing                       | Code review + lint rule     | skip -> Phase 12              |
 | 8 | Voice confers no action capability      | Voice intent routing        | skip -> Phase 13              |
 
 Invariants #2 and #3 were provable against Phase 0's in-memory stub
-repositories; this phase (E1, Phase 1) upgrades both proofs to run against
-the real, Firestore-emulator-backed `FirestoreGraphWriter` and
-`FirestoreAuditLog` / `write_before_execute`, per the E1 charter's
-explicit instruction to upgrade — not merely re-point — these two test
-classes. The rest of this file (everything from "Invariants introduced in
-later phases" onward) is untouched from Phase 0: those invariants are not
-E1's to implement, and their skip placeholders name the correct future
-phase already.
+repositories; Phase 1 (E1) upgraded both proofs to run against the real,
+Firestore-emulator-backed `FirestoreGraphWriter` and `FirestoreAuditLog` /
+`write_before_execute`. Phase 5 (E3) does the equivalent upgrade for #1,
+#4, #5, and #7 — real tests against `app.tools.registry.ToolRegistry`,
+`app.arbitration.confidence_arbiter.ConfidenceArbiter`,
+`app.arbitration.approval_gate.ApprovalGate`, and the concrete tools in
+`app.tools`/`app.arbitration`, not placeholders. #6 and #8 remain tracked
+skips naming their correct future phase (Gate 5 explicitly allows this:
+"All eight invariants now real tests (6 and 8 may still be placeholders)").
 """
 
 from __future__ import annotations
@@ -32,10 +33,11 @@ from datetime import UTC, datetime
 from types import SimpleNamespace
 
 import pytest
-from contracts.actions import ActionResult, AuditRef, IdempotencyKey, RiskTier
-from contracts.errors import ProvenanceMissing
+from contracts.actions import ActionResult, AuditRef, EvidenceBundle, IdempotencyKey, RiskTier
+from contracts.errors import ApprovalRequired, ProvenanceMissing, ToolFailure
 from contracts.graph_types import (
     AgentId,
+    ApprovalStatus,
     Derivation,
     LanguageProfile,
     LiteracyMode,
@@ -45,14 +47,30 @@ from contracts.graph_types import (
     Provenance,
     SourceRef,
 )
+from contracts.tools import GATED_TIERS, PermissionTier
 from hypothesis import HealthCheck, given, settings
 from hypothesis import strategies as st
 
+from app.arbitration.actions import GatedAction
+from app.arbitration.approval_gate import ApprovalGate
+from app.arbitration.confidence_arbiter import ConfidenceArbiter
+from app.arbitration.gated_tool import ReferenceGatedTool
+from app.arbitration.types import ArbiterDecision, ArbiterResult, ProposedAction
 from app.audit.audit_log import FirestoreAuditLog
 from app.audit.errors import AuditNotWritten
 from app.audit.write_before_execute import AuditGuardedAction, write_before_execute
+from app.graph.reader import FirestoreGraphReader
 from app.graph.writer import FirestoreGraphWriter
+from app.persistence.idempotency_store import FirestoreIdempotencyStore
 from app.persistence.provenance_guard import validate_provenance
+from app.reasoning.gemini_client import GeminiClient
+from app.reasoning.risk_policy import ActionTypes
+from app.tools.errors import GatedToolRegistrationDenied
+from app.tools.registry import ToolRegistry
+
+from ._fake_agent_tool_registration import attempt_gated_registration
+from ._fake_idempotency_store import InMemoryIdempotencyStore
+from ._gemini_fakes import FakeModels, fake_router
 
 # ---------------------------------------------------------------------------
 # Shared fixtures / helpers
@@ -258,22 +276,163 @@ class TestInvariant2AuditBeforeExecute:
 # ---------------------------------------------------------------------------
 
 
-@pytest.mark.skip(reason="implemented in Phase 5")
-def test_invariant_1_money_reasoners_hold_no_money_tools() -> None:
+class TestInvariant1MoneyReasonersHoldNoMoneyTools:
     """No agent that reasons about money may also move money — enforced by
-    tool registration (Phase 5)."""
+    tool registration (Phase 5). See `test_tool_registry.py` for the full
+    adversarial proof suite this class summarizes the headline claim of.
+    """
+
+    def test_reasoning_agent_registry_cannot_register_a_t6_tool(self) -> None:
+        """A28 Reconciliation-shaped registry (T0 Ledger-read only) — the
+        canonical "money-analysis but not money-movement" agent (spec
+        §10.5) — refuses a T6 tool outright."""
+        registry = ToolRegistry(agent_id=AgentId("A28"), allowed_tiers=frozenset({PermissionTier.T0_READ}))
+        tool = ReferenceGatedTool(
+            name="payment_executor",
+            tier=PermissionTier.T6_FINANCIAL,
+            bounds={},
+            effect=lambda **kwargs: "paid",
+            idempotency_store=InMemoryIdempotencyStore(),
+        )
+        with pytest.raises((GatedToolRegistrationDenied,)):
+            attempt_gated_registration(registry, tool)
+        assert not registry.has_tier(PermissionTier.T6_FINANCIAL)
+
+    def test_gated_tiers_are_reachable_only_through_arbitration_regardless_of_caller(self) -> None:
+        """Every GATED_TIERS member (T4/T5/T6), attempted from a mock
+        agent-side location, is rejected — spec §16.3 invariant 1/2
+        combined."""
+        for tier in GATED_TIERS:
+            registry = ToolRegistry(
+                agent_id=AgentId("some-money-reasoning-agent"), allowed_tiers=frozenset({tier})
+            )
+            tool = ReferenceGatedTool(
+                name=f"gated-{tier.value}",
+                tier=tier,
+                bounds={},
+                effect=lambda **kwargs: "done",
+                idempotency_store=InMemoryIdempotencyStore(),
+            )
+            with pytest.raises(GatedToolRegistrationDenied):
+                attempt_gated_registration(registry, tool)
 
 
-@pytest.mark.skip(reason="implemented in Phase 4")
-def test_invariant_4_low_confidence_escalates() -> None:
+class TestInvariant4LowConfidenceEscalates:
     """Low-confidence outputs escalate; they never silently act — enforced
-    by the Confidence Arbiter (Phase 4)."""
+    by the Confidence Arbiter (Phase 5, A57). See
+    `test_confidence_arbiter.py` for the full proof suite."""
+
+    def _arbiter(self) -> ConfidenceArbiter:
+        fake_models = FakeModels(texts=["{}"])
+        client = GeminiClient(router=fake_router(fake_models))
+        return ConfidenceArbiter(gemini_client=client)
+
+    def _proposed(self, *, action_type: str, confidence: float) -> ProposedAction:
+        return ProposedAction(
+            action_type=action_type,
+            entity_id="entity-1",
+            cycle="2026-08",
+            target_node_id=NodeId("target-1"),
+            confidence=confidence,
+            involves_hard_constraint=False,
+            reasoning="test",
+            evidence_consulted=(),
+            consequence_if_wrong="test",
+            proposed_by=AgentId("A0"),
+            source_ref=None,
+        )
+
+    def test_catastrophically_low_confidence_is_discarded_never_executed(self) -> None:
+        proposed = self._proposed(action_type=ActionTypes.GRAPH_WRITE, confidence=0.05)
+        result = self._arbiter().evaluate(proposed)
+        # DISCARD is one of exactly four ArbiterDecision members and is
+        # itself the full proof of "never silently executed" -- pinning it
+        # already excludes EXECUTE (and APPROVE/ESCALATE) with no further
+        # assertion needed.
+        assert result.decision is ArbiterDecision.DISCARD
+
+    def test_low_confidence_that_crosses_a_tier_boundary_requires_approval_not_silent_execution(self) -> None:
+        """A `DRAFT_MESSAGE` (R1, normally silently auto-executed) at low
+        confidence is downgraded to R2 — it now requires human approval
+        rather than executing quietly."""
+        proposed = self._proposed(action_type=ActionTypes.DRAFT_MESSAGE, confidence=0.30)
+        result = self._arbiter().evaluate(proposed)
+        assert result.final_risk_tier is RiskTier.R2_APPROVE
+        # APPROVE is itself the full proof of "requires human approval, not
+        # silent execution" -- pinning it already excludes EXECUTE.
+        assert result.decision is ArbiterDecision.APPROVE
 
 
-@pytest.mark.skip(reason="implemented in Phase 5")
-def test_invariant_5_financial_irreversible_needs_approval() -> None:
+class TestInvariant5FinancialIrreversibleNeedsApproval:
     """Financial and irreversible actions require explicit human approval —
-    enforced by the Approval Gate (Phase 5)."""
+    enforced by the Approval Gate (Phase 5). See `test_approval_gate.py`
+    for the full proof suite."""
+
+    def test_pay_dues_never_executes_without_an_approved_approval_request(
+        self,
+        reader: FirestoreGraphReader,
+        writer: FirestoreGraphWriter,
+        audit_log: FirestoreAuditLog,
+        idempotency_store: FirestoreIdempotencyStore,
+    ) -> None:
+        proposed = ProposedAction(
+            action_type=ActionTypes.PAY_DUES,
+            entity_id="due-1",
+            cycle="2026-08",
+            target_node_id=NodeId("ledger-event-1"),
+            confidence=0.95,
+            involves_hard_constraint=False,
+            reasoning="test",
+            evidence_consulted=(),
+            consequence_if_wrong="test",
+            proposed_by=AgentId("A27"),
+            source_ref=None,
+        )
+        arbiter_result = ArbiterResult(
+            proposed_action=proposed,
+            decision=ArbiterDecision.APPROVE,
+            final_risk_tier=RiskTier.R3_EXPLICIT_APPROVE,
+            confidence=0.95,
+            evidence_bundle=EvidenceBundle("pay_dues", "test", (), 0.95, "test"),
+            escalated_to_pro=False,
+        )
+        tool = ReferenceGatedTool(
+            name="payment_executor",
+            tier=PermissionTier.T6_FINANCIAL,
+            bounds={},
+            effect=lambda **kwargs: "paid",
+            idempotency_store=idempotency_store,
+        )
+        gate = ApprovalGate(graph_reader=reader, graph_writer=writer, audit_log=audit_log)
+
+        # No approval requested yet -- constructing/executing a GatedAction
+        # directly for this action, without going through the gate, must
+        # refuse (this is what "never" means structurally, not just "the
+        # gate happens to always be called first").
+        unapproved = GatedAction(
+            risk_tier=RiskTier.R3_EXPLICIT_APPROVE,
+            idempotency_key=IdempotencyKey(
+                entity_id="due-1", action_type=ActionTypes.PAY_DUES, cycle="2026-08"
+            ),
+            audit_ref=AuditRef(audit_record_id="fake", written_at=datetime.now(UTC)),
+            tool=tool,
+            invoke_kwargs={},
+            approval_status=ApprovalStatus.PENDING,
+        )
+        with pytest.raises(ApprovalRequired):
+            unapproved.execute()
+
+        # The sanctioned path: request approval, then explicitly approve.
+        request = gate.request_approval(arbiter_result, now=datetime.now(UTC))
+        outcome = gate.approve_and_execute(
+            arbiter_result=arbiter_result,
+            approval_request=request,
+            approved_by_person_id=NodeId("person-dad"),
+            tool=tool,
+            invoke_kwargs={},
+        )
+        assert outcome.status == ApprovalStatus.APPROVED.value
+        assert outcome.tool_result.ok is True  # type: ignore[union-attr]
 
 
 @pytest.mark.skip(reason="implemented in Phase 12")
@@ -283,10 +442,33 @@ def test_invariant_6_no_debate_framing() -> None:
     and a lint rule (Phase 12)."""
 
 
-@pytest.mark.skip(reason="implemented in Phase 5")
-def test_invariant_7_no_fabricated_tool_success() -> None:
+class TestInvariant7NoFabricatedToolSuccess:
     """A failed tool call never produces a fabricated success — enforced by
-    the tool error contract (Phase 5)."""
+    the tool error contract (Phase 5). See `test_graph_read_tool.py` /
+    `test_graph_write_tool.py` for the full per-tool adversarial suite."""
+
+    def test_forced_tool_failure_never_returns_action_result_success(
+        self, writer: FirestoreGraphWriter, idempotency_store: FirestoreIdempotencyStore
+    ) -> None:
+        from app.tools.graph_write_tool import GraphWriteTool
+
+        class _BrokenWriter:
+            def write_node(self, node: object) -> NodeId:
+                raise RuntimeError("simulated failure")
+
+            def write_edge(self, edge: object) -> None:  # pragma: no cover
+                raise RuntimeError("simulated failure")
+
+            def supersede_node(self, old_node_id: NodeId, new_node: object) -> NodeId:  # pragma: no cover
+                raise RuntimeError("simulated failure")
+
+        tool = GraphWriteTool(graph_writer=_BrokenWriter(), idempotency_store=idempotency_store)
+        with pytest.raises(ToolFailure):
+            result = tool.invoke_idempotent("invariant-7-key", operation="write_node", node=object())
+            # Unreachable if the contract holds -- documents intent (mirrors
+            # risk_policy's own "never resolves to a permissive default"
+            # belt-and-braces test style).
+            assert result.ok is not True
 
 
 @pytest.mark.skip(reason="implemented in Phase 13")

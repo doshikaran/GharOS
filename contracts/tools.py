@@ -64,8 +64,9 @@ alone."""
 
 @runtime_checkable
 class Tool(Protocol):
-    """Structural protocol every tool satisfies. Concrete tools live in
-    `backend/app/tools/` (E3), organised by tier per spec §16.2."""
+    """Structural protocol every simple, non-idempotent (T0-T2) tool
+    satisfies. Concrete tools live in `backend/app/tools/` (E3), organised
+    by tier per spec §16.2."""
 
     name: str
     tier: PermissionTier
@@ -77,12 +78,45 @@ class Tool(Protocol):
         ...
 
 
+@runtime_checkable
+class Registrable(Protocol):
+    """The minimal shape shared infrastructure that only ever needs
+    identity + tier (chiefly `ToolRegistry`, `backend/app/tools/registry.py`
+    — E3) can rely on, satisfied by BOTH `Tool` (T0-T2, simple `invoke`)
+    and `IdempotentTool`/`ApprovalGatedTool` (T3-T6, `invoke_idempotent`).
+    Deliberately narrower than `Tool`: a registry that only ever reads
+    `.name`/`.tier` and hands the tool back to a caller who already knows
+    which family it belongs to (and therefore which invoke method to call)
+    has no business requiring the full `Tool` shape from every tool it
+    holds. Added Phase 5, once a single registry needed to hold both
+    families side by side (T0 read tools and T3 write tools, in the same
+    agent's toolset) and typing it as `Tool` alone rejected every
+    `IdempotentTool` at the type checker, even though the registry's own
+    logic never touched `.invoke()`."""
+
+    name: str
+    tier: PermissionTier
+
+
 class IdempotentTool(ABC):
     """Base for any T3+ tool. `invoke_idempotent` MUST be used instead of a
     raw `invoke` for T3 and above — spec §19.1: replays are no-ops
     returning the original result, enforced at the tool level, not the
-    agent level."""
+    agent level.
 
+    Deliberately does NOT inherit from `Tool` (it has no `invoke` method —
+    `invoke_idempotent` replaces it, it does not implement it) but DOES
+    declare `name`, matching `Tool.name`, so that shared infrastructure
+    which only needs identity + tier (e.g. `ToolRegistry`, which never
+    calls `.invoke()` on anything it holds — see `contracts.tools.
+    Registrable` below) can accept either family uniformly without forcing
+    an idempotency-keyed tool to pretend it has a non-idempotent `invoke`
+    it must never expose. Added Phase 5 alongside `Registrable`, once real
+    T3+ tools (`backend/app/tools/`) needed to be held in the same registry
+    as T0 `Tool`s and this gap surfaced as a real static-typing failure,
+    not a hypothetical one."""
+
+    name: str
     tier: PermissionTier
 
     @abstractmethod

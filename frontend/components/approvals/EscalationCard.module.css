@@ -1,0 +1,48 @@
+.card {
+  max-width: 44rem;
+  border-color: var(--accent-brass);
+  border-width: 2px;
+}
+
+.titleRow {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--space-3);
+}
+
+.body {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.reasons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+
+.explainer {
+  margin: 0;
+  padding: var(--space-3);
+  border-radius: var(--radius-md);
+  background: var(--surface-overlay);
+  color: var(--ink-primary);
+  font-size: 0.9375rem;
+  line-height: 1.55;
+}
+
+.discussedRow {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  padding-top: var(--space-2);
+  border-top: 1px solid var(--royal-soft);
+}
+
+.discussedNote {
+  margin: 0;
+  font-size: 0.8125rem;
+  color: var(--ink-muted);
+}

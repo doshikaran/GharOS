@@ -22,8 +22,16 @@ from app.graph.conformance import (
     _pattern_repository_conforms,
     _person_repository_conforms,
 )
+from app.graph.reader import FirestoreGraphReader
+from app.graph.writer import FirestoreGraphWriter
 from app.persistence.conformance import _idempotency_store_conforms, _raw_payload_store_conforms
 from app.persistence.firestore_store import FirestoreGraphStore
+from app.persistence.idempotency_store import FirestoreIdempotencyStore
+from app.tools.conformance import (
+    _graph_read_tool_conforms_to_read_only_tool,
+    _graph_read_tool_conforms_to_tool,
+    _graph_write_tool_conforms,
+)
 
 
 def test_all_graph_protocol_conformance_factories_construct(
@@ -39,3 +47,11 @@ def test_all_graph_protocol_conformance_factories_construct(
     assert _audit_log_conforms(firestore_client) is not None
     assert _idempotency_store_conforms(firestore_client) is not None
     assert _raw_payload_store_conforms(tmp_path / "raw_payloads") is not None
+
+
+def test_all_tool_protocol_conformance_factories_construct(
+    reader: FirestoreGraphReader, writer: FirestoreGraphWriter, idempotency_store: FirestoreIdempotencyStore
+) -> None:
+    assert _graph_read_tool_conforms_to_tool(reader) is not None
+    assert _graph_read_tool_conforms_to_read_only_tool(reader) is not None
+    assert _graph_write_tool_conforms(writer, idempotency_store) is not None

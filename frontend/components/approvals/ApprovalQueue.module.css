@@ -1,0 +1,25 @@
+.queue {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-6);
+}
+
+.sectionHeading {
+  margin: 0 0 var(--space-3) 0;
+  font-family: var(--font-display), serif;
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: var(--ink-primary);
+}
+
+.emptyState {
+  margin: 0;
+  color: var(--ink-muted);
+  font-style: italic;
+}
+
+.cardList {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}

@@ -32,6 +32,19 @@ Original entry, for the record:
 
 ---
 
+## RESOLVED (continued)
+
+### ~~DEBT-002 — ACTION_RECORD and APPROVAL_REQUEST are not yet reachable by any graph edge~~ — RESOLVED 2026-08-25
+
+Phase 5's CTO contract freeze added three edge types (`ACTS_ON`, `AUTHORIZES`, `APPROVED_BY` — ADR-012). `app.arbitration.approval_gate.ApprovalGate.approve_and_execute` writes all three for real, atomically alongside every `ActionRecord` it creates, on every successful approval → execution flow. `app/graph/integrity_checker.py`'s special-case was narrowed accordingly: `ActionRecord` is removed from it entirely (a correctly-written one is now always edge-connected by construction — verified by a new adversarial test, `test_action_record_with_no_edges_is_now_a_real_orphan`, proving one written with no edges IS now flagged). `ApprovalRequest` stays special-cased, but for a materially different and narrower reason than before: a `PENDING`, `REJECTED`, or `EXPIRED` request — or an `APPROVED` one whose underlying tool invocation then failed — is legitimately, permanently edge-orphaned by design (nothing was ever authorized), not corruption; this is normal lifecycle state, not further deferred debt. Seed data (`seeds/demo_household.py`) updated to carry the same three edges its `action_record1`/`approval_request1` pair would have if written by a real `ApprovalGate` run. Verified: full backend suite (599 passed, 7 skipped), `mypy` clean (190 files), `ruff` clean, including `test_integrity_checker_is_clean_gate_1` against the real seeded demo graph.
+
+Original entry, for the record:
+
+> **Owner:** cto (contract) + e1 (integrity checker's current special-case) + e3 (the actual producer of these nodes). **Repayment phase:** Phase 5.
+> Every other node type in `contracts/graph_types.py` has at least one edge type in `EdgeType` that can name it as an endpoint. ACTION_RECORD and APPROVAL_REQUEST had none.
+
+---
+
 ## OPEN
 
 ### DEBT-007 — A12 Implication Agent does not reliably recognize "nothing is genuinely implied" — DOWNGRADED (not struck) 2026-08-24
@@ -99,20 +112,6 @@ Organic hallucination reached the target (0%) and one of the two control documen
 **Why this isn't being fixed now:** Phase 9's A25 Window Scheduling is the real, spec-named consumer of availability data ("person free AND counterparty open AND historically likely") — designing the field now, without that phase's actual query patterns in view, risks guessing wrong. Same reasoning as DEBT-004/DEBT-005.
 
 **Repayment condition:** Phase 9's CTO contract freeze adds a real `Person.availability` shape (and `Obligation.location` if the travel-time-aware conflict work lands then too) designed against Phase 9's actual needs; must-start-by computation is revisited to use it; this entry struck.
-
----
-
-### DEBT-002 — ACTION_RECORD and APPROVAL_REQUEST are not yet reachable by any graph edge
-
-**Opened:** Phase 1, 2026-08-22
-**Owner:** cto (contract) + e1 (integrity checker's current special-case) + e3 (the actual producer of these nodes)
-**Repayment phase:** Phase 5 (Arbitration, Approval & Action Layer) — the first phase where ACTION_RECORD and APPROVAL_REQUEST nodes are actually produced by real code rather than existing only as seed-data shapes.
-
-**What's the gap:** every other node type in `contracts/graph_types.py` has at least one edge type in `EdgeType` that can name it as an endpoint. ACTION_RECORD and APPROVAL_REQUEST have none — nothing connects an approval request to the action it authorized, or an action record to who approved it or what it acted on. E1's Phase 1 graph integrity checker special-cases both types out of orphan detection (documented in `app/graph/integrity_checker.py`) rather than either producing permanent false-positive noise on every seeded graph or inventing an edge type without CTO sign-off.
-
-**Why this isn't being fixed right now:** closing this properly needs two things together — a contract change (new edge types, e.g. something like `authorizes`: APPROVAL_REQUEST → ACTION_RECORD, and `approved_by`: APPROVAL_REQUEST → PERSON) AND real code that actually populates those edges when an approval/action genuinely happens. Adding the edge types alone, now, with nothing using them, would just be a different flavor of the same "contract defines something nothing produces" problem ADR-005 just removed. Phase 5 is where the Approval Gate and Action Record become real — that's the right place to design these edges against actual usage, not speculatively now.
-
-**Repayment condition:** Phase 5's CTO contract freeze includes the connecting edge type(s) for ACTION_RECORD/APPROVAL_REQUEST, Phase 5's implementation actually writes them, the integrity checker's special-case is removed, and this entry is struck with the date.
 
 ---
 

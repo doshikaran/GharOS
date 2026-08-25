@@ -438,6 +438,27 @@ class EdgeType(str, Enum):
     — this is why receipt line-item extraction matters months later").
     Added Phase 3 (ADR-009) — spec named this relationship explicitly but
     the original 29-edge table never gave it its own edge type."""
+    ACTS_ON = "acts_on"
+    """ACTION_RECORD -> {OBLIGATION | LEDGER_EVENT | VENDOR | PROVIDER |
+    RECURRING_COMMITMENT}. The "what" half of spec §5.2's ACTION_RECORD
+    description ("what the system did, when, under whose approval") — an
+    ActionRecord with no ACTS_ON edge names an action_type string but
+    points at nothing, making "show every action ever taken on this
+    obligation" unanswerable by traversal. Added Phase 5 (ADR-012)."""
+    AUTHORIZES = "authorizes"
+    """APPROVAL_REQUEST -> ACTION_RECORD. The specific approval that
+    authorized this specific executed action — the "under whose approval"
+    half of ACTION_RECORD's description, at request granularity (not just
+    the approving person). Added Phase 5 (ADR-012), repays DEBT-002."""
+    APPROVED_BY = "approved_by"
+    """APPROVAL_REQUEST -> PERSON. The graph-traversal-visible form of who
+    approved a request — deliberately kept alongside
+    `ActionRecord.approved_by`'s existing scalar NodeId field rather than
+    replacing it (that field is a fast, already-relied-upon denormalized
+    convenience; this edge is what makes "every approval Priya has ever
+    granted" answerable by `GraphReader.neighbours`, consistent with every
+    other relationship in this graph being edge-first). Added Phase 5
+    (ADR-012), repays DEBT-002."""
 
 
 @dataclass(frozen=True, slots=True)

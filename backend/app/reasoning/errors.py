@@ -61,6 +61,32 @@ class InvalidRoutingTier(ReasoningError):
         )
 
 
+class ActionTypeNotClassified(ReasoningError):
+    """Raised when `risk_policy.classify_risk_tier()` is asked to classify
+    an `action_type` string absent from the risk-tier mapping.
+
+    Mirrors the precedent `contracts.errors.RegistryGap` sets for the
+    Document-Type Registry (spec §5.4.3 rule 4: an unknown type always
+    routes to human triage, never a silent discard) and the pattern
+    `model_router.ProTierNotAllowlisted` already uses in this same
+    package. Spec §19.2 is explicit — "never silently proceed" — so an
+    unmapped action type must not resolve to a guessed tier, and
+    especially must never resolve to something permissive (R0/R1).
+    Raising interrupts the caller's control flow and forces the caller
+    (the Confidence Arbiter, E3's `backend/app/tools/`, built this same
+    phase) to handle the gap explicitly — in practice that means routing
+    to escalation (A58) rather than acting on an action type this policy
+    has not yet reviewed.
+    """
+
+    def __init__(self, *, action_type: str) -> None:
+        self.action_type = action_type
+        super().__init__(
+            f"action type '{action_type}' has no risk-tier classification "
+            "in reasoning.risk_policy — escalate rather than guess"
+        )
+
+
 class GeminiCallFailed(ReasoningError):
     """Raised when a live call to Vertex AI Gemini fails.
 

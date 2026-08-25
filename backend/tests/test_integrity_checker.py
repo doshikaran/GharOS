@@ -100,27 +100,20 @@ class TestOrphanDetection:
         violations = checker.check(scope="all")
         assert any("orphan" in v and "orphan-person" in v for v in violations)
 
-    def test_action_record_and_approval_request_are_not_flagged_as_orphans(
+    def test_pending_approval_request_with_no_edges_is_not_flagged_as_an_orphan(
         self, store: FirestoreGraphStore, writer: FirestoreGraphWriter
     ) -> None:
-        """Documented contract gap (see `app.graph.integrity_checker`):
-        neither node type has any edge type naming it as an endpoint in
-        `contracts.graph_types.EdgeType`, so they are always edge-orphans
-        by construction — special-cased out of this check rather than
-        producing permanent false-positive noise."""
+        """Phase 5 (ADR-012, DEBT-002's repayment): `ApprovalRequest` stays
+        special-cased in `app.graph.integrity_checker`, but only because a
+        freshly-written `PENDING` request legitimately has zero edges yet
+        (nothing has been authorized) — not because no edge type can name
+        it (ADR-012 added `AUTHORIZES`/`APPROVED_BY`, which real code now
+        writes once a request resolves successfully). See that module's
+        docstring for the full, narrowed reasoning."""
         from datetime import UTC, datetime
 
-        from contracts.graph_types import ActionRecord, ApprovalRequest, ApprovalStatus
+        from contracts.graph_types import ApprovalRequest, ApprovalStatus
 
-        writer.write_node(
-            ActionRecord(
-                id=NodeId("action-record-x"),
-                provenance=make_provenance(),
-                action_type="test_action",
-                executed_at=datetime.now(UTC),
-                approved_by=None,
-            )
-        )
         writer.write_node(
             ApprovalRequest(
                 id=NodeId("approval-request-x"),
@@ -136,8 +129,33 @@ class TestOrphanDetection:
         )
         checker = FirestoreGraphIntegrityChecker(store)
         violations = checker.check(scope="all")
-        assert not any("action-record-x" in v for v in violations)
         assert not any("approval-request-x" in v for v in violations)
+
+    def test_action_record_with_no_edges_is_now_a_real_orphan(
+        self, store: FirestoreGraphStore, writer: FirestoreGraphWriter
+    ) -> None:
+        """Phase 5 (ADR-012): unlike `ApprovalRequest`, `ActionRecord` is no
+        longer special-cased at all — `ApprovalGate.approve_and_execute`
+        always writes the `ACTS_ON`/`AUTHORIZES` edges atomically alongside
+        every real `ActionRecord` it creates, so one written with no edges
+        at all (as this test does directly, bypassing the gate) is genuine
+        corruption, correctly flagged."""
+        from datetime import UTC, datetime
+
+        from contracts.graph_types import ActionRecord
+
+        writer.write_node(
+            ActionRecord(
+                id=NodeId("action-record-x"),
+                provenance=make_provenance(),
+                action_type="test_action",
+                executed_at=datetime.now(UTC),
+                approved_by=None,
+            )
+        )
+        checker = FirestoreGraphIntegrityChecker(store)
+        violations = checker.check(scope="all")
+        assert any("orphan" in v and "action-record-x" in v for v in violations)
 
 
 class TestProvenanceViolationDetection:

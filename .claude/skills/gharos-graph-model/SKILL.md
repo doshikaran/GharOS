@@ -32,9 +32,9 @@ The design reference is Graphify's core discipline: **the answer is a path, not 
 | **PURCHASE_ITEM** | description, normalized product category, quantity, unit price, line total | **The finest-grained evidence node in the system** |
 | **PATTERN** | a mined regularity, e.g. "Dad's appointments always slip when scheduled on Mondays" | |
 
-## The 30 edge types
+## The 33 edge types
 
-*(The spec §5.3 table below has 29 rows, same as spec v2's original — but `supports`/`opposes` is one row for two distinct enum members, so the actual original `EdgeType` member count was 30. ADR-005 (Phase 1) removed `argued_by` — `AGENT` is not a graph node type, so `argued_by` (COUNCIL_POSITION → AGENT) could never resolve; `CouncilPosition.held_by_agent: AgentId` already carries this information directly on the node — bringing it to 29. ADR-009 (Phase 3) added `covers` (OBLIGATION → PURCHASE_ITEM) — spec §5.4.2's WARRANTY entry names this relationship explicitly ("links back to the originating RECEIPT's PURCHASE_ITEM") but the original table never gave it its own edge type — bringing it back to 30, one more than the table below shows.)*
+*(The spec §5.3 table below has 29 rows, same as spec v2's original — but `supports`/`opposes` is one row for two distinct enum members, so the actual original `EdgeType` member count was 30. ADR-005 (Phase 1) removed `argued_by` — `AGENT` is not a graph node type, so `argued_by` (COUNCIL_POSITION → AGENT) could never resolve; `CouncilPosition.held_by_agent: AgentId` already carries this information directly on the node — bringing it to 29. ADR-009 (Phase 3) added `covers` (OBLIGATION → PURCHASE_ITEM) — spec §5.4.2's WARRANTY entry names this relationship explicitly ("links back to the originating RECEIPT's PURCHASE_ITEM") but the original table never gave it its own edge type — bringing it back to 30. ADR-012 (Phase 5) added `acts_on`, `authorizes`, and `approved_by` — DEBT-002's repayment, the first edges ever connecting ACTION_RECORD/APPROVAL_REQUEST to anything — bringing it to 33, three more than the table below shows.)*
 
 | Edge | From → To | Meaning |
 |---|---|---|
@@ -67,6 +67,9 @@ The design reference is Graphify's core discipline: **the answer is a path, not 
 | `substitutes` | PURCHASE_ITEM → PURCHASE_ITEM | Bought instead of the planned item |
 | `evidences_effort` | PURCHASE_ITEM \| LEDGER_EVENT → PERSON | Who actually did this run — behavioural valuation input |
 | `covers` | OBLIGATION → PURCHASE_ITEM | Added Phase 3, ADR-009 — a warranty claim-or-lose obligation back to the purchase it protects |
+| `acts_on` | ACTION_RECORD → OBLIGATION \| LEDGER_EVENT \| VENDOR \| PROVIDER \| RECURRING_COMMITMENT | Added Phase 5, ADR-012 — the "what" an executed action affected |
+| `authorizes` | APPROVAL_REQUEST → ACTION_RECORD | Added Phase 5, ADR-012 — the specific approval that authorized this specific executed action |
+| `approved_by` | APPROVAL_REQUEST → PERSON | Added Phase 5, ADR-012 — who approved it, graph-traversal-visible (alongside `ActionRecord.approved_by`'s own scalar field) |
 
 The seven `line_item_of` through `evidences_effort` are the **verification/receipt edges** — they are what closes the loop (see below) and they are frequently the ones a first draft forgets. `contracts/graph_types.py:EdgeType` is the frozen enum; never add an edge type there without going through the CTO.
 

@@ -659,6 +659,17 @@ def build_demo_household() -> SeedResult:
         _edge("e-constrains-c2-dadi", EdgeType.CONSTRAINS, c2_nap_window.id, dadi.id),
         _edge("e-booked-o4-pr1", EdgeType.BOOKED_WITH, o4_pharmacy_visit.id, pr1_pharmacy.id),
         _edge("e-learned-pattern1-outcome1", EdgeType.LEARNED_FROM, pattern1.id, outcome1.id),
+        # ADR-012 (Phase 5, DEBT-002's repayment): the three edges every
+        # real ApprovalGate.approve_and_execute call writes atomically
+        # alongside an ActionRecord. action_record1/approval_request1 are
+        # seed-data stand-ins for that same real flow, so they carry the
+        # same edges a live run would have produced -- not because seed
+        # data is special-cased, but because this is what "correctly
+        # written" now means for these two node types (see
+        # app.graph.integrity_checker's updated docstring).
+        _edge("e-acts_on-action1-o4", EdgeType.ACTS_ON, action_record1.id, o4_pharmacy_visit.id),
+        _edge("e-authorizes-approval1-action1", EdgeType.AUTHORIZES, approval_request1.id, action_record1.id),
+        _edge("e-approved_by-approval1-priya", EdgeType.APPROVED_BY, approval_request1.id, priya.id),
         _edge("e-lineitem-pi1-l2", EdgeType.LINE_ITEM_OF, pi1_nut_free_bread.id, l2_grocery_debit.id),
         _edge("e-lineitem-pi2-l2", EdgeType.LINE_ITEM_OF, pi2_milk.id, l2_grocery_debit.id),
         _edge("e-lineitem-pi3-l2", EdgeType.LINE_ITEM_OF, pi3_mixed_nuts.id, l2_grocery_debit.id),

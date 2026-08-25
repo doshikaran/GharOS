@@ -1,0 +1,55 @@
+.board {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-7);
+}
+
+.summary {
+  margin: 0;
+  font-weight: 600;
+  color: var(--ink-primary);
+}
+
+.groupHeading {
+  margin: 0 0 var(--space-2) 0;
+  font-family: var(--font-display), serif;
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: var(--ink-primary);
+}
+
+.groupIntro {
+  margin: 0 0 var(--space-4) 0;
+  color: var(--ink-secondary);
+  max-width: 48rem;
+  line-height: 1.5;
+}
+
+.confirmBody {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.confirmAction {
+  margin: 0;
+  font-size: 1.0625rem;
+  font-weight: 600;
+  color: var(--ink-primary);
+}
+
+.confirmWarning {
+  margin: 0;
+  padding: var(--space-3);
+  border-radius: var(--radius-md);
+  border-left: 3px solid var(--state-danger);
+  background: var(--surface-base);
+  color: var(--state-danger);
+  font-weight: 600;
+}
+
+.confirmActions {
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--space-3);
+}

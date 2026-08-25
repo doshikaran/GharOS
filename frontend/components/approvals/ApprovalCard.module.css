@@ -1,0 +1,47 @@
+.card {
+  max-width: 44rem;
+}
+
+.titleRow {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--space-3);
+}
+
+.body {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.expiry {
+  margin: 0;
+  font-size: 0.8125rem;
+  color: var(--ink-muted);
+}
+
+.actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--space-3);
+  padding-top: var(--space-2);
+  border-top: 1px solid var(--royal-soft);
+}
+
+.escalatedNote {
+  margin: 0;
+  padding: var(--space-3);
+  border-radius: var(--radius-md);
+  border-left: 3px solid var(--state-warning);
+  background: var(--surface-overlay);
+  color: var(--ink-primary);
+  font-size: 0.875rem;
+  font-weight: 500;
+}
+
+.resolvedNote {
+  margin: 0;
+  font-size: 0.8125rem;
+  color: var(--ink-muted);
+}

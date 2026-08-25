@@ -112,6 +112,14 @@ PRO_TIER_ALLOWLIST: frozenset[AgentId] = frozenset(
         # Voice interface (Phase 10/13): A54 conducts the call, Pro-tier
         # realtime.
         "A54",
+        # spec §15.12 A57 Confidence Arbiter (Phase 5): "Deterministic
+        # policy + Pro-tier for borderline." Every clear-cut decision is
+        # plain code (`app.reasoning.risk_policy` + `contracts.actions`);
+        # only a confidence score sitting within `ConfidenceArbiter`'s
+        # narrow borderline band of its tier's floor escalates to a real
+        # Pro-tier adjudication call — see `app.arbitration.
+        # confidence_arbiter._BORDERLINE_BAND`.
+        "A57",
     )
 )
 """Agent ids permitted to request `ModelTier.PRO`.

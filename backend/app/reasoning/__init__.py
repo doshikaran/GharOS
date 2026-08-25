@@ -13,6 +13,13 @@ package with the two pieces of infrastructure every later reasoning agent
   agent that needs a live model call goes through the same allowlist-
   enforcing path rather than constructing its own `google.genai.Client`.
 
+Phase 5 (PHASES.md "PHASE 5 — ARBITRATION, APPROVAL & ACTION LAYER") adds:
+
+- `risk_policy` — standardised confidence scoring and risk-tier
+  classification per action type (spec §18, §19.2). The policy layer
+  E3's A57 Confidence Arbiter and Approval Gate (`backend/app/tools/`)
+  import; it classifies, it never executes.
+
 Typed errors for this layer live in `reasoning.errors`, not
 `contracts.errors` — that module is frozen and CTO-only.
 """
