@@ -1,5 +1,5 @@
 """Deterministic, non-LLM solvers (spec §16.2): Phase 4 conflict pre-pass,
-Phase 7 salary arithmetic, Phase 8 fairness (MNW/EF1+PO), Phase 11
+Phase 7 salary arithmetic, Phase 8 fairness (round-robin EF1), Phase 11
 calibration/variance, Phase 12 council mechanism arbiter.
 
 Phase 4 adds the first solver proper: `app.solvers.conflict_prepass`
@@ -13,6 +13,14 @@ Payroll, E2) after it has interpreted a handwritten register into a real
 `AttendanceRecord` (ADR-013, DEBT-004's repayment). Real advance amounts
 are sourced from `LedgerEvent` nodes of `kind=LedgerEventKind.ADVANCE`,
 never from `AttendanceRecord.advance_notations`.
+
+Phase 8 adds `app.solvers.fair_allocation` (`solve_fair_allocation`) — the
+Fair Allocator's deterministic solver (ADR-014): fixed-order round-robin
+sequential picking over a real, sparse, capability-constrained cost
+matrix, delivering EF1 (envy-free up to one item) for additive costs —
+**not** Maximum Nash Welfare, and **not** a claim of Pareto-optimality;
+see `docs/FAIRNESS_GUARANTEE.md` for the exact, code-matching statement of
+what is and is not delivered.
 
 Phase 1's two deterministic-tool line items from this same spec section —
 the idempotency key generator and the graph integrity checker — are

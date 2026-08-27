@@ -11,7 +11,7 @@ Full source: `GharOS_Build_Spec_v2.md` §5. This skill is the complete node/edge
 
 The design reference is Graphify's core discipline: **the answer is a path, not a vibe.** Every edge is tagged with how it is known, and every conclusion can be traced as a walk through real, auditable relationships. Three properties a flat state model cannot give: multi-hop reasoning ("what breaks if we move in June?" is a traversal, not a query), explainability by construction (every recommendation is a subgraph, not a paragraph), institutional memory (two years later, "why did we choose that school?" returns the actual decision node with its branches, council positions, who conceded what, and the outcome).
 
-## The 17 node types
+## The 18 node types
 
 | Node | Key fields | Notes |
 |---|---|---|
@@ -32,10 +32,11 @@ The design reference is Graphify's core discipline: **the answer is a path, not 
 | **PURCHASE_ITEM** | description, normalized product category, quantity, unit price, line total | **The finest-grained evidence node in the system** |
 | **PATTERN** | a mined regularity, e.g. "Dad's appointments always slip when scheduled on Mondays" | |
 | **ATTENDANCE_RECORD** | staff person id, month (`"YYYY-MM"`), rollup counts (present/absent/leave/total), real per-day marks, advance annotations (cross-reference only) | Added Phase 7, ADR-013 — DEBT-004's repayment; month granularity, not per-day, since the salary calculator's whole query shape is "one person, one pay cycle" |
+| **VALUATION_PROFILE** | person id, costs (task id → cardinal cost, sparse by omission), elicitation method (interview/complaint_inference/observed_history/mixed) | Added Phase 8, ADR-014 — the Fair Allocator's deterministic solver's real input |
 
-## The 34 edge types
+## The 35 edge types
 
-*(The spec §5.3 table below has 29 rows, same as spec v2's original — but `supports`/`opposes` is one row for two distinct enum members, so the actual original `EdgeType` member count was 30. ADR-005 (Phase 1) removed `argued_by` — `AGENT` is not a graph node type, so `argued_by` (COUNCIL_POSITION → AGENT) could never resolve; `CouncilPosition.held_by_agent: AgentId` already carries this information directly on the node — bringing it to 29. ADR-009 (Phase 3) added `covers` (OBLIGATION → PURCHASE_ITEM) — spec §5.4.2's WARRANTY entry names this relationship explicitly ("links back to the originating RECEIPT's PURCHASE_ITEM") but the original table never gave it its own edge type — bringing it back to 30. ADR-012 (Phase 5) added `acts_on`, `authorizes`, and `approved_by` — DEBT-002's repayment, the first edges ever connecting ACTION_RECORD/APPROVAL_REQUEST to anything — bringing it to 33. ADR-013 (Phase 7) added `attendance_of` (ATTENDANCE_RECORD → PERSON) — DEBT-004's repayment — bringing it to 34, four more than the table below shows.)*
+*(The spec §5.3 table below has 29 rows, same as spec v2's original — but `supports`/`opposes` is one row for two distinct enum members, so the actual original `EdgeType` member count was 30. ADR-005 (Phase 1) removed `argued_by` — `AGENT` is not a graph node type, so `argued_by` (COUNCIL_POSITION → AGENT) could never resolve; `CouncilPosition.held_by_agent: AgentId` already carries this information directly on the node — bringing it to 29. ADR-009 (Phase 3) added `covers` (OBLIGATION → PURCHASE_ITEM) — spec §5.4.2's WARRANTY entry names this relationship explicitly ("links back to the originating RECEIPT's PURCHASE_ITEM") but the original table never gave it its own edge type — bringing it back to 30. ADR-012 (Phase 5) added `acts_on`, `authorizes`, and `approved_by` — DEBT-002's repayment, the first edges ever connecting ACTION_RECORD/APPROVAL_REQUEST to anything — bringing it to 33. ADR-013 (Phase 7) added `attendance_of` (ATTENDANCE_RECORD → PERSON) — DEBT-004's repayment — bringing it to 34. ADR-014 (Phase 8) added `valuation_of` (VALUATION_PROFILE → PERSON) — bringing it to 35, five more than the table below shows.)*
 
 | Edge | From → To | Meaning |
 |---|---|---|
@@ -72,6 +73,7 @@ The design reference is Graphify's core discipline: **the answer is a path, not 
 | `authorizes` | APPROVAL_REQUEST → ACTION_RECORD | Added Phase 5, ADR-012 — the specific approval that authorized this specific executed action |
 | `approved_by` | APPROVAL_REQUEST → PERSON | Added Phase 5, ADR-012 — who approved it, graph-traversal-visible (alongside `ActionRecord.approved_by`'s own scalar field) |
 | `attendance_of` | ATTENDANCE_RECORD → PERSON | Added Phase 7, ADR-013 — the staff member one month's attendance record belongs to |
+| `valuation_of` | VALUATION_PROFILE → PERSON | Added Phase 8, ADR-014 — whose cardinal cost matrix this is |
 
 The seven `line_item_of` through `evidences_effort` are the **verification/receipt edges** — they are what closes the loop (see below) and they are frequently the ones a first draft forgets. `contracts/graph_types.py:EdgeType` is the frozen enum; never add an edge type there without going through the CTO.
 

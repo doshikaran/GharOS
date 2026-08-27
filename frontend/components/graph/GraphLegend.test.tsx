@@ -4,7 +4,7 @@ import { NODE_TYPES } from "@/lib/graph-types";
 import { GraphLegend } from "./GraphLegend";
 
 describe("GraphLegend", () => {
-  it("renders one legend entry for every one of the 16 node types", () => {
+  it("renders one legend entry for every node type", () => {
     render(<GraphLegend />);
     expect(screen.getAllByRole("listitem")).toHaveLength(NODE_TYPES.length + 4); // + derivation x3 + conflict
   });

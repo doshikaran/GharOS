@@ -1,0 +1,56 @@
+.explorer {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-7);
+}
+
+.status {
+  color: var(--ink-secondary);
+  padding: var(--space-5);
+}
+
+.sectionHeading {
+  font-family: var(--font-display), serif;
+  font-size: 1.375rem;
+  color: var(--ink-primary);
+  margin: 0 0 var(--space-2);
+}
+
+.sectionIntro {
+  margin: 0 0 var(--space-4);
+  color: var(--ink-secondary);
+  line-height: 1.6;
+  max-width: 60rem;
+}
+
+.interviewEvidence {
+  margin: 0 0 var(--space-5);
+  border: 1px solid var(--royal-soft);
+  border-radius: var(--radius-md);
+  padding: var(--space-3) var(--space-4);
+  background: var(--surface-raised);
+}
+
+.interviewEvidence summary {
+  cursor: pointer;
+  font-weight: 600;
+  color: var(--ink-primary);
+}
+
+.preferenceList {
+  margin: var(--space-3) 0 0;
+  padding-left: var(--space-5);
+  color: var(--ink-secondary);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  font-size: 0.9rem;
+}
+
+.gatedNote {
+  border: 1px dashed var(--accent-brass);
+  border-radius: var(--radius-md);
+  padding: var(--space-4);
+  color: var(--ink-secondary);
+  background: var(--surface-overlay);
+}

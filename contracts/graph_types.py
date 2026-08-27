@@ -436,6 +436,51 @@ class AttendanceRecord:
     of handwritten margin text."""
 
 
+@dataclass(frozen=True, slots=True)
+class ValuationProfile:
+    """One person's cardinal cost matrix over tasks (spec §8.3.2 "extract
+    valuations"; §8.5 "Graph writes: valuation profiles on PERSON") — the
+    Fair Allocator's deterministic solver's real input. Added Phase 8
+    (ADR-014).
+
+    A genuinely new node type, not a reuse of an existing one: nothing in
+    the frozen 17-type model holds "this person's cost for each of several
+    tasks" — `Constraint.structured` is a per-constraint bag, not a
+    per-person-per-task matrix, and folding this onto `Person` itself
+    would mean an ever-growing, non-versioned field on the one node every
+    unrelated part of the system reads for identity/capability lookups
+    (the same reasoning ADR-013 already rejected for attendance data).
+
+    **What this is NOT the home for:** allocation *history* (an OBLIGATION
+    being reassigned is a real supersession of that OBLIGATION node itself,
+    carrying its own new `owned_by` edge — the existing node-versioning
+    mechanism already gives this a full historical trail with no new type
+    needed) or *concessions* (spec's "concession ledger" is already a real
+    graph concept: a `DECISION` node with a `CONCEDED_BY` edge to whoever
+    gave ground — `GraphReader.concession_ledger` already reads exactly
+    this). Both are genuine reuses of existing Phase 0/1 shapes, not new
+    types invented for this phase."""
+
+    id: NodeId
+    provenance: Provenance
+    person_id: NodeId
+    costs: dict[str, float]
+    """Task/obligation id -> this person's real cost for it, in the same
+    arbitrary-but-consistent unit across one household's whole matrix
+    (spec's own "cardinal cost matrix" — comparable magnitudes, not
+    normalized to a fixed scale). A task id absent from this dict means
+    this person has not been asked about it — sparse by omission, never a
+    fabricated `0.0` (spec §15.8 A18's own failure mode: "sparse matrix ->
+    request coverage, never fabricate values")."""
+    elicitation_method: Literal["interview", "complaint_inference", "observed_history", "mixed"]
+    """How this profile's costs were derived — spec names three real
+    sources (adaptive interview, complaint-stream inference, observed
+    OUTCOME/completion history) that a real household's matrix routinely
+    mixes; `"mixed"` is not a fourth method, it is the honest label for
+    "more than one of the other three contributed to this specific
+    profile.\""""
+
+
 # ---------------------------------------------------------------------------
 # Edge types (spec §5.3)
 # ---------------------------------------------------------------------------
@@ -503,6 +548,9 @@ class EdgeType(str, Enum):
     """ATTENDANCE_RECORD -> PERSON. The staff member one month's
     attendance record belongs to. Added Phase 7 (ADR-013), repays
     DEBT-004."""
+    VALUATION_OF = "valuation_of"
+    """VALUATION_PROFILE -> PERSON. Whose cardinal cost matrix this is.
+    Added Phase 8 (ADR-014)."""
 
 
 @dataclass(frozen=True, slots=True)

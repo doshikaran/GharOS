@@ -1,9 +1,9 @@
 /**
  * Node/edge visual encoding for the graph canvas (Phase 6 brief item 1).
  *
- * Node types: 16 types must "stay visually distinguishable — use shape or
+ * Node types: 18 types must "stay visually distinguishable — use shape or
  * icon plus color, not color alone, for accessibility". Every one of the
- * 16 `NodeType`s below gets a unique (geometry, fillMode) combination —
+ * 18 `NodeType`s below gets a unique (geometry, fillMode) combination —
  * never relying on color alone even within a category that shares a color
  * token — plus a colour token for at-a-glance category grouping.
  *
@@ -69,6 +69,8 @@ export const NODE_VISUALS: Record<NodeType, NodeVisual> = {
   APPROVAL_REQUEST: { geometry: "hexagon", fillMode: "outline", colorToken: "--state-success" },
   PURCHASE_ITEM: { geometry: "triangle-up", fillMode: "outline", colorToken: "--accent-brass-muted" },
   PATTERN: { geometry: "x-mark", fillMode: "filled", colorToken: "--ink-muted" },
+  ATTENDANCE_RECORD: { geometry: "square", fillMode: "outline", colorToken: "--state-info" },
+  VALUATION_PROFILE: { geometry: "star", fillMode: "outline", colorToken: "--accent-brass-muted" },
 };
 
 // ---------------------------------------------------------------------------

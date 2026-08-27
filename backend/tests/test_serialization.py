@@ -6,7 +6,7 @@ These tests exercise the codecs directly (no Firestore I/O) — full
 write/read round trips against the real emulator are proven in
 `test_traversals.py` and `test_versioning.py`, which cover every node type
 indirectly via the seeded household. This module is the exhaustive,
-fast, per-type check that encode->decode is lossless for all 17 types.
+fast, per-type check that encode->decode is lossless for all 18 types.
 """
 
 from __future__ import annotations
@@ -46,6 +46,7 @@ from contracts.graph_types import (
     RecurringCommitment,
     SourceDocument,
     SourceRef,
+    ValuationProfile,
     Vendor,
 )
 
@@ -249,6 +250,13 @@ def _all_sample_nodes() -> list[object]:
             daily_marks={"01": "present", "02": "absent", "03": "leave"},
             advance_notations=("₹2,000 advance noted in margin, 12 Aug",),
         ),
+        ValuationProfile(
+            id=NodeId("n-valuation-profile"),
+            provenance=_prov(),
+            person_id=NodeId("n-person"),
+            costs={"obligation-school-run": 3.0, "obligation-plumber": 8.5},
+            elicitation_method="mixed",
+        ),
     ]
 
 
@@ -256,8 +264,8 @@ class TestNodeTypeRegistryCompleteness:
     def test_every_node_type_has_a_codec_and_a_collection(self) -> None:
         assert set(NODE_CODECS.keys()) == set(NODE_TYPE_TO_COLLECTION.keys())
 
-    def test_seventeen_node_types_are_registered(self) -> None:
-        assert len(NODE_TYPE_TO_COLLECTION) == 17
+    def test_eighteen_node_types_are_registered(self) -> None:
+        assert len(NODE_TYPE_TO_COLLECTION) == 18
 
 
 class TestNodeRoundTrip:

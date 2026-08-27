@@ -57,6 +57,7 @@ from contracts.graph_types import (
     PurchaseItem,
     RecurringCommitment,
     SourceDocument,
+    ValuationProfile,
     Vendor,
 )
 
@@ -86,6 +87,7 @@ NODE_TYPE_TAGS: dict[type, str] = {
     PurchaseItem: "PURCHASE_ITEM",
     Pattern: "PATTERN",
     AttendanceRecord: "ATTENDANCE_RECORD",
+    ValuationProfile: "VALUATION_PROFILE",
 }
 """One entry per node type in `contracts.graph_types` (spec §5.2) — must
 have the same key set as `app.persistence.collections.NODE_TYPE_TO_COLLECTION`
@@ -181,6 +183,10 @@ def _label_attendance_record(fields: dict[str, Any]) -> str:
     return f"{fields['month']} attendance"
 
 
+def _label_valuation_profile(fields: dict[str, Any]) -> str:
+    return f"{fields['elicitation_method']} valuation"
+
+
 _NODE_LABEL_DISPATCH: dict[str, Callable[[dict[str, Any]], str]] = {
     "PERSON": _label_person,
     "CONSTRAINT": _label_constraint,
@@ -199,6 +205,7 @@ _NODE_LABEL_DISPATCH: dict[str, Callable[[dict[str, Any]], str]] = {
     "PURCHASE_ITEM": _label_purchase_item,
     "PATTERN": _label_pattern,
     "ATTENDANCE_RECORD": _label_attendance_record,
+    "VALUATION_PROFILE": _label_valuation_profile,
 }
 """Strategy-pattern registry (PHASES.md §2.2) — one label function per
 node-type tag, never a growing if/elif chain. Key set must match

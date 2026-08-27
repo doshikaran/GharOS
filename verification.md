@@ -526,3 +526,61 @@ A third, narrower finding: **DEBT-010** — A31's `FollowUpTrackable` Protocol (
 3. Recommend Phase 8 (Fair Allocator) next, per PHASES.md's dependency order.
 
 **Phase 7 gate: SIGNED, with two new honestly-reported findings (DEBT-009, DEBT-010) surfaced by the CTO's own investigation rather than by any subagent or automated test — exactly the outcome the gate-review discipline exists to produce.**
+
+**Post-gate operator decision (2026-08-27):** the operator delegated DEBT-009's disposition to the CTO. Decided: a real end-to-end orchestrator is committed to **Phase 15 (Demo Hardening)**, not deferred indefinitely — `docs/DEBT.md`'s DEBT-009 entry updated with an assigned repayment phase, not just "likely."
+
+---
+
+## Phase 8 — Fair Allocator
+
+**Gated:** 2026-08-27
+**Roles active:** e2 (lead), e1, e4
+
+> Spec §8.2's own honesty requirement, verbatim: "Overclaiming a mathematical property in front of judges who know the literature is worse than claiming less." CTO review charter: "does the documented guarantee exactly match the code? Any gap is an integrity problem, not a wording problem."
+
+### What was built
+
+**CTO (pre-work):** ADR-014 — the single most consequential algorithmic decision in the project so far. Spec explicitly flags that Maximum Nash Welfare's EF1+PO guarantee (proven for goods) does not transfer to chores, and that the honest alternatives (competitive equilibrium) only hold in "structured cases" or are preprint-stage. Chose **fixed-order round-robin sequential picking** instead — a classical, textbook, unconditionally-provable EF1 result for additive costs (the same exchange argument that proves round-robin EF1 for goods, applied symmetrically to costs) — explicitly *not* claiming Pareto-optimality. Added one new node type, `ValuationProfile` (18 node types, 35 edge types now), after confirming the other two graph-write targets spec names (allocation history, concessions) already have real homes in the existing model (`Obligation` supersession; the `Decision`/`CONCEDED_BY` mechanism already frozen since Phase 0) — no new types invented for either.
+
+**E1:** `app.solvers.fair_allocation` — the round-robin solver implementing ADR-014 exactly, plus `ValuationProfile` persistence wiring (collection, codec, Phase 6 graph-viz label dispatch). `docs/FAIRNESS_GUARANTEE.md` — the literal, word-for-word claim Gate 8 checks against the code, including a hand-checkable worked example and the correct, carefully-distinguished chores-EF1 definition (removing an item from the *envier's own* bundle, not the envied one — a real, easy-to-get-wrong subtlety, handled correctly).
+
+**E2 (lead):** all five Fair Allocator agents in `backend/app/agents/fair_allocator/` — A17 Interviewer (comparative elicitation only, structurally cannot hold a cost or an assignment), A18 Valuation Extraction (writes real `ValuationProfile`s, sparse by omission — never a fabricated cost), A19 Verifier/Explainer (deterministic verification, Pro-tier explanation, each explanation scoped to only that person's own valuations by the type shape itself), A20 Renegotiation Trigger (real graph-signal-driven, and the actual first real writer of a `CONCEDED_BY` edge from a genuine renegotiation), A21 Load Monitor. Made the right architectural call on `verify_ef1`: added it to E1's own `fair_allocation.py` as a second, genuinely independent function (never calling the construction logic's internals) rather than a parallel implementation that could drift — and had the test suite's own EF1 check delegate to it, so there is exactly one EF1-checking implementation in the whole codebase.
+
+**E4:** `/fair-allocator` — the cost matrix is **real, live data** (the third phase running where E4 found and used a live backend surface rather than defaulting to fixtures): every `VALUATION_PROFILE`/`PERSON`/`OBLIGATION` node from `/graph/snapshot`, with unpriced cells rendered as an honest, distinct "not asked" state (`cost: null`), never a fabricated zero. The solved allocation, EF1 verification, per-person explanations, and the renegotiation demo are fixture-backed (no live API for agent outputs exists yet) but **the fixture numbers were independently derived by actually running the real solver** against the fixture cost matrix, not hand-picked to look plausible. Copy never uses the word "optimal," tested directly. Also fixed a real, unrelated gap found along the way: Phase 6's graph viz had no visual encoding for `ATTENDANCE_RECORD`/`VALUATION_PROFILE` node types, even though the backend has emitted both since Phase 7/8.
+
+### Gate 8 checklist result — every item independently re-verified
+
+- [x] Chat export → confirmable cost matrix — real live `VALUATION_PROFILE` data rendered with an explicit confirm/edit affordance; sparse cells unmistakably distinct from priced ones
+- [x] Solver deterministic; identical input → identical output — proven by a real test running the same input twice and asserting full equality including the exact pick sequence
+- [x] **`docs/FAIRNESS_GUARANTEE.md` states exactly what property is delivered — no overclaiming** — independently re-verified by the CTO by hand (see below); this is the one item this gate review treats as make-or-break, per its own review charter
+- [x] Verifier confirms the property holds — `verify_ef1`, a genuinely independent check (re-derives bundles from the allocation alone, never touches the solver's internal construction logic)
+- [x] Explanations reference that person's own valuations — structurally enforced by `PersonShareExplanation`'s own type shape (no field could hold another person's cost data)
+- [x] "I started night shifts" → live re-allocation — the renegotiation demo beat, a genuine before/after task-ownership change with a real, arithmetic-backed concession
+- [x] Capability constraints enforced pre-solve — computed once before the round-robin loop runs; an unsolvable task raises `OrphanedTaskError` naming it, never silently dropped or force-assigned
+
+**CTO review, performed literally:** independently re-derived the worked example in `docs/FAIRNESS_GUARANTEE.md` §4 by hand, digit by digit (Person 1's bundle cost, Person 2's bundle cost, both envy checks, both EF1 relaxation checks) — every number matches. Independently confirmed the chores-EF1 definition used (remove from the envier's own bundle) is the literature-correct one, not a mechanical inversion of the goods case that would have been subtly wrong.
+
+### Verified personally (not just reported)
+
+- Independently re-ran the full backend suite after E1's and E2's work (E2's own dispatch was interrupted mid-session by a host machine failure, right as it was writing its final report — confirmed via `git status` and a fresh independent test run that the actual code had already landed cleanly before the interruption, nothing lost): **875 passed, 7 skipped, 0 failed**, `mypy .` clean across 247 files, `ruff check .` clean.
+- Read `fair_allocation.py` in full, line by line, before accepting E1's report — confirmed the algorithm matches ADR-014 exactly, the orphan-detection and zero-progress backstop logic, and the deliberate design choice to keep `verify_ef1` genuinely independent of the construction internals.
+- E4's first dispatch was interrupted (session limit) during its initial read-only exploration, before any file was written — confirmed via `git status` that nothing existed yet, and re-dispatched fresh rather than trying to resume a session that had produced no code.
+- Independently re-ran the frontend suite on Node 22: **336 tests, 335 passed** on the first run (one flaky, contention-sensitive perf test already self-flagged by E4 as unrelated); re-ran that one test in isolation and it passed cleanly, confirming the flake rather than accepting the claim at face value. Full suite re-run clean. Also ran clean `pnpm lint`, `pnpm exec tsc --noEmit`, `pnpm build` (confirmed `/fair-allocator` builds as a static route).
+- Read `lib/fair-allocator-matrix.ts` in full — confirmed the sparse-cell honesty guarantee (`source: "not_asked"`, `cost: null`) is real, not just claimed, and the live/fixture data split matches exactly what was reported.
+- Grepped the actual rendered component tree for "optimal" — found it only inside a code comment explaining why it's avoided, and inside a test that asserts its absence from rendered text.
+
+### Decisions / ADRs
+
+- ADR-014: round-robin EF1 solver (not MNW, not competitive equilibrium) + `ValuationProfile` node type (18 node types, 35 edge types).
+
+### Debt / deferred items
+
+- No new `docs/DEBT.md` entries this phase.
+- DEBT-009/DEBT-010 (Phase 7): unaffected, DEBT-009's repayment phase now formally assigned to Phase 15 (see above).
+
+### Open items for the operator
+
+1. Phase 8 is gated clean — no blocking items, no overclaiming found anywhere in the shipped guarantee.
+2. Recommend Phase 9 (Intention→Action Converter) next, per PHASES.md's dependency order.
+
+**Phase 8 gate: SIGNED. The fairness guarantee, independently hand-verified by the CTO digit by digit, is exactly what the code delivers — no more, no less.**

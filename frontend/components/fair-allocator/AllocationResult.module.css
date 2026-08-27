@@ -1,0 +1,105 @@
+.wrapper {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.heading {
+  font-family: var(--font-display), serif;
+  font-size: 1.25rem;
+  margin: 0;
+  color: var(--ink-primary);
+}
+
+.ef1Row {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.ef1Gloss {
+  margin: 0;
+  color: var(--ink-secondary);
+  line-height: 1.6;
+  font-size: 0.9rem;
+}
+
+.ef1Gloss code {
+  background: var(--surface-overlay);
+  padding: 0 var(--space-1);
+  border-radius: var(--radius-sm);
+}
+
+.ef1Empty {
+  margin: var(--space-3) 0 0;
+  color: var(--state-success);
+  font-size: 0.875rem;
+}
+
+.violationList {
+  margin: var(--space-3) 0 0;
+  padding-left: var(--space-5);
+  color: var(--state-danger);
+}
+
+.bundles {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(14rem, 1fr));
+  gap: var(--space-4);
+}
+
+.bundleCard {
+  border: 1px solid var(--royal-soft);
+  border-radius: var(--radius-md);
+  padding: var(--space-4);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.bundlePerson {
+  margin: 0;
+  font-family: var(--font-display), serif;
+  color: var(--ink-primary);
+}
+
+.taskList {
+  margin: 0;
+  padding-left: var(--space-5);
+  color: var(--ink-secondary);
+}
+
+.noTasks {
+  margin: 0;
+  color: var(--ink-muted);
+  font-style: italic;
+}
+
+.bundleTotal {
+  margin: 0;
+  color: var(--ink-primary);
+  font-size: 0.9rem;
+}
+
+.tableScroll {
+  overflow-x: auto;
+}
+
+.picksTable {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.875rem;
+}
+
+.picksTable th,
+.picksTable td {
+  text-align: left;
+  padding: var(--space-2) var(--space-3);
+  border-bottom: 1px solid var(--royal-soft);
+}
+
+.order {
+  margin: var(--space-3) 0 0;
+  color: var(--ink-secondary);
+  font-size: 0.875rem;
+}

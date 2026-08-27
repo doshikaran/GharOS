@@ -1,0 +1,175 @@
+.wrapper {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+}
+
+.toolbarStatus {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  flex-wrap: wrap;
+}
+
+.tableScroll {
+  overflow-x: auto;
+  border: 1px solid var(--royal-soft);
+  border-radius: var(--radius-md);
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.9rem;
+}
+
+.caption {
+  caption-side: top;
+  text-align: left;
+  padding: var(--space-3) var(--space-4);
+  color: var(--ink-secondary);
+  font-size: 0.8125rem;
+  background: var(--surface-overlay);
+}
+
+.personHeader,
+.taskHeader {
+  text-align: left;
+  padding: var(--space-3) var(--space-4);
+  background: var(--surface-raised);
+  color: var(--ink-primary);
+  font-weight: 600;
+  border-bottom: 1px solid var(--royal-soft);
+  white-space: nowrap;
+}
+
+.personCell {
+  text-align: left;
+  padding: var(--space-3) var(--space-4);
+  font-weight: 600;
+  color: var(--ink-primary);
+  background: var(--surface-raised);
+  border-bottom: 1px solid var(--royal-soft);
+  white-space: nowrap;
+}
+
+.notAskedCell,
+.pricedCell,
+.editedCell,
+.editableCell {
+  padding: var(--space-3) var(--space-4);
+  border-bottom: 1px solid var(--royal-soft);
+  text-align: center;
+  min-width: 8rem;
+}
+
+.notAskedCell {
+  border: 1px dashed var(--ink-muted);
+  color: var(--ink-muted);
+}
+
+.notAskedCell span[aria-hidden="true"] {
+  font-size: 1.1rem;
+  display: block;
+}
+
+.notAskedLabel {
+  display: block;
+  font-size: 0.6875rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.pricedCell {
+  color: var(--ink-primary);
+}
+
+.editedCell {
+  color: var(--ink-primary);
+  background: var(--accent-brass-muted);
+}
+
+.costValue {
+  display: block;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+
+.sourceTag {
+  display: block;
+  font-size: 0.6875rem;
+  color: var(--ink-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  margin-top: var(--space-1);
+}
+
+.cellInput {
+  width: 5rem;
+  padding: var(--space-1) var(--space-2);
+  border: 1px solid var(--royal-soft);
+  border-radius: var(--radius-sm);
+  background: var(--surface-base);
+  color: var(--ink-primary);
+  font: inherit;
+  text-align: center;
+}
+
+.confirmRow {
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+  flex-wrap: wrap;
+}
+
+.confirmedNote {
+  margin: 0;
+  color: var(--state-success);
+  font-size: 0.875rem;
+}
+
+.dialogBody {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  max-width: 32rem;
+}
+
+.dialogEditsIntro {
+  font-weight: 600;
+  margin: 0;
+}
+
+.dialogEditsList {
+  margin: 0;
+  padding-left: var(--space-5);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+.dialogCaveat {
+  font-style: italic;
+  color: var(--ink-muted);
+  font-size: 0.875rem;
+  margin: 0;
+}
+
+.dialogActions {
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--space-3);
+}
+
+.emptyState {
+  color: var(--ink-muted);
+  font-style: italic;
+}

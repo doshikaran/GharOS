@@ -5,8 +5,11 @@
  * Source of truth, read directly rather than guessed at:
  *   - `backend/app/graph/serialization.py`'s module docstring — the
  *     canonical node/edge JSON envelope shape and the frozen
- *     `NODE_TYPE_TAGS` node-type string convention (16 literal strings,
- *     upper-snake-case of the `contracts.graph_types` class name).
+ *     `NODE_TYPE_TAGS` node-type string convention (18 literal strings,
+ *     upper-snake-case of the `contracts.graph_types` class name — the
+ *     Phase 7 `ATTENDANCE_RECORD` and Phase 8 `VALUATION_PROFILE`
+ *     additions were missing from this union until the Phase 8 cost-matrix
+ *     work added them; both were already real, live wire tags before that).
  *   - `backend/app/api/graph_router.py` — `NodeEnvelope` / `EdgeEnvelope` /
  *     `GraphSnapshotResponse` / `JustificationResponse` Pydantic models,
  *     mirrored field-for-field (snake_case wire keys kept as-is here,
@@ -41,6 +44,8 @@ export const NODE_TYPES = [
   "APPROVAL_REQUEST",
   "PURCHASE_ITEM",
   "PATTERN",
+  "ATTENDANCE_RECORD",
+  "VALUATION_PROFILE",
 ] as const;
 
 export type NodeType = (typeof NODE_TYPES)[number];

@@ -1,9 +1,10 @@
 """A small, realistic-but-synthetic demo household (PHASES.md Phase 1 work
-item 8, extended Phase 7 for ADR-013/DEBT-004's `AttendanceRecord`) —
-enough breadth to exercise every one of the 17 node types and most of the
-34 edge types (see `SeedResult.supersession` and this module's
-bottom-of-file note on `argued_by`), and to prove `unexplained` returns
-empty and the integrity checker is clean on real seeded data.
+item 8, extended Phase 7 for ADR-013/DEBT-004's `AttendanceRecord`, and
+Phase 8 for ADR-014's `ValuationProfile`) — enough breadth to exercise
+every one of the 18 node types and most of the 35 edge types (see
+`SeedResult.supersession` and this module's bottom-of-file note on
+`argued_by`), and to prove `unexplained` returns empty and the integrity
+checker is clean on real seeded data.
 
 This is deliberately *not* the full 8-12-document demo dataset from spec
 §26 — that is Phase 15's job (Demo Hardening). This is Phase 1's proof
@@ -16,8 +17,10 @@ amounts live only on LEDGER_EVENT, never parsed from an
 ATTENDANCE_RECORD's `advance_notations`), five PURCHASE_ITEMs covering
 `verifies`, `contradicts`, and `substitutes`, a DECISION with two
 BRANCHes and two COUNCIL_POSITIONs, an OUTCOME, four SOURCE_DOCUMENTs, one
-ACTION_RECORD, one APPROVAL_REQUEST, one PATTERN, and one
-ATTENDANCE_RECORD (`attendance_of` to the staff PERSON).
+ACTION_RECORD, one APPROVAL_REQUEST, one PATTERN, one ATTENDANCE_RECORD
+(`attendance_of` to the staff PERSON), and one VALUATION_PROFILE
+(`valuation_of` to Priya — ADR-014's cardinal cost matrix over three real
+seeded OBLIGATIONs).
 
 **Historical note, corrected — kept for continuity, not because the gap
 is still real:** Phase 1's original version of this dataset flagged that
@@ -35,7 +38,7 @@ docstring) but no longer ACTION_RECORD, which is now always edge-connected
 by construction.
 
 **Also deliberately not used:** `argued_by` (COUNCIL_POSITION -> AGENT).
-`AGENT` is not one of the 17 node types — agents are referenced by
+`AGENT` is not one of the 18 node types — agents are referenced by
 `AgentId` (a plain string) on `Provenance.deriving_agent` and
 `CouncilPosition.held_by_agent`, never stored as graph nodes — so this
 edge type has no resolvable node collection to point at. Using it here
@@ -82,6 +85,7 @@ from contracts.graph_types import (
     RecurringCommitment,
     SourceDocument,
     SourceRef,
+    ValuationProfile,
     Vendor,
 )
 
@@ -703,7 +707,28 @@ def build_demo_household() -> SeedResult:
         # never parsed back out of this margin note.
         advance_notations=("₹2,000 advance noted in margin, 12 Aug",),
     )
-    nodes += [action_record1, approval_request1, pattern1, attendance1_maya_august]
+    valuation1_priya = ValuationProfile(
+        id=NodeId("valuation-priya"),
+        provenance=_prov(
+            source_document_id="doc-school-whatsapp",
+            region="derived",
+            derivation=Derivation.INFERRED,
+            confidence=0.7,
+        ),
+        person_id=priya.id,
+        # A real, sparse cardinal cost matrix (ADR-014) over three real
+        # seeded OBLIGATIONs — o2 (renew prescription) never appears here,
+        # matching `ValuationProfile.costs`'s own contract: a task absent
+        # from this dict means Priya was never asked about it, never a
+        # fabricated `0.0`.
+        costs={
+            str(o1_pickup.id): 3.0,
+            str(o6_groceries.id): 1.0,
+            str(o7_maya_salary.id): 5.0,
+        },
+        elicitation_method="mixed",
+    )
+    nodes += [action_record1, approval_request1, pattern1, attendance1_maya_august, valuation1_priya]
 
     # -- edges -----------------------------------------------------------------
 
@@ -805,6 +830,8 @@ def build_demo_household() -> SeedResult:
         _edge(
             "e-attendance_of-attendance1-maya", EdgeType.ATTENDANCE_OF, attendance1_maya_august.id, maya.id
         ),
+        # ADR-014 (Phase 8): whose cardinal cost matrix this is.
+        _edge("e-valuation_of-valuation1-priya", EdgeType.VALUATION_OF, valuation1_priya.id, priya.id),
         # Spec §10.3D "Salary cycles -> monthly payment OBLIGATIONs" — also
         # gives doc-attendance-register (d5) a real incident edge, since
         # SOURCE_DOCUMENT has no direct edge type to ATTENDANCE_RECORD

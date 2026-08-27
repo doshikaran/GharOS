@@ -36,11 +36,27 @@ _AGENT_DIR_NAMES: dict[str, str] = {
     "A30": "a30_recovery_drafting",
     "A32": "a32_dispute_branch",
     "A34": "a34_staff_payroll",
+    "A17": "a17_interviewer",
+    "A17_ANSWER": "a17_interviewer_answer",
+    "A18": "a18_valuation_extraction",
+    "A19": "a19_fairness_verifier_explainer",
+    "A20": "a20_renegotiation_trigger",
+    "A21": "a21_load_monitor",
 }
 """Maps a roster agent id to its `backend/app/prompts/<dir>/` directory
 name (ADR-003: "one directory per agent... named by agent ID in lowercase
 with its short name"). Extended by later phases as new LLM-backed agents
-are built — never pre-populated ahead of the agent that uses it."""
+are built — never pre-populated ahead of the agent that uses it.
+
+`"A17_ANSWER"` is a deliberate, minimal extension of that convention, not
+a new roster agent: A17 (Interviewer) genuinely needs two distinct
+prompts for two genuinely distinct reasoning jobs at two distinct tiers
+(Pro-tier next-comparison selection vs. Flash-tier free-text answer
+parsing — spec §15.8 A17's own tier split), unlike A3/A3b/A3c which are
+three separate roster agents each with one prompt. Every `AgentOutput`-
+shaped result A17 produces still records `AgentId("A17")` — this second
+manifest key is purely a prompt-loading implementation detail, never
+conflated with agent identity."""
 
 
 class PromptNotFound(RuntimeError):

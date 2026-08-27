@@ -83,9 +83,24 @@ PRO_TIER_ALLOWLIST: frozenset[AgentId] = frozenset(
         # produce a human-confirmation candidate, never a written
         # constraint (spec §15.4 A16 forbidden list).
         "A16",
+        # spec §15.8 A17: Interviewer (Phase 8) — "Flash for flow, Pro-tier
+        # for question selection." Choosing which comparison to ask next
+        # (avoiding a pair already implied by transitivity, prioritising
+        # tasks nobody has an opinion on yet) is the real judgment call;
+        # conducting the turn itself (parsing a free-text answer) stays
+        # Flash — see `app.agents.fair_allocator.interviewer_agent`.
+        "A17",
         # spec §21.1 "Valuation extraction" — Fair Allocator (Phase 8).
         # Mutating complaint streams into a cardinal cost matrix.
         "A18",
+        # spec §15.8 A19: Fairness Verifier / Explainer (Phase 8) —
+        # "verification deterministic... Pro-tier for explanation."
+        # Verification itself never calls a model at all (`app.solvers.
+        # fair_allocation.verify_ef1`, a real external checkable signal,
+        # deliberately avoiding LLM self-critique); only explaining each
+        # person's own share in their own valuations is a genuine Pro-tier
+        # reasoning step.
+        "A19",
         # spec §15.7 A28: Reconciliation Agent (Phase 7) — "Pro-tier for
         # matching; arithmetic delegated to a calculation tool." Matching a
         # messy raw counterparty string ("SUNRISE SOCIETY MAINT") to a

@@ -1,4 +1,4 @@
-"""Encode/decode codecs for all 17 node types (spec §5.2).
+"""Encode/decode codecs for all 18 node types (spec §5.2).
 
 Each node type gets an explicit `encode_*`/`decode_*` pair rather than a
 reflective generic walk — `contracts.graph_types` uses `Literal[...]`,
@@ -45,6 +45,7 @@ from contracts.graph_types import (
     PurchaseItem,
     RecurringCommitment,
     SourceDocument,
+    ValuationProfile,
     Vendor,
 )
 
@@ -80,6 +81,17 @@ def _council_stance(value: str) -> Literal["supports", "opposes", "neutral"]:
     if value not in ("supports", "opposes", "neutral"):
         raise ValueError(f"invalid CouncilPosition.stance: {value!r}")
     return cast(Literal["supports", "opposes", "neutral"], value)
+
+
+_ELICITATION_METHODS = ("interview", "complaint_inference", "observed_history", "mixed")
+
+
+def _elicitation_method(
+    value: str,
+) -> Literal["interview", "complaint_inference", "observed_history", "mixed"]:
+    if value not in _ELICITATION_METHODS:
+        raise ValueError(f"invalid ValuationProfile.elicitation_method: {value!r}")
+    return cast(Literal["interview", "complaint_inference", "observed_history", "mixed"], value)
 
 
 # ---------------------------------------------------------------------------
@@ -609,6 +621,31 @@ def decode_attendance_record(doc_id: str, data: dict[str, Any]) -> AttendanceRec
 
 
 # ---------------------------------------------------------------------------
+# ValuationProfile — one person's cardinal cost matrix over tasks (ADR-014)
+# ---------------------------------------------------------------------------
+
+
+def encode_valuation_profile(node: ValuationProfile) -> dict[str, Any]:
+    return {
+        "id": str(node.id),
+        "provenance": encode_provenance(node.provenance),
+        "person_id": str(node.person_id),
+        "costs": dict(node.costs),
+        "elicitation_method": node.elicitation_method,
+    }
+
+
+def decode_valuation_profile(doc_id: str, data: dict[str, Any]) -> ValuationProfile:
+    return ValuationProfile(
+        id=NodeId(doc_id),
+        provenance=decode_provenance(data["provenance"]),
+        person_id=NodeId(data["person_id"]),
+        costs=dict(data["costs"]),
+        elicitation_method=_elicitation_method(data["elicitation_method"]),
+    )
+
+
+# ---------------------------------------------------------------------------
 # Registry
 # ---------------------------------------------------------------------------
 
@@ -630,6 +667,7 @@ NODE_CODECS: dict[type, NodeCodec[Any]] = {
     PurchaseItem: NodeCodec(encode=encode_purchase_item, decode=decode_purchase_item),
     Pattern: NodeCodec(encode=encode_pattern, decode=decode_pattern),
     AttendanceRecord: NodeCodec(encode=encode_attendance_record, decode=decode_attendance_record),
+    ValuationProfile: NodeCodec(encode=encode_valuation_profile, decode=decode_valuation_profile),
 }
 """One entry per node type in `contracts.graph_types` (spec §5.2). Keys must
 match `app.persistence.collections.NODE_TYPE_TO_COLLECTION` exactly —

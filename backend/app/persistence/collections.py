@@ -25,6 +25,7 @@ from contracts.graph_types import (
     PurchaseItem,
     RecurringCommitment,
     SourceDocument,
+    ValuationProfile,
     Vendor,
 )
 
@@ -66,8 +67,9 @@ NODE_TYPE_TO_COLLECTION: dict[type, str] = {
     PurchaseItem: "purchase_items",
     Pattern: "patterns",
     AttendanceRecord: "attendance_records",
+    ValuationProfile: "valuation_profiles",
 }
-"""spec §5.2 — all 17 node types (`contracts.graph_types`). Adding a node
+"""spec §5.2 — all 18 node types (`contracts.graph_types`). Adding a node
 type is a CTO-only contract change (`contracts/graph_types.py`); this
 table must be extended in lockstep, and `test_serialization.py` fails loudly
 if it ever isn't (asserts this dict's key set matches the contract's node

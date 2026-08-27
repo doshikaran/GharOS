@@ -20,6 +20,8 @@ const NODE_TYPE_LABELS: Record<NodeType, string> = {
   APPROVAL_REQUEST: "Approval request",
   PURCHASE_ITEM: "Purchase item",
   PATTERN: "Pattern",
+  ATTENDANCE_RECORD: "Attendance record",
+  VALUATION_PROFILE: "Valuation profile",
 };
 
 /**
