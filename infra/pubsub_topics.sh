@@ -70,13 +70,28 @@ log "Project: $project_id  Region: $GHAROS_REGION"
 
 readonly EVENTS_TOPIC="gharos-events"
 readonly HEARTBEAT_TOPIC="gharos-heartbeat"
-readonly TOPICS=("$EVENTS_TOPIC" "$HEARTBEAT_TOPIC")
+readonly FOLLOWUP_SWEEP_TOPIC="gharos-followup-sweep"
+# PHASES.md Phase 7, A31 Follow-up/Persistence's own scheduler tick — see
+# infra/scheduler_jobs.sh's "follow-up sweep" job, which publishes onto
+# this topic exactly as the heartbeat job publishes onto $HEARTBEAT_TOPIC.
+readonly FOLLOWUP_TRIGGERS_TOPIC="gharos-followup-triggers"
+# The OUTBOUND half of A31's own work (app.events.followup_dispatcher.
+# FollowUpDispatcher, RECONTACT_TOPIC): a "recontact this open item" event
+# A31 itself publishes for a downstream drafting/composing agent to
+# consume — no push subscription is created for this one here (it has no
+# fixed single consumer yet; a future phase wires whichever agent
+# subscribes to it).
+readonly TOPICS=("$EVENTS_TOPIC" "$HEARTBEAT_TOPIC" "$FOLLOWUP_SWEEP_TOPIC" "$FOLLOWUP_TRIGGERS_TOPIC")
 
 readonly HEARTBEAT_PUSH_SUBSCRIPTION="gharos-heartbeat-push"
 # Must match the route `app.api.pubsub_receiver.router` actually registers
 # (`@router.post("/heartbeat")` under `prefix="/events"`) — read from the
 # module, not guessed, per this script's own header.
 readonly HEARTBEAT_PUSH_PATH="/events/heartbeat"
+readonly FOLLOWUP_SWEEP_PUSH_SUBSCRIPTION="gharos-followup-sweep-push"
+# Matches `@router.post("/followup-sweep")` in `app.api.pubsub_receiver` —
+# same rule as $HEARTBEAT_PUSH_PATH above.
+readonly FOLLOWUP_SWEEP_PUSH_PATH="/events/followup-sweep"
 readonly PUSH_INVOKER_SA_NAME="gharos-pubsub-invoker"
 readonly PUSH_INVOKER_SA_EMAIL="${PUSH_INVOKER_SA_NAME}@${project_id}.iam.gserviceaccount.com"
 
@@ -114,7 +129,6 @@ if service_url="$(gcloud run services describe "$GHAROS_API_SERVICE" \
     --format='value(status.url)' 2>/dev/null)" && [[ -n "$service_url" ]]; then
 
   log "  $GHAROS_API_SERVICE is deployed at: $service_url"
-  push_endpoint="${service_url}${HEARTBEAT_PUSH_PATH}"
 
   log "  granting roles/run.invoker on $GHAROS_API_SERVICE to $PUSH_INVOKER_SA_EMAIL..."
   gcloud run services add-iam-policy-binding "$GHAROS_API_SERVICE" \
@@ -123,32 +137,56 @@ if service_url="$(gcloud run services describe "$GHAROS_API_SERVICE" \
     --role="roles/run.invoker" \
     --quiet >/dev/null
 
-  if gcloud pubsub subscriptions describe "$HEARTBEAT_PUSH_SUBSCRIPTION" --project "$project_id" >/dev/null 2>&1; then
-    log "  updating push subscription: $HEARTBEAT_PUSH_SUBSCRIPTION -> $push_endpoint"
-    gcloud pubsub subscriptions update "$HEARTBEAT_PUSH_SUBSCRIPTION" \
-      --project "$project_id" \
-      --push-endpoint="$push_endpoint" \
-      --push-auth-service-account="$PUSH_INVOKER_SA_EMAIL" \
-      --push-auth-token-audience="$push_endpoint" \
-      --quiet
-  else
-    log "  creating push subscription: $HEARTBEAT_PUSH_SUBSCRIPTION -> $push_endpoint"
-    gcloud pubsub subscriptions create "$HEARTBEAT_PUSH_SUBSCRIPTION" \
-      --project "$project_id" \
-      --topic="$HEARTBEAT_TOPIC" \
-      --push-endpoint="$push_endpoint" \
-      --push-auth-service-account="$PUSH_INVOKER_SA_EMAIL" \
-      --push-auth-token-audience="$push_endpoint" \
-      --quiet
-  fi
+  # `app.api.pubsub_receiver.verify_push_request` checks every inbound
+  # push token against ONE configured `PUBSUB_PUSH_AUDIENCE` value
+  # (Settings has a single field, not a per-route map) — so every push
+  # subscription's own minted-token audience must be the SAME value, or
+  # a second route's pushes would fail verification against the first
+  # route's audience. Using the service's own base URL (not a per-path
+  # audience) as that shared value, for every subscription below, is what
+  # makes "one more Scheduler->Pub/Sub->Cloud-Run route" (A31's follow-up
+  # sweep, on top of Phase 2's heartbeat) actually work without a
+  # `Settings`/`contracts` change — a deliberate correction over Phase 2's
+  # original per-path audience, applied here via the same idempotent
+  # `subscriptions update` this script already re-runs safely.
+  readonly PUSH_AUDIENCE="$service_url"
+
+  for entry in \
+    "${HEARTBEAT_PUSH_SUBSCRIPTION}|${HEARTBEAT_TOPIC}|${HEARTBEAT_PUSH_PATH}" \
+    "${FOLLOWUP_SWEEP_PUSH_SUBSCRIPTION}|${FOLLOWUP_SWEEP_TOPIC}|${FOLLOWUP_SWEEP_PUSH_PATH}"; do
+    sub_name="${entry%%|*}"
+    rest="${entry#*|}"
+    topic_name="${rest%%|*}"
+    push_path="${rest#*|}"
+    push_endpoint="${service_url}${push_path}"
+
+    if gcloud pubsub subscriptions describe "$sub_name" --project "$project_id" >/dev/null 2>&1; then
+      log "  updating push subscription: $sub_name -> $push_endpoint"
+      gcloud pubsub subscriptions update "$sub_name" \
+        --project "$project_id" \
+        --push-endpoint="$push_endpoint" \
+        --push-auth-service-account="$PUSH_INVOKER_SA_EMAIL" \
+        --push-auth-token-audience="$PUSH_AUDIENCE" \
+        --quiet
+    else
+      log "  creating push subscription: $sub_name -> $push_endpoint"
+      gcloud pubsub subscriptions create "$sub_name" \
+        --project "$project_id" \
+        --topic="$topic_name" \
+        --push-endpoint="$push_endpoint" \
+        --push-auth-service-account="$PUSH_INVOKER_SA_EMAIL" \
+        --push-auth-token-audience="$PUSH_AUDIENCE" \
+        --quiet
+    fi
+  done
 
   log "  wiring $GHAROS_API_SERVICE's push-verification env vars (PUBSUB_PUSH_SERVICE_ACCOUNT_EMAIL, PUBSUB_PUSH_AUDIENCE)..."
   gcloud run services update "$GHAROS_API_SERVICE" \
     --project "$project_id" --region "$GHAROS_REGION" \
-    --update-env-vars="PUBSUB_PUSH_SERVICE_ACCOUNT_EMAIL=${PUSH_INVOKER_SA_EMAIL},PUBSUB_PUSH_AUDIENCE=${push_endpoint}" \
+    --update-env-vars="PUBSUB_PUSH_SERVICE_ACCOUNT_EMAIL=${PUSH_INVOKER_SA_EMAIL},PUBSUB_PUSH_AUDIENCE=${PUSH_AUDIENCE}" \
     --quiet >/dev/null
 
-  log "  push subscription wired; heartbeat verification is now enforced (not skipped)."
+  log "  push subscriptions wired; heartbeat and follow-up-sweep verification are now enforced (not skipped)."
 else
   warn "  $GHAROS_API_SERVICE is not deployed yet in project $project_id / region $GHAROS_REGION."
   warn "  Topics and the push-auth service account are ready; the push subscription itself needs a live service URL."
@@ -161,8 +199,9 @@ fi
 echo "=================================================================="
 log "Pub/Sub topics reconciled for project $project_id: ${TOPICS[*]}"
 if [[ -n "$service_url" ]]; then
-  log "Heartbeat push subscription: $HEARTBEAT_PUSH_SUBSCRIPTION -> ${service_url}${HEARTBEAT_PUSH_PATH}"
+  log "Heartbeat push subscription:      $HEARTBEAT_PUSH_SUBSCRIPTION -> ${service_url}${HEARTBEAT_PUSH_PATH}"
+  log "Follow-up sweep push subscription: $FOLLOWUP_SWEEP_PUSH_SUBSCRIPTION -> ${service_url}${FOLLOWUP_SWEEP_PUSH_PATH}"
 else
-  log "Heartbeat push subscription: not yet created (gharos-api not deployed) — see next steps above."
+  log "Push subscriptions: not yet created (gharos-api not deployed) — see next steps above."
 fi
 echo "=================================================================="

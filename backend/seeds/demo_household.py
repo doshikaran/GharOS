@@ -1,38 +1,45 @@
 """A small, realistic-but-synthetic demo household (PHASES.md Phase 1 work
-item 8) — enough breadth to exercise every one of the 16 node types and 28
-of the 29 edge types (see `SeedResult.pending_supersession` and this
-module's bottom-of-file note on `argued_by`), and to prove `unexplained`
-returns empty and the integrity checker is clean on real seeded data.
+item 8, extended Phase 7 for ADR-013/DEBT-004's `AttendanceRecord`) —
+enough breadth to exercise every one of the 17 node types and most of the
+34 edge types (see `SeedResult.supersession` and this module's
+bottom-of-file note on `argued_by`), and to prove `unexplained` returns
+empty and the integrity checker is clean on real seeded data.
 
 This is deliberately *not* the full 8-12-document demo dataset from spec
 §26 — that is Phase 15's job (Demo Hardening). This is Phase 1's proof
 that the graph machinery itself is correct end-to-end on non-trivial data:
-a household with three PERSONs (adult/child/elder), two CONSTRAINTs (one
-hard), several OBLIGATIONs including one that gets superseded (real
+a household with four PERSONs (adult/child/elder/staff), two CONSTRAINTs
+(one hard), several OBLIGATIONs including one that gets superseded (real
 versioning, not just a unit test), a RECURRING_COMMITMENT, several
-LEDGER_EVENTs, five PURCHASE_ITEMs covering `verifies`, `contradicts`, and
-`substitutes`, a DECISION with two BRANCHes and two COUNCIL_POSITIONs, an
-OUTCOME, four SOURCE_DOCUMENTs, one ACTION_RECORD, one APPROVAL_REQUEST,
-and one PATTERN.
+LEDGER_EVENTs (including one ADVANCE, per ADR-013's rule that real advance
+amounts live only on LEDGER_EVENT, never parsed from an
+ATTENDANCE_RECORD's `advance_notations`), five PURCHASE_ITEMs covering
+`verifies`, `contradicts`, and `substitutes`, a DECISION with two
+BRANCHes and two COUNCIL_POSITIONs, an OUTCOME, four SOURCE_DOCUMENTs, one
+ACTION_RECORD, one APPROVAL_REQUEST, one PATTERN, and one
+ATTENDANCE_RECORD (`attendance_of` to the staff PERSON).
 
-**Contract gap discovered while building this dataset, flagged in this
-phase's final report, not worked around here:** `contracts.graph_types`'s
-frozen `EdgeType` enum has no edge type connecting ACTION_RECORD or
-APPROVAL_REQUEST to anything else in the graph — every other node type has
-at least one edge type naming it as an endpoint; these two do not. This
-dataset still seeds one of each (for full 16-node-type coverage) but they
-are necessarily edge-orphans as a result; `FirestoreGraphIntegrityChecker`
-special-cases exactly these two types out of its orphan check with a
-docstring pointing back here, rather than either silently accepting a
-graph-wide orphan false-positive or inventing an unauthorised edge type.
+**Historical note, corrected — kept for continuity, not because the gap
+is still real:** Phase 1's original version of this dataset flagged that
+`contracts.graph_types.EdgeType` had no edge type connecting ACTION_RECORD
+or APPROVAL_REQUEST to anything else in the graph, making the one of each
+seeded here necessarily edge-orphans. That gap was DEBT-002, repaid in
+Phase 5 (ADR-012: `acts_on`, `authorizes`, `approved_by`) — `action_record1`
+and `approval_request1` below now carry all three edges for real
+(`e-acts_on-action1-o4`, `e-authorizes-approval1-action1`,
+`e-approved_by-approval1-priya`), exactly mirroring what a live
+`ApprovalGate.approve_and_execute` run produces. `FirestoreGraphIntegrityChecker`
+still special-cases APPROVAL_REQUEST (a `PENDING`/`REJECTED`/`EXPIRED`
+request is legitimately edge-orphaned by design — see that module's own
+docstring) but no longer ACTION_RECORD, which is now always edge-connected
+by construction.
 
 **Also deliberately not used:** `argued_by` (COUNCIL_POSITION -> AGENT).
-`AGENT` is not one of the 16 node types — agents are referenced by
+`AGENT` is not one of the 17 node types — agents are referenced by
 `AgentId` (a plain string) on `Provenance.deriving_agent` and
 `CouncilPosition.held_by_agent`, never stored as graph nodes — so this
 edge type has no resolvable node collection to point at. Using it here
-would create a permanently-dangling edge. Flagged alongside the
-ACTION_RECORD/APPROVAL_REQUEST gap above.
+would create a permanently-dangling edge.
 """
 
 from __future__ import annotations
@@ -45,6 +52,7 @@ from contracts.graph_types import (
     AgentId,
     ApprovalRequest,
     ApprovalStatus,
+    AttendanceRecord,
     Branch,
     Constraint,
     ConstraintKind,
@@ -184,7 +192,16 @@ def build_demo_household() -> SeedResult:
         ingested_at=NOW - timedelta(days=3),
         original_language="en",
     )
-    nodes += [d1_receipt, d2_school_chat, d3_society_notice, d4_medical_reminder]
+    d5_attendance_register = SourceDocument(
+        id=NodeId("doc-attendance-register"),
+        provenance=_prov(source_document_id="doc-attendance-register", region="whole-document"),
+        channel="upload",
+        raw_payload_ref="registers/maya-attendance-2026-08.jpg",
+        document_type="ATTENDANCE_REGISTER",
+        ingested_at=NOW - timedelta(days=1),
+        original_language="hi",
+    )
+    nodes += [d1_receipt, d2_school_chat, d3_society_notice, d4_medical_reminder, d5_attendance_register]
 
     # -- persons ---------------------------------------------------------------
 
@@ -227,7 +244,20 @@ def build_demo_household() -> SeedResult:
         contact_channels=("voice:+91-90000-00003",),
         language_profile=_language_profile("hi"),
     )
-    nodes += [priya, aarav, dadi]
+    maya = Person(
+        id=NodeId("person-maya"),
+        provenance=_prov(source_document_id="doc-attendance-register", region="header", confidence=0.85),
+        display_name="Maya",
+        aliases=("Maya Bai",),
+        role=PersonRole.STAFF,
+        can_drive=False,
+        can_sign=False,
+        has_bank_access=False,
+        has_medical_proxy=False,
+        contact_channels=("voice:+91-90000-00004",),
+        language_profile=_language_profile("hi"),
+    )
+    nodes += [priya, aarav, dadi, maya]
 
     # -- constraints -------------------------------------------------------------
 
@@ -376,7 +406,27 @@ def build_demo_household() -> SeedResult:
         status=ObligationStatus.COMPLETED,
         stated_or_implied=ObligationDerivation.STATED,
     )
-    nodes += [o1_pickup, o2_prescription, o3_maintenance_original, o4_pharmacy_visit, o6_groceries]
+    o7_maya_salary = Obligation(
+        id=NodeId("obligation-pay-maya-salary"),
+        provenance=_prov(
+            source_document_id="doc-attendance-register", region="whole-document", confidence=0.85
+        ),
+        title="Pay Maya's August salary",
+        obligation_type="payment",
+        due_at=NOW + timedelta(days=5),
+        must_start_by=None,
+        effort_estimate_minutes=5,
+        status=ObligationStatus.ASSIGNED,
+        stated_or_implied=ObligationDerivation.IMPLIED,
+    )
+    nodes += [
+        o1_pickup,
+        o2_prescription,
+        o3_maintenance_original,
+        o4_pharmacy_visit,
+        o6_groceries,
+        o7_maya_salary,
+    ]
     # o3b is NOT written directly here — it is written via `supersede_node`
     # by the loader (see `SeedResult.supersession`), so the seed dataset
     # demonstrates real supersession mechanics end-to-end.
@@ -425,7 +475,22 @@ def build_demo_household() -> SeedResult:
         occurred_at=NOW - timedelta(days=9),
         counterparty_raw="FRESHMART GROCERY",
     )
-    nodes += [rc1_maintenance, l1_maintenance_debit, l2_grocery_debit, l3_last_week_grocery_debit]
+    l4_maya_advance = LedgerEvent(
+        id=NodeId("ledger-maya-advance"),
+        provenance=_prov(source_document_id="doc-attendance-register", region="margin-note", confidence=0.8),
+        kind=LedgerEventKind.ADVANCE,
+        amount=2000.0,
+        currency="INR",
+        occurred_at=NOW - timedelta(days=10),
+        counterparty_raw="MAYA BAI",
+    )
+    nodes += [
+        rc1_maintenance,
+        l1_maintenance_debit,
+        l2_grocery_debit,
+        l3_last_week_grocery_debit,
+        l4_maya_advance,
+    ]
 
     # -- purchase items ------------------------------------------------------------
 
@@ -610,7 +675,35 @@ def build_demo_household() -> SeedResult:
         support_count=2,
         contributing_outcome_ids=(outcome1.id,),
     )
-    nodes += [action_record1, approval_request1, pattern1]
+    attendance1_maya_august = AttendanceRecord(
+        id=NodeId("attendance-maya-2026-08"),
+        provenance=_prov(
+            source_document_id="doc-attendance-register",
+            region="whole-document",
+            derivation=Derivation.EXTRACTED,
+            confidence=0.8,
+        ),
+        staff_person_id=maya.id,
+        month="2026-08",
+        days_present=22,
+        days_absent=2,
+        days_on_leave=1,
+        total_days_in_period=25,
+        daily_marks={
+            "01": "present",
+            "02": "present",
+            "03": "absent",
+            "04": "present",
+            "05": "leave",
+            "06": "present",
+            "07": "present",
+        },
+        # Cross-reference-only text (ADR-013) — the real advance amount
+        # lives on `ledger-maya-advance` (LEDGER_EVENT, kind=ADVANCE),
+        # never parsed back out of this margin note.
+        advance_notations=("₹2,000 advance noted in margin, 12 Aug",),
+    )
+    nodes += [action_record1, approval_request1, pattern1, attendance1_maya_august]
 
     # -- edges -----------------------------------------------------------------
 
@@ -702,6 +795,23 @@ def build_demo_household() -> SeedResult:
         ),
         _edge("e-owned-o3b", EdgeType.OWNED_BY, o3b_maintenance_extended.id, priya.id),
         _edge("e-paidfor-l1-o3b", EdgeType.PAID_FOR, l1_maintenance_debit.id, o3b_maintenance_extended.id),
+        # ADR-013 (Phase 7, DEBT-004's repayment): the real advance amount
+        # lives on this LEDGER_EVENT (never parsed from
+        # attendance1_maya_august.advance_notations); `owed_to` is the
+        # existing LEDGER_EVENT -> PERSON counterparty edge (gharos-graph-
+        # model skill's edge table), reused here rather than inventing a
+        # new edge type for "advance paid to."
+        _edge("e-owed-l4-maya", EdgeType.OWED_TO, l4_maya_advance.id, maya.id),
+        _edge(
+            "e-attendance_of-attendance1-maya", EdgeType.ATTENDANCE_OF, attendance1_maya_august.id, maya.id
+        ),
+        # Spec §10.3D "Salary cycles -> monthly payment OBLIGATIONs" — also
+        # gives doc-attendance-register (d5) a real incident edge, since
+        # SOURCE_DOCUMENT has no direct edge type to ATTENDANCE_RECORD
+        # (only `attendance_of`, ATTENDANCE_RECORD -> PERSON, per ADR-013).
+        _edge("e-implies-o7-attendance-doc", EdgeType.IMPLIES, d5_attendance_register.id, o7_maya_salary.id),
+        _edge("e-owned-o7", EdgeType.OWNED_BY, o7_maya_salary.id, priya.id),
+        _edge("e-benefits-o7-maya", EdgeType.BENEFITS, o7_maya_salary.id, maya.id),
     ]
 
     return SeedResult(

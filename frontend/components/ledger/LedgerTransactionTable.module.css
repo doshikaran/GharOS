@@ -1,0 +1,170 @@
+.wrapper {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-5);
+}
+
+.filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-5);
+  align-items: flex-start;
+}
+
+.filterGroup {
+  border: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.filterLabel {
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: var(--ink-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.chipRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+
+.chip {
+  border: 1px solid var(--royal-soft);
+  background: var(--surface-base);
+  color: var(--ink-secondary);
+  border-radius: var(--radius-full);
+  padding: var(--space-1) var(--space-3);
+  font-size: 0.8125rem;
+  cursor: pointer;
+  transition: background var(--motion-fast) var(--motion-ease-standard),
+    color var(--motion-fast) var(--motion-ease-standard);
+}
+
+.chipActive {
+  background: var(--royal-primary);
+  border-color: var(--royal-primary);
+  color: var(--on-royal);
+}
+
+.select {
+  background: var(--surface-base);
+  color: var(--ink-primary);
+  border: 1px solid var(--royal-soft);
+  border-radius: var(--radius-md);
+  padding: var(--space-2) var(--space-3);
+  font-size: 0.875rem;
+}
+
+.summary {
+  margin: 0;
+  color: var(--ink-muted);
+  font-size: 0.875rem;
+}
+
+.emptyState {
+  margin: 0;
+  color: var(--ink-muted);
+  font-style: italic;
+}
+
+.transactionList,
+.commitmentList {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.transactionRow {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+  padding: var(--space-3);
+  background: var(--surface-raised);
+  border: 1px solid var(--royal-soft);
+  border-radius: var(--radius-md);
+}
+
+.amount {
+  font-weight: 600;
+  color: var(--ink-primary);
+  min-width: 7rem;
+}
+
+.counterparty {
+  color: var(--ink-secondary);
+  flex: 1 1 12rem;
+}
+
+.date {
+  color: var(--ink-muted);
+  font-size: 0.8125rem;
+}
+
+.commitmentTag {
+  background: var(--accent-brass-muted);
+  color: var(--ink-primary);
+  border-radius: var(--radius-full);
+  padding: var(--space-1) var(--space-2);
+  font-size: 0.75rem;
+}
+
+.commitmentsSection {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  padding-top: var(--space-4);
+  border-top: 1px solid var(--royal-soft);
+}
+
+.commitmentsHeading {
+  margin: 0;
+  font-family: var(--font-display), serif;
+  font-size: 1.125rem;
+  font-weight: 600;
+  color: var(--ink-primary);
+}
+
+.commitmentRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+  padding: var(--space-3);
+  background: var(--surface-raised);
+  border: 1px solid var(--royal-soft);
+  border-radius: var(--radius-md);
+}
+
+.commitmentInfo {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+.commitmentLabel {
+  font-weight: 600;
+  color: var(--ink-primary);
+}
+
+.commitmentDetail {
+  color: var(--ink-secondary);
+  font-size: 0.8125rem;
+}
+
+.proposedNote {
+  margin: 0;
+  color: var(--state-warning);
+  font-size: 0.8125rem;
+  font-weight: 600;
+}

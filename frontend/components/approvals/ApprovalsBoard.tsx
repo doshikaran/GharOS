@@ -1,9 +1,15 @@
 "use client";
 
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { Button } from "@/components/design-system/Button";
 import { Dialog } from "@/components/design-system/Dialog";
-import { isEscalation, isResolved, needsApproval, type ApprovalQueueItem } from "@/lib/approvals";
+import {
+  isEscalation,
+  isResolved,
+  needsApproval,
+  type ApprovalQueueItem,
+  type ApprovalStatus,
+} from "@/lib/approvals";
 import { ApprovalQueue } from "./ApprovalQueue";
 import { EscalationSurface } from "./EscalationSurface";
 import { EvidenceBundleView } from "./EvidenceBundleView";
@@ -14,6 +20,23 @@ export interface ApprovalsBoardProps {
   initialItems: ApprovalQueueItem[];
   /** Injectable clock for deterministic tests; defaults to the real time. */
   now?: Date;
+  /**
+   * Items appended after mount from a source outside this board's own
+   * queue — e.g. the Ledger view's "propose cancelling this mandate"
+   * action (PHASES.md Phase 7 demo beat), which builds a real
+   * `ApprovalQueueItem` from a live graph node the moment a household
+   * member clicks it, well after `ApprovalsBoard` first rendered.
+   *
+   * Each item is merged into the rendered list by `id` the first time it
+   * appears, additively — never replacing `initialItems`, never resetting
+   * a decision already made on an existing item (decisions are tracked
+   * separately from the merged list itself; see this component's body).
+   * This is what lets a caller reuse this board directly for a
+   * live-appended source instead of building a second, parallel approval
+   * surface (this phase's brief). Optional; every caller with no such
+   * source (e.g. `/approvals`) simply omits it.
+   */
+  extraItems?: readonly ApprovalQueueItem[];
 }
 
 /**
@@ -32,11 +55,30 @@ export interface ApprovalsBoardProps {
  * placing a call without a visible confirm" true in this surface, not
  * just documented as a policy.
  */
-export function ApprovalsBoard({ initialItems, now }: ApprovalsBoardProps) {
+export function ApprovalsBoard({ initialItems, now, extraItems }: ApprovalsBoardProps) {
   const clock = now ?? new Date();
-  const [items, setItems] = useState<ApprovalQueueItem[]>(initialItems);
+  // Decisions (approve/reject) are tracked separately from the item list
+  // itself, keyed by id, and applied on top of it in `items` below. This —
+  // rather than an effect that copies `extraItems` into a mirrored `items`
+  // state — is what lets `extraItems` merge in on every render as a pure
+  // derivation, with no synchronous `setState` inside a `useEffect`.
+  const [statusOverrides, setStatusOverrides] = useState<Readonly<Record<string, ApprovalStatus>>>({});
   const [confirmingId, setConfirmingId] = useState<string | null>(null);
   const [discussedIds, setDiscussedIds] = useState<ReadonlySet<string>>(new Set());
+
+  const items = useMemo(() => {
+    const merged: ApprovalQueueItem[] = [...initialItems];
+    const seenIds = new Set(merged.map((item) => item.id));
+    for (const extra of extraItems ?? []) {
+      if (seenIds.has(extra.id)) continue;
+      merged.push(extra);
+      seenIds.add(extra.id);
+    }
+    return merged.map((item) => {
+      const override = statusOverrides[item.id];
+      return override ? { ...item, status: override } : item;
+    });
+  }, [initialItems, extraItems, statusOverrides]);
 
   const confirmingItem = confirmingId ? (items.find((item) => item.id === confirmingId) ?? null) : null;
 
@@ -45,14 +87,12 @@ export function ApprovalsBoard({ initialItems, now }: ApprovalsBoardProps) {
   }
 
   function handleReject(id: string) {
-    setItems((prev) => prev.map((item) => (item.id === id ? { ...item, status: "rejected" } : item)));
+    setStatusOverrides((prev) => ({ ...prev, [id]: "rejected" }));
   }
 
   function handleConfirmApproval() {
     if (!confirmingId) return;
-    setItems((prev) =>
-      prev.map((item) => (item.id === confirmingId ? { ...item, status: "approved" } : item)),
-    );
+    setStatusOverrides((prev) => ({ ...prev, [confirmingId]: "approved" }));
     setConfirmingId(null);
   }
 

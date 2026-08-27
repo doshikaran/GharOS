@@ -11,6 +11,7 @@ from __future__ import annotations
 from contracts.graph_types import (
     ActionRecord,
     ApprovalRequest,
+    AttendanceRecord,
     Branch,
     Constraint,
     CouncilPosition,
@@ -64,8 +65,9 @@ NODE_TYPE_TO_COLLECTION: dict[type, str] = {
     ApprovalRequest: "approval_requests",
     PurchaseItem: "purchase_items",
     Pattern: "patterns",
+    AttendanceRecord: "attendance_records",
 }
-"""spec §5.2 — all 16 node types (`contracts.graph_types`). Adding a node
+"""spec §5.2 — all 17 node types (`contracts.graph_types`). Adding a node
 type is a CTO-only contract change (`contracts/graph_types.py`); this
 table must be extended in lockstep, and `test_serialization.py` fails loudly
 if it ever isn't (asserts this dict's key set matches the contract's node
@@ -78,7 +80,7 @@ def collection_for(node_type: type) -> str:
     """Returns the Firestore collection name for a node class.
 
     Raises:
-        KeyError: `node_type` is not one of the 16 registered node types.
+        KeyError: `node_type` is not one of the 17 registered node types.
     """
     return NODE_TYPE_TO_COLLECTION[node_type]
 

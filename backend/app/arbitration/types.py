@@ -143,6 +143,17 @@ class EscalationReason(StrEnum):
     APPROVAL_EXPIRED = "approval_expired"
     R4_ACTION = "r4_action"
     LOW_CONFIDENCE_DISCARD = "low_confidence_discard"
+    STALE_FOLLOWUP = "stale_followup"
+    """Added Phase 7 (PHASES.md, A31 Follow-up/Persistence): "track open
+    claims and vendor requests; re-contact on cadence; escalate after N."
+    The three original triggers above predate Phase 7 and are all
+    Confidence-Arbiter/Approval-Gate-shaped (expired approval, R4 action,
+    low-confidence discard); this one is A31's own trigger — an open item
+    (a recovery draft, a vendor request) that has exhausted its automated
+    re-contact attempts and needs a human, not an approval-adjacent event
+    at all. Additive only: no existing `EscalationReason` value changes
+    meaning, so every already-Gate-5-verified call site is unaffected.
+    `app.events.followup_dispatcher` is this value's only producer."""
 
 
 @dataclass(frozen=True, slots=True)

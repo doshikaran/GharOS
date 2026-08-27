@@ -1,0 +1,106 @@
+.surface {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.card {
+  max-width: 52rem;
+}
+
+.titleRow {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--space-3);
+}
+
+.body {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.amountLine {
+  margin: 0;
+  font-weight: 600;
+  color: var(--ink-primary);
+}
+
+.sectionLabel {
+  margin: 0 0 var(--space-1) 0;
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--ink-muted);
+}
+
+.reasoning {
+  margin: 0;
+  color: var(--ink-secondary);
+  line-height: 1.5;
+}
+
+.evidenceList {
+  margin: 0;
+  padding-left: var(--space-5);
+  color: var(--ink-secondary);
+  font-size: 0.875rem;
+  line-height: 1.6;
+}
+
+.householdPriority {
+  font-style: italic;
+}
+
+.draftSection {
+  border-left: 3px solid var(--accent-brass);
+  background: var(--surface-overlay);
+  border-radius: var(--radius-md);
+  padding: var(--space-3) var(--space-4);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.draftAsk {
+  margin: 0;
+  font-weight: 600;
+  color: var(--ink-primary);
+}
+
+.draftMessage {
+  margin: 0;
+  padding: var(--space-3);
+  background: var(--surface-base);
+  border-radius: var(--radius-sm);
+  color: var(--ink-secondary);
+  font-style: italic;
+  line-height: 1.5;
+}
+
+.draftReasoning {
+  margin: 0;
+  color: var(--ink-muted);
+  font-size: 0.8125rem;
+}
+
+.readOnlyNote {
+  margin: 0;
+  color: var(--state-info);
+  font-size: 0.8125rem;
+  font-weight: 600;
+}
+
+.noDraftNote {
+  margin: 0;
+  color: var(--ink-muted);
+  font-size: 0.875rem;
+  font-style: italic;
+}
+
+.emptyState {
+  color: var(--ink-muted);
+  font-style: italic;
+}

@@ -278,11 +278,10 @@ def _attendance_register_spec() -> DocumentTypeSpec:
     and every floor on every other type in this module is below it —
     checked by `test_document_type_specs.py`.
 
-    `target_edge_types` is deliberately empty: spec's own row says
-    "Edges: feeds salary computation," which names a downstream
-    deterministic tool (the salary calculator, spec §16.2), not a graph
-    edge — `contracts.graph_types.EdgeType`'s frozen enum has no member
-    for this relationship, so none is invented here."""
+    `target_node_types`/`target_edge_types` updated Phase 7 (ADR-013,
+    DEBT-004's repayment): `AttendanceRecord` and `attendance_of` now
+    exist for real, and `attendance_register_strategy.py` (E2) writes
+    both instead of only summarising into `verification_findings`."""
     return DocumentTypeSpec(
         type_id=type_id.ATTENDANCE_REGISTER,
         detection_signals=("grid_tabular_structure", "date_column", "name_rows", "tick_or_cross_marks"),
@@ -305,8 +304,8 @@ def _attendance_register_spec() -> DocumentTypeSpec:
                 confidence_floor=0.90,
             ),
         ),
-        target_node_types=("PERSON",),
-        target_edge_types=(),
+        target_node_types=("PERSON", "ATTENDANCE_RECORD"),
+        target_edge_types=(EdgeType.ATTENDANCE_OF,),
         downstream_subsystems=("ledger_payroll",),
         verification_duties=("attendance_vs_chat_leave_messages_consistency",),
     )

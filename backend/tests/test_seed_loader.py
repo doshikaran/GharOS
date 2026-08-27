@@ -65,7 +65,7 @@ class TestSeedLoaderEndToEnd:
         assert len(first.edges) == len(second.edges)
         assert {n.id for n in first.nodes} == {n.id for n in second.nodes}  # type: ignore[attr-defined]
 
-    def test_covers_all_sixteen_node_types(self, seeded: SeedResult) -> None:
+    def test_covers_all_seventeen_node_types(self, seeded: SeedResult) -> None:
         seeded_types = {type(n) for n in seeded.nodes} | {type(seeded.supersession[1])}
         assert seeded_types == set(NODE_TYPE_TO_COLLECTION.keys())
 

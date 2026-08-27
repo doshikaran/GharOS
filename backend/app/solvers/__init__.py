@@ -7,6 +7,13 @@ Phase 4 adds the first solver proper: `app.solvers.conflict_prepass`
 capability, and load conflict checks, run before A14 (Conflict Radar,
 E2) spends a Pro-tier reasoning call.
 
+Phase 7 adds `app.solvers.salary_calculator` (`calculate_salary`) — spec
+§16.2's "days − absences − advances" arithmetic, run by A34 (Staff
+Payroll, E2) after it has interpreted a handwritten register into a real
+`AttendanceRecord` (ADR-013, DEBT-004's repayment). Real advance amounts
+are sourced from `LedgerEvent` nodes of `kind=LedgerEventKind.ADVANCE`,
+never from `AttendanceRecord.advance_notations`.
+
 Phase 1's two deterministic-tool line items from this same spec section —
 the idempotency key generator and the graph integrity checker — are
 implemented elsewhere because they are graph/persistence primitives, not

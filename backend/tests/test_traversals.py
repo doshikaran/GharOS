@@ -48,6 +48,7 @@ class TestNeighbours:
             "Pay society maintenance (extended deadline)",
             "Collect prescription from pharmacy",
             "Buy weekly groceries",
+            "Pay Maya's August salary",
         }
 
     def test_from_the_other_endpoint_returns_the_same_relationship(

@@ -457,3 +457,72 @@ Neither E4 nor the CTO has a real browser available in this environment. What wa
 3. Recommend Phase 7 (Household Ledger) next, per PHASES.md's dependency order (depends on 5, 3 — both complete).
 
 **Phase 6 gate: SIGNED.**
+
+---
+
+## Phase 7 — Household Ledger
+
+**Gated:** 2026-08-27
+**Roles active:** e2 (lead), e1, e3, e4
+
+> Spec §10.5, the load-bearing sentence: "The Reconciliation Agent is structurally incapable of moving money." CTO review charter: "inspect A28's registered tools directly — any write capability fails the phase."
+
+### What was built
+
+**CTO (pre-work):** ADR-013 — a real `AttendanceRecord` node type + `attendance_of` edge (repaying DEBT-004, opened Phase 3), month-granularity (not per-day), designed against A34's real consumption pattern. Corrected a stale Phase-1-era docstring in `seeds/demo_household.py` found during review — it still claimed ACTION_RECORD/APPROVAL_REQUEST were "necessarily edge-orphans," a claim that stopped being true back in Phase 5 (ADR-012) but was never updated.
+
+**E1:** wired `AttendanceRecord` into persistence (collection mapping, codec, Phase 6's graph-visualisation label dispatch — the last of these is not optional, an unmapped type reaching `/graph/snapshot` raises) and built `app.solvers.salary_calculator` (pure, deterministic, no LLM call — "days present × daily rate, minus real `ADVANCE`-kind `LedgerEvent`s, floored at zero"). Two real, explicitly-flagged product-policy calls: unpaid leave excluded from days-worked by default (no paid/unpaid signal exists yet), and a shortfall floors at zero with a visible `floored_at_zero` flag rather than a misleading negative number.
+
+**E2 (lead):** all five ledger agents in a new `backend/app/agents/ledger/` package — A28 Reconciliation (registered with `ToolRegistry(allowed_tiers={T0_READ})` only, adversarially proven to reject both a T3 write and a T6 payment tool), A29 Leakage Detection (real usage-aware judgment, never a rule-based cutoff), A30 Recovery Drafting (draft-only, no `sent_at`/send-status field exists anywhere in its output type), A32 Dispute Branch (`DisputePresentation` structurally has no field that could hold a chosen figure — proven directly against `__dataclass_fields__`, not just by convention), A34 Staff Payroll (calls E1's solver for arithmetic, its own Pro-tier reasoning limited to genuinely ambiguous mark interpretation, zero Gemini calls on a clean register).
+
+**E3:** scoped A27 honestly rather than duplicating Phase 3 — found that bank/UPI extraction already produces `LedgerEvent`s, and built the two things Phase 3 genuinely didn't (cross-channel deduplication of the same real transaction reported twice, and idempotent persistence of what the strategies already computed). A31 Follow-up/Persistence (a pure decision core plus a real dispatcher reusing Phase 5's `EscalationAgent` rather than building a second escalation mechanism). A33 Vendor Relations (real reliability scoring from observed request/response/completion latency). The sandboxed T6 payment tool (`SandboxPaymentTool`) — real, fully wired through the real Approval Gate with real audit-before-execute and real idempotency; only the very last hop (an actual bank/UPI network call) is absent, deliberately, since faking that hop would be "unverifiable theatre on top of the same underlying graph write," in the module's own words.
+
+**E4:** the ledger view's transaction list is **real, live data** — fetches `/graph/snapshot` (Phase 6) and filters real `LEDGER_EVENT`/`RECURRING_COMMITMENT` nodes, the first UI surface in this project to consume live graph data for its primary content rather than fixtures. The recovered-money counter, dispute UI (both figures rendered identically, no resolve affordance anywhere), and payroll review (register image beside every intermediate salary figure, not just the final number) are fixture-backed with a documented seam, per the established Phase 5 precedent, since no REST API exists yet for these agent-output shapes. The mandate-cancel demo flow reuses Phase 5's approval UI directly via a new `extraItems` prop, rather than building a parallel approval surface.
+
+### Two real, honest findings from the CTO's own gate review — not caught by any automated test
+
+**DEBT-004 is not fully struck.** The node shape, its persistence wiring, and A34's consumption of it are all real and verified. But investigating end to end, the CTO found `attendance_register_strategy.py` (Phase 3) still returns zero graph nodes — `AttendanceRecord(...)` is constructed in exactly two places in the whole codebase: the codec's decoder, and seed data. Nothing in production ever builds one from a real extracted register.
+
+**That investigation surfaced something bigger, opened as DEBT-009: no phase of this project has yet built a genuine end-to-end raw-document-to-graph orchestrator, for any node type.** Every gate from Phase 1 through Phase 7 has been verified via staged, targeted tests calling each agent/strategy directly with pre-prepared inputs — real and correct at each stage, but the connective tissue between stages (extraction → entity resolution → writing) has never actually been built or exercised live for anything. This is not a Phase 7 regression; it was always true, and this is simply the first time a debt-repayment review asked the specific question ("does anything actually construct this node in production?") that would have surfaced it earlier. **Deliberately not fixed now** — designing a real orchestrator is substantial architecture work deserving its own design pass, not a rushed addition mid-review, and with the submission window closing in four days, attempting it now risks the phases that still need building. Flagged to the operator explicitly, same session it was found, not carried silently.
+
+A third, narrower finding: **DEBT-010** — A31's `FollowUpTrackable` Protocol (well-built, well-tested) has zero real producers this phase; both `RecoveryDraft` and the vendor-request type are pure content objects with no lifecycle/tracking fields. Both test suites proving A31's logic use a local fake, not real data.
+
+### Gate 7 checklist result — every item independently re-verified
+
+- [x] **A28 cannot move money — proven by test** — adversarial `ToolRegistry` tests reject both a T3 write tool and a T6 payment tool registered against A28
+- [x] Silent price hike detected from price history — A29, differentiated worth-keeping-vs-leakage on an identical price signal by usage, tested
+- [x] Unused service flagged with usage evidence — A29, tested
+- [x] Handwritten register → correct salary; low confidence → shows image — A34, both the clean-register and below-floor-mark paths tested; **caveat: true given a real `AttendanceRecord` exists — see DEBT-004/009 above for the honest gap in how one gets there from a live document today**
+- [x] SMS/ledger mismatch → dispute branch, no auto-resolution — A28 detects it, A32 presents both figures with no resolution field to express a choice even if it wanted to
+- [x] Double payment impossible under replay — `SandboxPaymentTool`'s idempotency, forced-replay tested exactly like Phase 5's established pattern
+- [x] Recovered-money counter reflects real computed findings — a real sum over real (if fixture-backed) leakage/recovery data, not a hardcoded display string
+
+**CTO review, performed literally:** read `reconciliation_agent.py`'s tool registration directly — `ToolRegistry(allowed_tiers=frozenset({PermissionTier.T0_READ}))`, no exceptions, no escape hatch. Could not find a code path that hands A28 a write or payment tool.
+
+### Verified personally (not just reported)
+
+- Independently re-ran the full backend suite after both E1's and E3's work (E3's dispatch was interrupted by a weekly API limit mid-fix; verified the in-flight fix had actually landed cleanly before continuing): **786 passed, 7 skipped, 0 failed**, `mypy .` clean across 229 files, `ruff check .` clean.
+- Read `payment_tool.py`, `followup_dispatcher.py`, `followup_scan.py`, `financial_signal_ingestion.py`, and `salary_calculator.py` in full before accepting either report — confirmed the sandbox reasoning, the `EscalationAgent` reuse, the honest A27 scoping, and the two documented salary policy calls directly, not from summaries.
+- **Found the DEBT-004/DEBT-009 gap myself**, not from either subagent's report — by grepping for every real call site of `AttendanceRecord(...)` in the codebase and finding exactly two, neither of which is a production write path, then tracing why (`ExtractionStrategy.map_to_graph` has no `GraphReader`, per ADR-008, so it cannot resolve a name mention to a real PERSON id — the same limitation `PermissionSlipExtractionStrategy` already documents for its own `owned_by` edge) before generalizing to confirm the same absence holds for every other node type's production write path.
+- Found the DEBT-010 gap myself by reading E2's real `RecoveryDraft` dataclass and E3's `VendorRequestObservation` directly against E3's own `FollowUpTrackable` Protocol and confirming neither satisfies it, then confirming both test suites use a local fake.
+- Independently re-ran the frontend suite on Node 22: **45 files, 281 tests, all passing**, plus clean `pnpm lint`, `pnpm exec tsc --noEmit`, and `pnpm build` (confirmed `/ledger` builds as a static route).
+- Read `DisputeCard`/`ConflictingFigureCard` in full — confirmed both figures render through the identical code path with no "favoured side" prop or styling hook, and the `ApprovalsBoard` `extraItems` addition uses a pure `useMemo` derivation, not an effect-based state sync.
+
+### Decisions / ADRs
+
+- ADR-013: `AttendanceRecord` node type + `attendance_of` edge (17 node types, 34 edge types).
+
+### Debt / deferred items
+
+- **DEBT-004:** substantially repaid, not struck — see above.
+- **DEBT-009 (opened this phase, significant):** no end-to-end raw-document-to-graph orchestrator exists for any node type. Not fixed now; flagged to the operator.
+- **DEBT-010 (opened this phase):** A31 has no real, trackable producer yet.
+- **DEBT-007:** unaffected, still downgraded/monitoring.
+
+### Open items for the operator
+
+1. **DEBT-009 is the one finding from this phase worth a deliberate decision, not just a note** — it affects every future phase's demo-readiness claim, not just attendance. Recommend deciding explicitly whether a real orchestrator gets built before Phase 15, or the demo is scoped around staged/pre-prepared documents instead (a legitimate, honest choice given the timeline, but a different claim than "watch it process a live upload").
+2. Otherwise, Phase 7 is gated — every literal Gate 7 checklist item is true, with the one caveat on the register-to-salary path named precisely above, not hidden.
+3. Recommend Phase 8 (Fair Allocator) next, per PHASES.md's dependency order.
+
+**Phase 7 gate: SIGNED, with two new honestly-reported findings (DEBT-009, DEBT-010) surfaced by the CTO's own investigation rather than by any subagent or automated test — exactly the outcome the gate-review discipline exists to produce.**

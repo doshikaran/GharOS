@@ -1,0 +1,56 @@
+.panel {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  align-items: center;
+  background: var(--surface-base);
+  border: 1px solid var(--royal-soft);
+  border-radius: var(--radius-md);
+  padding: var(--space-4);
+  min-height: 12rem;
+  justify-content: center;
+}
+
+.status {
+  margin: 0;
+  color: var(--ink-muted);
+  font-size: 0.875rem;
+  text-align: center;
+}
+
+.image {
+  max-width: 100%;
+  max-height: 20rem;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--royal-soft);
+}
+
+.caption {
+  margin: 0;
+  font-size: 0.75rem;
+  color: var(--ink-muted);
+  text-align: center;
+}
+
+.placeholderImage {
+  width: 100%;
+  max-width: 14rem;
+}
+
+.placeholderPage {
+  fill: var(--surface-overlay);
+  stroke: var(--ink-muted);
+  stroke-width: 1;
+}
+
+.placeholderLine {
+  stroke: var(--ink-muted);
+  stroke-width: 0.75;
+  opacity: 0.6;
+}
+
+.placeholderMargin {
+  stroke: var(--state-danger);
+  stroke-width: 1;
+  opacity: 0.6;
+}

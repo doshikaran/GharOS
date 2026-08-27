@@ -86,6 +86,36 @@ PRO_TIER_ALLOWLIST: frozenset[AgentId] = frozenset(
         # spec §21.1 "Valuation extraction" — Fair Allocator (Phase 8).
         # Mutating complaint streams into a cardinal cost matrix.
         "A18",
+        # spec §15.7 A28: Reconciliation Agent (Phase 7) — "Pro-tier for
+        # matching; arithmetic delegated to a calculation tool." Matching a
+        # messy raw counterparty string ("SUNRISE SOCIETY MAINT") to a
+        # known RECURRING_COMMITMENT ("Sunrise Society maintenance") is
+        # real fuzzy-matching judgment; duplicate/price-change/mismatch
+        # detection stays plain deterministic code in
+        # `app.agents.ledger.reconciliation_agent`, never a model call.
+        "A28",
+        # spec §15.7 A29: Leakage Detection (Phase 7) — the "worth
+        # reasoning" step. Per-item judgment against real usage signal and
+        # household priorities, deliberately never a rule-based cutoff.
+        "A29",
+        # spec §15.7 A30: Recovery Drafting (Phase 7) — drafting a real,
+        # ready-to-review cancellation/dispute/claim message using a
+        # learned per-merchant playbook is genuine drafting work, not a
+        # template fill.
+        "A30",
+        # spec §15.7 A32: Dispute Branch (Phase 7) — writing a genuinely
+        # neutral summary of two disagreeing figures without the wording
+        # itself favouring either side is real judgment; the two figures
+        # and the discrepancy amount themselves are always computed
+        # deterministically, never by the model.
+        "A32",
+        # spec §15.7 A34: Staff Payroll (Phase 7) — "Pro-tier for
+        # attendance interpretation; arithmetic deterministic." Only
+        # called when a real ambiguous ("unknown") mark exists in a
+        # staff member's `AttendanceRecord.daily_marks`; a clean register
+        # makes no Gemini call at all
+        # (`app.agents.ledger.staff_payroll_agent`).
+        "A34",
         # spec §21.1 "Blocker diagnosis" — Intention->Action (Phase 9).
         # Judgment about why *this* person stalls on *this* task.
         "A23",

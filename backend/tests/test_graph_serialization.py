@@ -7,7 +7,7 @@ from __future__ import annotations
 from datetime import UTC, datetime
 
 import pytest
-from contracts.graph_types import EdgeType, Person
+from contracts.graph_types import AttendanceRecord, EdgeType, Person
 
 from app.graph.serialization import (
     NODE_TYPE_TAGS,
@@ -20,7 +20,7 @@ from app.persistence.collections import NODE_TYPE_TO_COLLECTION
 
 
 def test_node_type_tags_key_set_matches_collections_registry() -> None:
-    """The wire-convention tag table must cover exactly the 16 registered
+    """The wire-convention tag table must cover exactly the 17 registered
     node types — same set `app.persistence.collections` uses, since a
     silently-missing entry would 500 on any node of that type reaching
     `/graph/snapshot` or `/graph/stream`."""
@@ -100,11 +100,14 @@ class TestNodeLabel:
         label = node_label("PATTERN", {"description": description})
         assert len(label) == 60
 
+    def test_attendance_record(self) -> None:
+        assert node_label("ATTENDANCE_RECORD", {"month": "2026-08"}) == "2026-08 attendance"
+
     def test_unknown_tag_raises(self) -> None:
         with pytest.raises(ValueError, match="no label dispatcher"):
             node_label("NOT_A_REAL_TYPE", {})
 
-    def test_covers_all_sixteen_tags(self) -> None:
+    def test_covers_all_seventeen_tags(self) -> None:
         """Every tag in NODE_TYPE_TAGS must have a working label
         dispatcher — a KeyError here would mean a real /graph/snapshot 500
         for that node type."""
@@ -125,6 +128,7 @@ class TestNodeLabel:
             "APPROVAL_REQUEST": {"proposed_action_summary": "x"},
             "PURCHASE_ITEM": {"description": "x"},
             "PATTERN": {"description": "x"},
+            "ATTENDANCE_RECORD": {"month": "2026-08"},
         }
         assert set(minimal_fields_by_tag.keys()) == set(NODE_TYPE_TAGS.values())
         for tag, fields in minimal_fields_by_tag.items():
@@ -208,6 +212,37 @@ class TestBuildNodeEnvelope:
         assert envelope["source_document_id"] is None
         assert envelope["region"] is None
         assert envelope["derivation"] == "ambiguous"
+
+    def test_attendance_record_does_not_raise(self) -> None:
+        """DEBT-004/ADR-013's explicit failure mode: an AttendanceRecord
+        reaching this envelope builder with no NODE_TYPE_TAGS/label-dispatch
+        entry raises `ValueError` and would break `/graph/snapshot` and
+        `/graph/stream` the moment real attendance data exists — this
+        proves the wiring is complete, not just present in the tag table."""
+        created_at = datetime(2026, 8, 19, 10, 0, tzinfo=UTC)
+        raw = {
+            "id": "attendance-1",
+            "provenance": {
+                "derivation": "extracted",
+                "source_ref": {"source_document_id": "doc-register", "region": "whole-document"},
+                "confidence": 0.7,
+                "deriving_agent": "A7",
+                "created_at": created_at,
+                "superseded_at": None,
+            },
+            "staff_person_id": "person-maya",
+            "month": "2026-08",
+            "days_present": 22,
+            "days_absent": 2,
+            "days_on_leave": 1,
+            "total_days_in_period": 25,
+            "daily_marks": {"01": "present", "02": "absent"},
+            "advance_notations": ["₹2,000 advance, 12 Aug"],
+        }
+        envelope = build_node_envelope(AttendanceRecord, "attendance-1", raw)
+        assert envelope["type"] == "ATTENDANCE_RECORD"
+        assert envelope["label"] == "2026-08 attendance"
+        assert envelope["fields"]["staff_person_id"] == "person-maya"
 
 
 class TestBuildEdgeEnvelope:

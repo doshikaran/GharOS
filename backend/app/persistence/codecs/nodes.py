@@ -1,4 +1,4 @@
-"""Encode/decode codecs for all 16 node types (spec §5.2).
+"""Encode/decode codecs for all 17 node types (spec §5.2).
 
 Each node type gets an explicit `encode_*`/`decode_*` pair rather than a
 reflective generic walk — `contracts.graph_types` uses `Literal[...]`,
@@ -23,6 +23,7 @@ from contracts.graph_types import (
     AgentId,
     ApprovalRequest,
     ApprovalStatus,
+    AttendanceRecord,
     Branch,
     Constraint,
     ConstraintKind,
@@ -573,6 +574,41 @@ def decode_pattern(doc_id: str, data: dict[str, Any]) -> Pattern:
 
 
 # ---------------------------------------------------------------------------
+# AttendanceRecord
+# ---------------------------------------------------------------------------
+
+
+def encode_attendance_record(node: AttendanceRecord) -> dict[str, Any]:
+    return {
+        "id": str(node.id),
+        "provenance": encode_provenance(node.provenance),
+        "staff_person_id": str(node.staff_person_id),
+        "month": node.month,
+        "days_present": node.days_present,
+        "days_absent": node.days_absent,
+        "days_on_leave": node.days_on_leave,
+        "total_days_in_period": node.total_days_in_period,
+        "daily_marks": dict(node.daily_marks),
+        "advance_notations": list(node.advance_notations),
+    }
+
+
+def decode_attendance_record(doc_id: str, data: dict[str, Any]) -> AttendanceRecord:
+    return AttendanceRecord(
+        id=NodeId(doc_id),
+        provenance=decode_provenance(data["provenance"]),
+        staff_person_id=NodeId(data["staff_person_id"]),
+        month=data["month"],
+        days_present=data["days_present"],
+        days_absent=data["days_absent"],
+        days_on_leave=data["days_on_leave"],
+        total_days_in_period=data["total_days_in_period"],
+        daily_marks=dict(data["daily_marks"]),
+        advance_notations=tuple(data["advance_notations"]),
+    )
+
+
+# ---------------------------------------------------------------------------
 # Registry
 # ---------------------------------------------------------------------------
 
@@ -593,6 +629,7 @@ NODE_CODECS: dict[type, NodeCodec[Any]] = {
     ApprovalRequest: NodeCodec(encode=encode_approval_request, decode=decode_approval_request),
     PurchaseItem: NodeCodec(encode=encode_purchase_item, decode=decode_purchase_item),
     Pattern: NodeCodec(encode=encode_pattern, decode=decode_pattern),
+    AttendanceRecord: NodeCodec(encode=encode_attendance_record, decode=decode_attendance_record),
 }
 """One entry per node type in `contracts.graph_types` (spec §5.2). Keys must
 match `app.persistence.collections.NODE_TYPE_TO_COLLECTION` exactly —

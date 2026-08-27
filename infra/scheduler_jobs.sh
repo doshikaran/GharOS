@@ -54,8 +54,23 @@ readonly HEARTBEAT_JOB_NAME="gharos-heartbeat-tick"
 readonly HEARTBEAT_CRON="*/5 * * * *"
 readonly HEARTBEAT_CYCLE_LABEL="heartbeat"
 
+# PHASES.md Phase 7, A31 Follow-up/Persistence — "far coarser cadences"
+# than the heartbeat, per this file's own header comment written back in
+# Phase 2 anticipating exactly this job. Twice a day (07:00 and 19:00 IST)
+# is enough to make "re-contact on cadence; escalate after N" real without
+# creating meaningful Cloud Run/Vertex AI spend (spec §6.2 cost
+# discipline) — open claims and vendor requests are not a sub-hour-latency
+# problem the way a live demo heartbeat is.
+readonly FOLLOWUP_SWEEP_TOPIC="gharos-followup-sweep"
+readonly FOLLOWUP_SWEEP_JOB_NAME="gharos-followup-sweep"
+readonly FOLLOWUP_SWEEP_CRON="0 7,19 * * *"
+readonly FOLLOWUP_SWEEP_CYCLE_LABEL="followup-sweep"
+
 if ! gcloud pubsub topics describe "$HEARTBEAT_TOPIC" --project "$project_id" >/dev/null 2>&1; then
   die "Topic '$HEARTBEAT_TOPIC' does not exist yet. Run ./infra/pubsub_topics.sh first."
+fi
+if ! gcloud pubsub topics describe "$FOLLOWUP_SWEEP_TOPIC" --project "$project_id" >/dev/null 2>&1; then
+  die "Topic '$FOLLOWUP_SWEEP_TOPIC' does not exist yet. Run ./infra/pubsub_topics.sh first."
 fi
 
 # `contracts.events.ScheduledTickPayload` has three fields: job_name,
@@ -89,10 +104,37 @@ else
     --quiet
 fi
 
+followup_message_body="{\"job_name\":\"${FOLLOWUP_SWEEP_JOB_NAME}\",\"cycle_label\":\"${FOLLOWUP_SWEEP_CYCLE_LABEL}\"}"
+
+log "Reconciling Cloud Scheduler job: $FOLLOWUP_SWEEP_JOB_NAME ($FOLLOWUP_SWEEP_CRON -> $FOLLOWUP_SWEEP_TOPIC)..."
+if gcloud scheduler jobs describe "$FOLLOWUP_SWEEP_JOB_NAME" \
+    --project "$project_id" --location "$GHAROS_REGION" >/dev/null 2>&1; then
+  log "  updating: $FOLLOWUP_SWEEP_JOB_NAME"
+  gcloud scheduler jobs update pubsub "$FOLLOWUP_SWEEP_JOB_NAME" \
+    --project "$project_id" \
+    --location "$GHAROS_REGION" \
+    --schedule "$FOLLOWUP_SWEEP_CRON" \
+    --topic "$FOLLOWUP_SWEEP_TOPIC" \
+    --message-body "$followup_message_body" \
+    --quiet
+else
+  log "  creating: $FOLLOWUP_SWEEP_JOB_NAME"
+  gcloud scheduler jobs create pubsub "$FOLLOWUP_SWEEP_JOB_NAME" \
+    --project "$project_id" \
+    --location "$GHAROS_REGION" \
+    --schedule "$FOLLOWUP_SWEEP_CRON" \
+    --topic "$FOLLOWUP_SWEEP_TOPIC" \
+    --message-body "$followup_message_body" \
+    --quiet
+fi
+
 echo "=================================================================="
-log "Cloud Scheduler heartbeat job reconciled for project $project_id."
+log "Cloud Scheduler jobs reconciled for project $project_id."
 log "Job:      $HEARTBEAT_JOB_NAME  ($HEARTBEAT_CRON)"
 log "Target:   Pub/Sub topic $HEARTBEAT_TOPIC -> push subscription -> gharos-api (see infra/pubsub_topics.sh)"
+log "Job:      $FOLLOWUP_SWEEP_JOB_NAME  ($FOLLOWUP_SWEEP_CRON)"
+log "Target:   Pub/Sub topic $FOLLOWUP_SWEEP_TOPIC -> push subscription -> gharos-api (see infra/pubsub_topics.sh)"
 log "Verify:   gcloud scheduler jobs describe $HEARTBEAT_JOB_NAME --location=$GHAROS_REGION"
+log "          gcloud scheduler jobs describe $FOLLOWUP_SWEEP_JOB_NAME --location=$GHAROS_REGION"
 log "          gcloud logging read 'resource.type=cloud_run_revision' --limit=5   (after a deploy + a few ticks)"
 echo "=================================================================="

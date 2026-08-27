@@ -222,3 +222,51 @@ async def receive_heartbeat(
         attributes=envelope.message.attributes,
         payload=payload,
     )
+
+
+@router.post("/followup-sweep", status_code=status.HTTP_204_NO_CONTENT)
+async def receive_followup_sweep(
+    envelope: PubSubPushEnvelope,
+    settings: Annotated[Settings, Depends(get_settings)],
+    authorization: Annotated[str | None, Header()] = None,
+) -> None:
+    """Receives the A31 Follow-up/Persistence Cloud Scheduler tick
+    (PHASES.md Phase 7) — the `gharos-followup-sweep` job
+    (`infra/scheduler_jobs.sh`) publishing a `contracts.events.
+    ScheduledTickPayload` onto the `gharos-followup-sweep` topic
+    (`infra/pubsub_topics.sh`), delivered here exactly as `receive_heartbeat`
+    is, above (same envelope shape, same push-auth verification).
+
+    **Deliberately thin, matching `receive_heartbeat`'s own documented
+    intent** ("the entry point that will, in later phases, publish... for
+    the... Ledger... follow-up cycles... to consume"): this route verifies
+    the push and logs the tick's receipt — real, auditable evidence a
+    genuine unattended sweep occurred (`docs/DEPLOYMENT_PROOF.md`'s
+    Cloud-Logging-export requirement). It does not itself construct
+    `app.events.followup_scan.FollowUpScanner` / `app.events.
+    followup_dispatcher.FollowUpDispatcher` here, because doing so
+    honestly needs: (a) a live provider of open, trackable items — which
+    needs A30's `RecoveryDraft` (E2, parallel Phase-7 work, not
+    guaranteed to exist yet) to be a real, graph-queryable type, and a
+    `GraphReader`/repository method to enumerate it, which does not exist
+    on the frozen contract today (see `followup_scan.py`'s module
+    docstring); and (b) a composition-root DI wiring for `EventPublisher`/
+    `EscalationAgent`/`GraphReader` this codebase has not yet established
+    anywhere. Wiring both is real work for whichever phase lands A30 and
+    the composition root together — not something to fake here with an
+    empty-list provider dressed up as a live integration. `FollowUpScanner`
+    and `FollowUpDispatcher` are themselves complete, real, and fully unit-
+    tested (`backend/tests/test_followup_scan.py`,
+    `test_followup_dispatcher.py`) — only this route's wiring to them is
+    the deferred piece, and it is deferred openly, not silently.
+    """
+    verify_push_request(authorization=authorization, settings=settings)
+    payload = _decode_message_data(envelope.message)
+    logger.info(
+        "followup_sweep_tick_received",
+        message_id=envelope.message.message_id,
+        publish_time=envelope.message.publish_time,
+        subscription=envelope.subscription,
+        attributes=envelope.message.attributes,
+        payload=payload,
+    )

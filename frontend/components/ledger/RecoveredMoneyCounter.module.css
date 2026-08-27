@@ -1,0 +1,24 @@
+.card {
+  border-color: var(--accent-brass-muted);
+  background: linear-gradient(180deg, var(--surface-overlay) 0%, var(--surface-raised) 100%);
+}
+
+.headline {
+  margin: 0 0 var(--space-2) 0;
+  font-size: 1.25rem;
+  line-height: 1.5;
+  color: var(--ink-primary);
+}
+
+.amount {
+  color: var(--accent-brass);
+  font-family: var(--font-display), serif;
+  font-size: 1.4em;
+}
+
+.detail {
+  margin: 0;
+  color: var(--ink-secondary);
+  font-size: 0.875rem;
+  line-height: 1.5;
+}

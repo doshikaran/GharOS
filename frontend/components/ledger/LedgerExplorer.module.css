@@ -1,0 +1,25 @@
+.explorer {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-7);
+}
+
+.status {
+  color: var(--ink-secondary);
+  padding: var(--space-6) 0;
+}
+
+.sectionHeading {
+  margin: 0 0 var(--space-3) 0;
+  font-family: var(--font-display), serif;
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: var(--ink-primary);
+}
+
+.sectionIntro {
+  margin: 0 0 var(--space-4) 0;
+  color: var(--ink-secondary);
+  max-width: 48rem;
+  line-height: 1.5;
+}

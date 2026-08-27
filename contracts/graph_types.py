@@ -396,6 +396,46 @@ class Pattern:
     contributing_outcome_ids: tuple[NodeId, ...]
 
 
+@dataclass(frozen=True, slots=True)
+class AttendanceRecord:
+    """One staff member's attendance for one calendar month (spec §10.3
+    "compute staff salary" / §5.4.2 ATTENDANCE REGISTER's "feeds salary
+    computation"). Added Phase 7 (ADR-013), repaying DEBT-004: Phase 3's
+    `attendance_register` `ExtractionStrategy` originally wrote zero graph
+    nodes for a successfully-extracted register (no shape existed yet to
+    hold per-day marks) — this is that shape, designed against Phase 7's
+    real consumer, `app.solvers.salary_calculator` (E1) and A34 Staff
+    Payroll (E2), rather than guessed at in Phase 3.
+
+    Month granularity, not one node per day: `app.solvers.
+    salary_calculator`'s whole formula ("days worked - absences -
+    advances -> salary due", spec §10.3) operates on one staff member's
+    one pay cycle at a time — a per-day node would mean 28-31 graph reads
+    to answer the one question this system ever asks of this data,
+    real, plain per-day marks."""
+
+    id: NodeId
+    provenance: Provenance
+    staff_person_id: NodeId
+    month: str
+    """ISO year-month, `"YYYY-MM"` — e.g. `"2026-08"`."""
+    days_present: int
+    days_absent: int
+    days_on_leave: int
+    total_days_in_period: int
+    daily_marks: dict[str, str]
+    """Day-of-month (`"01"`-`"31"`) -> `"present"` | `"absent"` | `"leave"`
+    | `"unknown"` — the real per-day record, kept alongside the rollup
+    counts above so a below-floor or disputed day is still auditable
+    against the original register, not just folded into a total."""
+    advance_notations: tuple[str, ...]
+    """Raw margin annotations naming an advance ("₹500 advance 12th"),
+    kept for cross-reference only — never authoritative. The real advance
+    amount `app.solvers.salary_calculator` deducts comes from actual
+    `LedgerEvent` nodes (`LedgerEventKind.ADVANCE`), never parsed back out
+    of handwritten margin text."""
+
+
 # ---------------------------------------------------------------------------
 # Edge types (spec §5.3)
 # ---------------------------------------------------------------------------
@@ -459,6 +499,10 @@ class EdgeType(str, Enum):
     granted" answerable by `GraphReader.neighbours`, consistent with every
     other relationship in this graph being edge-first). Added Phase 5
     (ADR-012), repays DEBT-002."""
+    ATTENDANCE_OF = "attendance_of"
+    """ATTENDANCE_RECORD -> PERSON. The staff member one month's
+    attendance record belongs to. Added Phase 7 (ADR-013), repays
+    DEBT-004."""
 
 
 @dataclass(frozen=True, slots=True)

@@ -87,20 +87,47 @@ class TestNoAgentImportsArbitration:
             "layer:\n" + "\n".join(violations)
         )
 
-    def test_no_module_under_backend_app_agents_imports_contracts_tools_directly(self) -> None:
-        """Reasoning agents talk to `contracts.repositories.GraphReader`/
-        `GraphWriter` directly (the established Phase 1-4 pattern) — none
-        of them need `contracts.tools` at all yet. A future import of it
-        from an agent module is exactly the kind of drift this test
-        exists to catch early, before it grows into an accidental
-        `ApprovalGatedTool` import path."""
+    def test_no_module_under_backend_app_agents_imports_approval_gated_tool(self) -> None:
+        """Updated Phase 7 (superseding the original, stricter Phase 4-era
+        version of this test, which banned agents from importing
+        `contracts.tools` at all): Phase 5's `app.tools.registry.
+        ToolRegistry` + `PermissionTier` mechanism is exactly how a
+        reasoning agent is *supposed* to hold tier-scoped, adversarially-
+        provable tool access now — A28 Reconciliation (T0-only) and A34
+        Staff Payroll (T3-only, spec §15.7) both legitimately import
+        `contracts.tools.PermissionTier` to construct their own registries
+        (`backend/app/agents/ledger/`). Banning `contracts.tools` outright
+        would make that pattern impossible and contradicts Gate 7's own
+        design.
+
+        The real, still-load-bearing invariant (e2.md: "a reasoning agent
+        must have no import path to `contracts.tools.ApprovalGatedTool` or
+        its subclasses") is narrower and is what this test now checks
+        directly: no agent module ever imports the name
+        `ApprovalGatedTool` from `contracts.tools` — the T4/T5/T6 gated-
+        tool base class only `backend/app/arbitration/` may construct
+        (spec §16.3; `contracts.tools.ApprovalGatedTool`'s own docstring).
+        `GATED_TIERS` is checked alongside it for the same reason — an
+        agent has no legitimate use for the gated-tier set at all, since
+        `ToolRegistry.register` already refuses a GATED_TIERS tool from
+        any non-`app.arbitration` caller regardless."""
+        forbidden_names = {"ApprovalGatedTool", "GATED_TIERS"}
         violations: list[str] = []
         for path in _iter_python_files(_AGENTS_ROOT):
             tree = ast.parse(path.read_text(encoding="utf-8"), filename=str(path))
-            for module_name in _imported_module_names(tree):
-                if module_name == "contracts.tools" or module_name.startswith("contracts.tools."):
-                    violations.append(f"{path.relative_to(_BACKEND_ROOT)} imports {module_name!r}")
-        assert violations == [], "no reasoning agent should import contracts.tools:\n" + "\n".join(violations)
+            for node in ast.walk(tree):
+                if (
+                    isinstance(node, ast.ImportFrom)
+                    and node.module == "contracts.tools"
+                    and any(alias.name in forbidden_names for alias in node.names)
+                ):
+                    violations.append(
+                        f"{path.relative_to(_BACKEND_ROOT)} imports a gated-tool name from contracts.tools"
+                    )
+        assert violations == [], (
+            "no reasoning agent should import ApprovalGatedTool/GATED_TIERS from contracts.tools:\n"
+            + "\n".join(violations)
+        )
 
 
 class TestOnlyArbitrationConstructsActions:

@@ -80,6 +80,40 @@ class TestReceiveHeartbeatEndpoint:
             app.dependency_overrides.clear()
 
 
+class TestReceiveFollowupSweepEndpoint:
+    """A31's Scheduler tick receiver (PHASES.md Phase 7) — same envelope
+    shape and same push-verification path as `/events/heartbeat`, proven
+    identically."""
+
+    def test_accepts_a_real_shaped_envelope_and_returns_204(self) -> None:
+        app.dependency_overrides.clear()
+        body = _envelope_body(
+            data=_b64({"job_name": "gharos-followup-sweep", "cycle_label": "followup-sweep"})
+        )
+        response = client.post("/events/followup-sweep", json=body)
+        assert response.status_code == 204
+        assert response.content == b""
+
+    def test_malformed_base64_data_is_rejected_as_400(self) -> None:
+        app.dependency_overrides.clear()
+        body = _envelope_body(data="not-valid-base64!!!")
+        response = client.post("/events/followup-sweep", json=body)
+        assert response.status_code == 400
+
+    def test_verification_enforced_when_service_account_configured(self) -> None:
+        from app.settings import get_settings
+
+        app.dependency_overrides[get_settings] = lambda: Settings(
+            pubsub_push_service_account_email="pusher@p.iam.gserviceaccount.com"
+        )
+        try:
+            body = _envelope_body(data=_b64({"job_name": "gharos-followup-sweep"}))
+            response = client.post("/events/followup-sweep", json=body)
+            assert response.status_code == 401
+        finally:
+            app.dependency_overrides.clear()
+
+
 class TestDecodeMessageData:
     def test_returns_none_for_no_data(self) -> None:
         message = PubSubMessage(data=None, messageId="1", publishTime="t")

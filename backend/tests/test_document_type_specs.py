@@ -189,7 +189,10 @@ def test_attendance_register_fields_match_spec() -> None:
     }
     spec = DOCUMENT_TYPE_SPECS_BY_ID[type_id.ATTENDANCE_REGISTER]
     assert _field_names(spec) == expected
-    assert spec.target_node_types == ("PERSON",)
+    # Phase 7 (ADR-013, DEBT-004's repayment): a real ATTENDANCE_RECORD
+    # node now exists alongside PERSON, connected via `attendance_of`.
+    assert spec.target_node_types == ("PERSON", "ATTENDANCE_RECORD")
+    assert EdgeType.ATTENDANCE_OF in spec.target_edge_types
 
 
 def test_bank_statement_fields_match_spec() -> None:
