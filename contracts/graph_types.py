@@ -551,6 +551,11 @@ class EdgeType(str, Enum):
     VALUATION_OF = "valuation_of"
     """VALUATION_PROFILE -> PERSON. Whose cardinal cost matrix this is.
     Added Phase 8 (ADR-014)."""
+    CHARACTERIZES = "characterizes"
+    """PATTERN -> PERSON. A person's friction profile is the set of
+    PATTERN nodes connected to them this way — e.g. "this person's
+    dentist-type appointments are blocked by aversion in most recent
+    attempts." Added Phase 9 (ADR-015)."""
 
 
 @dataclass(frozen=True, slots=True)

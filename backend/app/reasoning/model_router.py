@@ -134,6 +134,24 @@ PRO_TIER_ALLOWLIST: frozenset[AgentId] = frozenset(
         # spec §21.1 "Blocker diagnosis" — Intention->Action (Phase 9).
         # Judgment about why *this* person stalls on *this* task.
         "A23",
+        # spec §15.9 A24: Unblocker / Preparation (Phase 9) — "Flash for
+        # retrieval, Pro-tier for narrowing/drafting." Only
+        # `narrow_decision`/`switch_modality`/`decompose_first_step` call
+        # Pro-tier; `fetch_information` stays Flash
+        # (`app.agents.intention_action.unblocker_agent`).
+        "A24",
+        # spec §15.9 A25: Window Scheduling (Phase 9) — "Flash with
+        # Pro-tier fallback." Person-availability and historical-
+        # likelihood are deterministic (no model call at all); only the
+        # counterparty free-text interpretation escalates to Pro-tier on
+        # ambiguity/low confidence
+        # (`app.agents.intention_action.window_scheduling_agent`).
+        "A25",
+        # spec §15.9 A26: Slippage Analyst (Phase 9) — re-diagnosing
+        # against a real attempt history and producing three real,
+        # concrete escalation options grounded in real household data is
+        # judgment, not lookup.
+        "A26",
         # spec §21.1 "Branch simulation & critique" — Household Simulator
         # (Phase 11): A37 Path Simulator projects one branch.
         "A37",

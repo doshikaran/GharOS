@@ -1,0 +1,107 @@
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(16rem, 1fr));
+  gap: var(--space-4);
+}
+
+.card {
+  display: flex;
+}
+
+.emptyState {
+  margin: 0;
+  color: var(--ink-muted);
+  font-style: italic;
+  font-size: 0.875rem;
+}
+
+.patternList {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.patternRow {
+  padding: var(--space-3);
+  border-radius: var(--radius-md);
+  background: var(--surface-overlay);
+  transition: box-shadow var(--motion-base) var(--motion-ease-standard),
+    border-color var(--motion-base) var(--motion-ease-standard);
+  border: 1px solid transparent;
+}
+
+.justUpdated {
+  border-color: var(--accent-brass);
+  box-shadow: var(--elevation-2);
+}
+
+.patternHeader {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  flex-wrap: wrap;
+  margin-bottom: var(--space-2);
+}
+
+.iconWrap {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.5rem;
+  height: 1.5rem;
+  border-radius: var(--radius-sm);
+  flex-shrink: 0;
+}
+
+.iconWrap[data-variant="info"] {
+  color: var(--state-info);
+  background: color-mix(in srgb, var(--state-info) 14%, transparent);
+}
+
+.iconWrap[data-variant="royal"] {
+  color: var(--on-royal);
+  background: var(--royal-primary);
+}
+
+.iconWrap[data-variant="warning"] {
+  color: var(--state-warning);
+  background: color-mix(in srgb, var(--state-warning) 14%, transparent);
+}
+
+.iconWrap[data-variant="brass"] {
+  color: var(--on-brass);
+  background: var(--accent-brass);
+}
+
+.iconWrap[data-variant="success"] {
+  color: var(--state-success);
+  background: color-mix(in srgb, var(--state-success) 14%, transparent);
+}
+
+.iconWrap[data-variant="danger"] {
+  color: var(--state-danger);
+  background: color-mix(in srgb, var(--state-danger) 14%, transparent);
+}
+
+.supportCount {
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: var(--ink-primary);
+}
+
+.patternDescription {
+  margin: 0 0 var(--space-1);
+  color: var(--ink-secondary);
+  font-size: 0.875rem;
+  line-height: 1.55;
+}
+
+.confidenceNote {
+  margin: 0;
+  color: var(--ink-muted);
+  font-size: 0.75rem;
+  line-height: 1.4;
+}

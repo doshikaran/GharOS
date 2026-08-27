@@ -292,7 +292,10 @@ def build_demo_household() -> SeedResult:
         severity=ConstraintSeverity.SOFT,
         validity_start=None,
         validity_end=None,
-        structured={"quiet_hours": "14:00-16:00"},
+        # ADR-015 (Phase 9): formal SCHEDULE structured-key convention —
+        # days_of_week / start_time / end_time, migrated from the informal
+        # pre-ADR-015 "quiet_hours" key this exact entry used to carry.
+        structured={"days_of_week": "daily", "start_time": "14:00", "end_time": "16:00"},
         original_text="Dadi naps most afternoons between 2 and 4 — best not to schedule errands then.",
     )
     nodes += [c1_nut_free, c2_nap_window]

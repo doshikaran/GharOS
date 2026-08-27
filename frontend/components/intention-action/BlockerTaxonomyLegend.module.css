@@ -1,0 +1,71 @@
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(15rem, 1fr));
+  gap: var(--space-4);
+}
+
+.card {
+  border-width: 1px;
+  transition: border-color var(--motion-fast) var(--motion-ease-standard),
+    box-shadow var(--motion-fast) var(--motion-ease-standard);
+}
+
+.cardHighlighted {
+  border-color: var(--accent-brass);
+  border-width: 2px;
+  box-shadow: var(--elevation-2);
+}
+
+.iconRow {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  margin-bottom: var(--space-2);
+}
+
+.iconWrap {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2rem;
+  height: 2rem;
+  border-radius: var(--radius-md);
+  flex-shrink: 0;
+}
+
+.iconWrap[data-variant="info"] {
+  color: var(--state-info);
+  background: color-mix(in srgb, var(--state-info) 14%, transparent);
+}
+
+.iconWrap[data-variant="royal"] {
+  color: var(--on-royal);
+  background: var(--royal-primary);
+}
+
+.iconWrap[data-variant="warning"] {
+  color: var(--state-warning);
+  background: color-mix(in srgb, var(--state-warning) 14%, transparent);
+}
+
+.iconWrap[data-variant="brass"] {
+  color: var(--on-brass);
+  background: var(--accent-brass);
+}
+
+.iconWrap[data-variant="success"] {
+  color: var(--state-success);
+  background: color-mix(in srgb, var(--state-success) 14%, transparent);
+}
+
+.iconWrap[data-variant="danger"] {
+  color: var(--state-danger);
+  background: color-mix(in srgb, var(--state-danger) 14%, transparent);
+}
+
+.description {
+  margin: 0;
+  color: var(--ink-secondary);
+  font-size: 0.875rem;
+  line-height: 1.5;
+}

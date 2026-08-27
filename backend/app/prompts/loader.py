@@ -42,6 +42,14 @@ _AGENT_DIR_NAMES: dict[str, str] = {
     "A19": "a19_fairness_verifier_explainer",
     "A20": "a20_renegotiation_trigger",
     "A21": "a21_load_monitor",
+    "A22": "a22_intention_capture",
+    "A23": "a23_blocker_diagnosis",
+    "A24_INFO": "a24_unblocker_information",
+    "A24_DECISION": "a24_unblocker_decision",
+    "A24_AVERSION": "a24_unblocker_aversion",
+    "A24_FIRST_STEP": "a24_unblocker_first_step",
+    "A25_COUNTERPARTY": "a25_window_scheduling_counterparty",
+    "A26": "a26_slippage_analyst",
 }
 """Maps a roster agent id to its `backend/app/prompts/<dir>/` directory
 name (ADR-003: "one directory per agent... named by agent ID in lowercase
@@ -56,7 +64,20 @@ parsing — spec §15.8 A17's own tier split), unlike A3/A3b/A3c which are
 three separate roster agents each with one prompt. Every `AgentOutput`-
 shaped result A17 produces still records `AgentId("A17")` — this second
 manifest key is purely a prompt-loading implementation detail, never
-conflated with agent identity."""
+conflated with agent identity.
+
+`"A24_INFO"`/`"A24_DECISION"`/`"A24_AVERSION"`/`"A24_FIRST_STEP"` extend
+the same convention for A24 (Unblocker/Preparation, Phase 9): four
+genuinely distinct reasoning jobs (fetch, narrow, switch modality,
+decompose) per blocker type it handles, at two distinct tiers (spec
+§15.9 A24: "Flash for retrieval, Pro-tier for narrowing/drafting").
+`"A25_COUNTERPARTY"` is the same pattern for A25's one genuinely
+unstructured reasoning job (interpreting `Provider.availability_notes`
+free text) — A25's other two signals (person schedule, historical
+likelihood) are deterministic and make no model call at all, so need no
+prompt. Every result these produce still records `AgentId("A24")` /
+`AgentId("A25")` respectively — these manifest keys are prompt-loading
+details only, never agent identity."""
 
 
 class PromptNotFound(RuntimeError):

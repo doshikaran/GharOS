@@ -1,0 +1,81 @@
+.wrapper {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: var(--space-3);
+  max-width: 40rem;
+}
+
+.beforeCard {
+  border-color: var(--state-danger);
+}
+
+.beforeBody {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--space-2);
+}
+
+.beforeIcon {
+  color: var(--state-danger);
+}
+
+.staleFigure {
+  margin: 0;
+  font-family: var(--font-display), serif;
+  font-size: 1.75rem;
+  font-weight: 600;
+  color: var(--state-danger);
+}
+
+.staleReason {
+  margin: 0;
+  color: var(--ink-secondary);
+  font-size: 0.9375rem;
+  line-height: 1.55;
+}
+
+.arrow {
+  align-self: center;
+  color: var(--ink-muted);
+}
+
+.afterCard {
+  border-color: var(--state-success);
+}
+
+.afterSteps {
+  list-style: none;
+  margin: 0 0 var(--space-3);
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.afterStep {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-2);
+  color: var(--ink-primary);
+  font-size: 0.9375rem;
+  line-height: 1.5;
+}
+
+.afterStep svg {
+  color: var(--state-success);
+  flex-shrink: 0;
+  margin-top: 0.125rem;
+}
+
+.resolutionFigure {
+  margin: 0;
+  padding: var(--space-3);
+  border-radius: var(--radius-md);
+  background: color-mix(in srgb, var(--state-success) 12%, transparent);
+  color: var(--ink-primary);
+  font-family: var(--font-display), serif;
+  font-size: 1.125rem;
+  font-weight: 600;
+}

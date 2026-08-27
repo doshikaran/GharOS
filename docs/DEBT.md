@@ -130,17 +130,17 @@ Organic hallucination reached the target (0%) and one of the two control documen
 
 ---
 
-### DEBT-006 — no `Person.availability` field; no `Obligation.location` field
+### DEBT-006 — `Person.availability` half REPAID 2026-08-27 (reused, not added); `Obligation.location` half still open
 
-**Opened:** Phase 4, 2026-08-24
+**Opened:** Phase 4, 2026-08-24. **Availability half repaid:** Phase 9, 2026-08-27 (ADR-015).
 **Owner:** cto (contract)
-**Repayment phase:** Phase 9 (Intention→Action — A25 Window Scheduling, "business-hours-aware window finding," is the first agent that structurally needs real availability data) for `Person.availability`; whenever travel-time-aware conflict detection is first demonstrated, for `Obligation.location`.
+**Repayment phase (remaining):** whenever travel-time-aware conflict detection is first demonstrated, for `Obligation.location` only.
 
-**What's the gap:** spec §5.2's PERSON node description names an "availability model" as part of the node, and spec §7.3 Stage 4 names "must-start-by computed backwards through dependencies and availability" — but `contracts.graph_types.Person` has no availability field at all; it was never added when the node was first frozen in Phase 0. Similarly, spec's field-trip worked example implies travel-time buffering ("cash must travel with the child"), which needs some notion of location on an OBLIGATION — also absent. Phase 4's must-start-by computation (E2, this phase) works from `depends_on` chains and due dates alone, which is real and correct as far as it goes, but is not availability-aware — a person's actual free/busy windows never factor in, because there is nowhere on the graph to read them from.
+**What was decided, once Phase 9's real query pattern was in view (exactly the deferral this entry always called for):** reaching A25 Window Scheduling and examining what already exists, the honest answer turned out to be *not* a new `Person.availability` field. `contracts.graph_types.Constraint` (`kind=SCHEDULE`, `severity` HARD/SOFT, `structured: dict[str, str]`, frozen since Phase 0) already carries exactly this fact, and the seed data already had a real example in informal use (Dadi's nap window) — confirming the mechanism, not just the theory. A `HARD` schedule constraint is genuine unavailability; a `SOFT` one (like the nap window) is a preference A25 tries to route around, not an absolute block — precisely the distinction a new field would have had to reinvent via `Constraint.severity`, which already exists. ADR-015 formalizes the `structured` key schema (`days_of_week`/`start_time`/`end_time`) `A25` builds real parsing against, and migrates the one seed-data entry that predated it. No new `contracts/graph_types.py` field added — a real, reasoned "no" following DEBT-005's and ADR-014's identical precedent (check for reuse before inventing).
 
-**Why this isn't being fixed now:** Phase 9's A25 Window Scheduling is the real, spec-named consumer of availability data ("person free AND counterparty open AND historically likely") — designing the field now, without that phase's actual query patterns in view, risks guessing wrong. Same reasoning as DEBT-004/DEBT-005.
+**What's still genuinely open:** `Obligation.location`, for travel-time-aware conflict detection — spec's field-trip worked example ("cash must travel with the child") implies this, but nothing in any gate to date, including Gate 9, has actually needed it. Left alone, not guessed at.
 
-**Repayment condition:** Phase 9's CTO contract freeze adds a real `Person.availability` shape (and `Obligation.location` if the travel-time-aware conflict work lands then too) designed against Phase 9's actual needs; must-start-by computation is revisited to use it; this entry struck.
+**Repayment condition (remaining):** whenever a real scenario demonstrates travel-time-aware conflict detection, `Obligation.location`'s real shape is designed against that scenario's actual query pattern, and this entry is struck.
 
 ---
 

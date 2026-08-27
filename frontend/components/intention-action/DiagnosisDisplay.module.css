@@ -1,0 +1,122 @@
+.card {
+  max-width: 44rem;
+}
+
+.body {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.typeRow {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  flex-wrap: wrap;
+}
+
+.iconWrap {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2rem;
+  height: 2rem;
+  border-radius: var(--radius-md);
+  flex-shrink: 0;
+}
+
+.iconWrap[data-variant="info"] {
+  color: var(--state-info);
+  background: color-mix(in srgb, var(--state-info) 14%, transparent);
+}
+
+.iconWrap[data-variant="royal"] {
+  color: var(--on-royal);
+  background: var(--royal-primary);
+}
+
+.iconWrap[data-variant="warning"] {
+  color: var(--state-warning);
+  background: color-mix(in srgb, var(--state-warning) 14%, transparent);
+}
+
+.iconWrap[data-variant="brass"] {
+  color: var(--on-brass);
+  background: var(--accent-brass);
+}
+
+.iconWrap[data-variant="success"] {
+  color: var(--state-success);
+  background: color-mix(in srgb, var(--state-success) 14%, transparent);
+}
+
+.iconWrap[data-variant="danger"] {
+  color: var(--state-danger);
+  background: color-mix(in srgb, var(--state-danger) 14%, transparent);
+}
+
+.personTag {
+  color: var(--ink-muted);
+  font-size: 0.875rem;
+}
+
+.rediagnosisBanner {
+  padding: var(--space-3);
+  border-radius: var(--radius-md);
+  border: 1px solid var(--state-warning);
+  background: color-mix(in srgb, var(--state-warning) 10%, transparent);
+  color: var(--ink-primary);
+  font-size: 0.9375rem;
+  line-height: 1.55;
+}
+
+.diagnosisText {
+  margin: 0;
+  padding: var(--space-4);
+  border-radius: var(--radius-lg);
+  background: var(--surface-overlay);
+  border-left: 4px solid var(--royal-primary);
+  color: var(--ink-primary);
+  font-family: var(--font-display), serif;
+  font-size: 1.125rem;
+  font-style: italic;
+  line-height: 1.5;
+}
+
+.sectionLabel {
+  margin: 0 0 var(--space-2);
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  color: var(--ink-muted);
+}
+
+.evidenceList {
+  margin: 0;
+  padding-left: var(--space-5);
+  color: var(--ink-secondary);
+  font-size: 0.9375rem;
+  line-height: 1.6;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+.emptyNote {
+  margin: 0;
+  color: var(--ink-muted);
+  font-style: italic;
+  font-size: 0.875rem;
+}
+
+.alternativesRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+
+.provenanceLine {
+  margin: 0;
+  color: var(--ink-muted);
+  font-size: 0.75rem;
+}

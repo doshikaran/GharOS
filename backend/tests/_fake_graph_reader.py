@@ -1,10 +1,11 @@
 """A minimal, in-memory `contracts.repositories.GraphReader` test double —
-for Phase 7 Ledger-agent unit tests (`test_reconciliation_agent.py`) that
-need a real object satisfying the `GraphReader` Protocol without a
-Firestore emulator. Every method beyond `series` raises
-`NotImplementedError` — this fake exists only to prove
-`ReconciliationAgent.fetch_series` goes through the T0 `graph_reader` tool
-for real, not to be a general-purpose graph stand-in.
+originally for Phase 7 Ledger-agent unit tests (`test_reconciliation_
+agent.py`) that need a real object satisfying the `GraphReader` Protocol
+without a Firestore emulator, extended Phase 9 (`test_unblocker_agent.py`,
+`test_friction_profile.py`) with real `neighbours` support. Every method
+beyond `series`/`neighbours`/`get_node` still raises `NotImplementedError`
+— this fake is a narrow, real stand-in for the specific operations its
+callers actually exercise, not a general-purpose graph.
 
 Not a test module itself (no `test_*` name, never collected by pytest) —
 mirrors `_gemini_fakes.py`'s established pattern.
@@ -20,15 +21,27 @@ from contracts.graph_types import Decision, Edge, EdgeType, NodeId, Obligation, 
 class FakeGraphReader:
     """Structurally satisfies `contracts.repositories.GraphReader`."""
 
-    def __init__(self, *, series_by_commitment: dict[str, tuple[object, ...]] | None = None) -> None:
+    def __init__(
+        self,
+        *,
+        series_by_commitment: dict[str, tuple[object, ...]] | None = None,
+        neighbours_by_node_and_type: dict[tuple[str, EdgeType], tuple[object, ...]] | None = None,
+        nodes_by_id: dict[str, object] | None = None,
+    ) -> None:
         self._series_by_commitment = series_by_commitment or {}
+        self._neighbours_by_node_and_type = neighbours_by_node_and_type or {}
+        self._nodes_by_id = nodes_by_id or {}
         self.series_calls: list[str] = []
+        self.neighbours_calls: list[tuple[str, EdgeType]] = []
+        self.get_node_calls: list[str] = []
 
     def get_node(self, node_id: NodeId) -> object | None:
-        raise NotImplementedError
+        self.get_node_calls.append(str(node_id))
+        return self._nodes_by_id.get(str(node_id))
 
     def neighbours(self, node_id: NodeId, edge_type: EdgeType) -> tuple[object, ...]:
-        raise NotImplementedError
+        self.neighbours_calls.append((str(node_id), edge_type))
+        return self._neighbours_by_node_and_type.get((str(node_id), edge_type), ())
 
     def path(self, from_id: NodeId, to_id: NodeId) -> tuple[Edge, ...]:
         raise NotImplementedError

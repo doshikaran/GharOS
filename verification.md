@@ -584,3 +584,56 @@ A third, narrower finding: **DEBT-010** — A31's `FollowUpTrackable` Protocol (
 2. Recommend Phase 9 (Intention→Action Converter) next, per PHASES.md's dependency order.
 
 **Phase 8 gate: SIGNED. The fairness guarantee, independently hand-verified by the CTO digit by digit, is exactly what the code delivers — no more, no less.**
+
+---
+
+## Phase 9 — Intention→Action Converter
+
+**Gated:** 2026-08-27
+**Roles active:** e2 (lead), e4
+
+> Spec §9.1's finding that defines the whole subsystem: forgetting accounts for only ~10-14% of unfulfilled intentions — the rest is friction at the moment of action. Gate 9's own checklist is the literal test of whether this system actually removes friction rather than adding another reminder.
+
+### What was built
+
+**CTO (pre-work):** ADR-015 — revisited DEBT-006 once Phase 9's real query pattern was in view, and found the honest answer was *not* the new `Person.availability` field DEBT-006 originally assumed. `Constraint(kind=SCHEDULE, severity=HARD/SOFT)`, frozen since Phase 0, already carries exactly this fact — confirmed by a real example already informally in use in seed data (Dadi's nap window, deliberately soft). Formalized a `structured` key schema (`days_of_week`/`start_time`/`end_time`) instead of adding a field, and migrated the one seed entry that predated it. Added one new edge type, `characterizes` (PATTERN→PERSON, 36 edge types now), reusing the existing `Pattern` node for friction profiles rather than inventing a new node type — the same "check for reuse before inventing" discipline ADR-014 already established for the Fair Allocator. `Obligation.location` (DEBT-006's other half) stays open, honestly, since nothing in Gate 9 needs it.
+
+**E2 (lead):** all five agents in `backend/app/agents/intention_action/` — A22 Intention Capture (documented, deterministic staleness thresholds: 3 days past due, or 21 days untouched with no deadline — no model call), A23 Blocker Diagnosis (the six-type taxonomy as a real closed enum, `diagnosis_text` a first-class standalone statement, structurally holds no write/search/draft tool at all — checkable by grep, not just by review), A24 Unblocker (real per-type work: information fetched, decisions narrowed to a binary, aversion blockers get a real modality switch, never a send tool), A25 Window Scheduling (a real deterministic `SCHEDULE`-constraint parser and overlap checker, degrading to `CANNOT_DETERMINE` rather than guessing on malformed or legacy data — never treats "no evidence" the same as "unparseable evidence"), A26 Slippage Analyst (a documented N=3 escalation threshold, real drop/delegate/pay options, not a vague "this keeps failing"). The friction-profile write path (`friction_profile.py`) was deliberately built as a separate deterministic module, not part of A23 itself — so "A23 never writes" stays a structural, checkable fact even though the write it produces is attributed to A23's domain via `Provenance.deriving_agent`, mirroring the `obligation_writer` precedent from Phase 4.
+
+**E4:** `/intention-action` — the diagnosis display renders `diagnosis_text` as a first-class statement (not buried under a confidence number), the six-type taxonomy with real distinct visual treatment, and a real correction affordance. Household display names and Dadi's real, live `constraint-dadi-nap` schedule constraint come from `/graph/snapshot`; confirmed directly (no `CHARACTERIZES` edge exists in seed data yet) that the friction profile itself is honestly fixture-backed, not falsely claimed live. The window-blocker demo's availability verdicts are genuinely computed by a faithful TypeScript port of the real backend overlap algorithm, run against the real live constraint plus labeled fixture ones — not hand-picked.
+
+### Gate 9 checklist result — every item independently re-verified
+
+- [x] Stale obligation detected unprompted — A22, deterministic, documented thresholds, tested
+- [x] Blocker diagnosed to a specific type with rationale — A23, `diagnosis_text` + `evidence`, tested for all six types
+- [x] Information blocker → fact fetched — A24, real T0/T1 tool use
+- [x] Decision blocker → narrowed to binary — A24, narrowed, never resolved
+- [x] Aversion blocker → modality switched — A24, a real before/after modality change, tested
+- [x] **Correction updates the friction profile** — proven directly in `IntentionActionExplorer.test.tsx`: submitting a correction changes the same friction-profile section's rendered support count in the same render pass ("seen 3 times" → "seen 4 times"), not two disconnected screens — read and confirmed by the CTO directly, not accepted from the report alone
+- [x] Repeat slippage escalates with real options — A26, drop/delegate/pay, N=3, tested
+
+**CTO review, performed literally:** read `friction_profile.py` in full — confirmed `BlockerDiagnosisAgent`'s own module holds no `GraphWriter`, no `ToolRegistry`, no tool import of any kind, so "A23 never writes" is true by the absence of an import path, not by convention. Read `schedule_parsing.py` in full — confirmed the four-state `AvailabilityVerdict` genuinely distinguishes "no schedule constraint on file" (available) from "a schedule constraint exists but every one is unparseable" (`CANNOT_DETERMINE`) — a real, deliberate open-world reasoning choice, not collapsed into a binary.
+
+### Verified personally (not just reported)
+
+- Independently re-ran the full backend suite after E2's work: **956 passed, 7 skipped, 0 failed**, `mypy .` clean across 264 files, `ruff check .` clean.
+- Read `friction_profile.py` and `schedule_parsing.py` in full, line by line, before accepting E2's report — confirmed the supersession pattern (new `Pattern` version, fresh `SUPERSEDES` edge, fresh `CHARACTERIZES` edge, prior edge left in place as real history) and the malformed-data degradation logic directly.
+- Independently re-ran the frontend suite on Node 22: hit one test failure (`LeakageRecoverySurface.test.tsx`, a Phase 7 file untouched this phase) on the first full run; re-ran it in isolation (passed cleanly) and re-ran the full suite again (63 files, 412 tests, all passed) before concluding it was contention-related, not a real regression — same discipline applied to every flaky-test report this project has hit, never accepted at face value either direction.
+- Read `IntentionActionExplorer.test.tsx`'s Gate-9 test directly — confirmed it asserts the before state, submits a real correction, and asserts the after state in the same test, driven by lifted React state rather than two independently-rendered fixtures that merely happen to agree.
+- Ran clean `pnpm lint`, `pnpm exec tsc --noEmit`, `pnpm build` (confirmed `/intention-action` builds as a static route).
+
+### Decisions / ADRs
+
+- ADR-015: DEBT-006 revisited — `Constraint(kind=SCHEDULE)` reused instead of a new `Person.availability` field; `characterizes` edge added for friction profiles (36 edge types, 18 node types unchanged).
+
+### Debt / deferred items
+
+- **DEBT-006 (updated this phase):** availability half repaid via ADR-015; `Obligation.location` half stays open, honestly, under its original terms.
+- No new debt opened this phase.
+
+### Open items for the operator
+
+1. Phase 9 is gated clean — no blocking items.
+2. Recommend Phase 10 (Outbound Concierge) next, per PHASES.md's dependency order — its own goal line is explicit: "the system acts in the outside world — the most visceral demo beat."
+
+**Phase 9 gate: SIGNED.**

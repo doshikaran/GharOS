@@ -1,0 +1,73 @@
+.card {
+  max-width: 44rem;
+}
+
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.intro {
+  margin: 0;
+  color: var(--ink-secondary);
+  font-size: 0.9375rem;
+  line-height: 1.55;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+.fieldLabel {
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: var(--ink-primary);
+}
+
+.select,
+.textarea {
+  border-radius: var(--radius-md);
+  border: 1px solid var(--ink-muted);
+  background: var(--surface-base);
+  color: var(--ink-primary);
+  padding: var(--space-2) var(--space-3);
+  font-family: var(--font-body), ui-sans-serif, sans-serif;
+  font-size: 0.9375rem;
+}
+
+.textarea {
+  resize: vertical;
+  min-height: 4.5rem;
+}
+
+.select:focus-visible,
+.textarea:focus-visible {
+  outline: 2px solid var(--royal-primary);
+  outline-offset: 1px;
+}
+
+.confirmationBody {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.confirmationNote {
+  margin: 0;
+  color: var(--ink-primary);
+  font-size: 0.9375rem;
+  line-height: 1.55;
+}
+
+.caveat {
+  margin: 0;
+  padding: var(--space-2) var(--space-3);
+  border-radius: var(--radius-md);
+  background: var(--surface-overlay);
+  color: var(--ink-muted);
+  font-size: 0.8125rem;
+  line-height: 1.5;
+}
