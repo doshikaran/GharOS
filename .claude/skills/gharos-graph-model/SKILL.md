@@ -25,7 +25,7 @@ The design reference is Graphify's core discipline: **the answer is a path, not 
 | **DECISION** | question, trigger, status, resolution, rationale | **Permanent record. Never pruned, ever.** |
 | **BRANCH** | one option within a Decision, projected impacts, grounding refs, critiques | |
 | **COUNCIL_POSITION** | one agent's stance, reasoning, evidence | What makes the Council auditable rather than mystical |
-| **OUTCOME** | predicted vs actual, variance, attribution tags | Calibration substrate for the Simulator |
+| **OUTCOME** | predicted vs actual, variance, attribution tags | Calibration substrate for the Simulator. **Provider-reliability `attribution_tags` are a formal convention since Phase 10 (ADR-016)**: `"no_show"`, `"on_time"`, `"rescheduled"`, `"unresponsive_to_automated_caller"` — queried by walking `booked_with` (OBLIGATION → PROVIDER) then that obligation's `completes_into` OUTCOME, no new field. |
 | **SOURCE_DOCUMENT** | raw payload reference, channel, extraction record | Every derived node points back here |
 | **ACTION_RECORD** | what the system did, when, under whose approval | |
 | **APPROVAL_REQUEST** | proposed action, evidence bundle, risk tier, confidence, status | |

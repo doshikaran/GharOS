@@ -637,3 +637,63 @@ A third, narrower finding: **DEBT-010** — A31's `FollowUpTrackable` Protocol (
 2. Recommend Phase 10 (Outbound Concierge) next, per PHASES.md's dependency order — its own goal line is explicit: "the system acts in the outside world — the most visceral demo beat."
 
 **Phase 9 gate: SIGNED.**
+
+---
+
+## Phase 10 — Outbound Concierge
+
+**Gated:** 2026-08-28
+**Roles active:** e3 (lead), e2, e4
+
+> Spec's own goal line: "the system acts in the outside world — the most visceral demo beat." Spec §23, binding: "For the demo, call a controlled/sandbox counterparty, not a real business — and say so honestly. Implying a live cold call to a real clinic when it is staged is the kind of overclaim that discredits an otherwise strong submission." CTO review charter: "is there any code path writing a booking without verification? If yes, the phase fails."
+
+### What was built
+
+**CTO (pre-work):** ADR-016 — the phase's central, judges-will-notice-if-wrong scope decision. Spec's demo-beat prose says "live call placed and heard," but PHASES.md's own Gate 10 checklist never once says "audio," "heard," "TTS," or "ASR" — every item is about bounds, disclosure, and verification. Decided: A54 conducts a real, live, multi-turn conversation this phase — against a real, independently-reasoning sandbox counterparty, with real bounds enforcement, real mandatory disclosure, and real verification-before-recording — in text/transcript form, not synthesized audio, since that infrastructure is explicitly Phase 13's job and nothing in Gate 10 requires it. Confirmed directly that no new contract types were needed: `Provider`, `booked_with`, `SourceDocument`, `Outcome`, and `PermissionTier.T5_VOICE_OUTBOUND` (already a `GATED_TIERS` member since Phase 0) all already fit. Formalized one convention (not a contract change): `Outcome.attribution_tags`'s provider-reliability vocabulary (`"no_show"`, `"on_time"`, `"rescheduled"`, `"unresponsive_to_automated_caller"`). Pre-specified three frozen pipeline handoff shapes (`ProviderCandidate`, `CallBrief`, `CallOutcomeReport`) identically to both E2 and E3, dispatched in parallel — mirrors Phase 6's graph-API contract-freeze pattern, since this phase's pipeline has genuine two-way dependencies between the two roles' agents that a one-directional dispatch order couldn't cleanly serve.
+
+**E2:** A50 Requirement Clarifier (a real, code-enforced ≤2-question ceiling — never left to the model's own restraint — with every dropped candidate-unknown folded into a stated `assumptions` list, never silently lost), A52 Provider Ranking (deterministic, no-model-call scoring; a real `booked_with`→`completes_into`→`attribution_tags` walk demotes a provider with a real `no_show` history, visibly, with the full score breakdown published, never opaque), A53 Call Planner (bounds copied verbatim from the caller's authorised bounds — proven with an adversarial test injecting bogus values into a fake model response and confirming they never reach the `CallBrief`), A55 Confirmation Verifier — **Gate 10's single most safety-critical agent**: a two-layer design where a pure, model-free structural check computes the real verdict and an optional Pro-tier semantic check can only narrow a pass into a fail, never the reverse; proven with an adversarial test that a fake response smuggling `"verified": true` still yields `verified=False` when the structural facts disagree.
+
+**E3 (lead):** a real, second, independently-reasoning LLM sandbox counterparty persona (never a canned response table — deliberately, so A54's bounds/branch-handling is tested against genuine model variation, not a fixture the same engineer wrote both sides of), A51 Service Discovery, A54 Voice Call Agent (the real T5 `ApprovalGatedTool`, mirroring `SandboxPaymentTool`'s exact shape — bounds checked *before* any conversation is conducted, literally making "approval fires before any call" true; the disclosure opening is pure, code-composed string formatting with no model call in the loop at all, so there is no path where a model could "forget" to disclose; unauthorized topics are declined via a deliberately conservative, honestly-limited fail-closed keyword check, not an oversold semantic one), A56 Fallback Coordinator, and the real `booking_write_tool.verified_booking_from_verification` — a typed function that structurally cannot be called without a real `VerificationResult` in hand, raising `BookingNotVerified` otherwise.
+
+**A real architectural violation found and fixed by the CTO, not by any test in either subagent's own run:** E3's A56 `FallbackCoordinatorAgent` directly imported `app.arbitration.escalation_agent`, breaking the "no module under `backend/app/agents/` imports `app.arbitration`" safety boundary enforced since Phase 5 (`test_action_construction_boundary.py`). Fixed by splitting the module in two, mirroring Phase 7's own A31 precedent exactly: `FallbackCoordinatorAgent.decide()` now produces a plain-data `FallbackEscalationPayload` (contracts-only types, zero arbitration import), and a new `app.events.concierge_fallback_dispatcher` — outside `backend/app/agents/`, exactly where A31's own dispatcher lives — is what actually calls `EscalationAgent.route()`. Verified with new, passing tests on both sides of the split.
+
+**E4:** `/concierge` — the ranked shortlist renders each provider's real, distinct reasons and full score breakdown (a demoted, no-show-flagged provider visibly marked, never silently reordered); the live-call surface renders a real transcript turn-by-turn with the disclosure turn visually unmissable, animated as a presentation-only progressive reveal over an already-complete fixture (documented honestly in code, never implying a live stream or literal audio — asserted directly by a dedicated test); booking confirmation is gated on a real ported verification guard, with a second fixture scenario proving the "could not verify — not recorded" state renders distinctly rather than a false positive.
+
+### Gate 10 checklist result — every item independently re-verified
+
+- [x] "Book a dentist" asks ≤2 questions — A50, enforced by code truncation, tested against 4 genuinely-unknown candidates
+- [x] Ranking explainable — user sees why #1 is #1 — A52, real distinct reasons + score breakdown per provider
+- [x] Approval fires before any call — `VoiceCallTool.check_bounds` runs before `conversation_engine.run_conversation` is ever invoked
+- [x] Disclosure on every call, cannot be disabled — turn zero is pure code, no model call in the loop; `CallOutcomeReport.disclosure_given` has no code path setting it to `False`
+- [x] Out-of-bounds → declines, offers callback — `DECLINE_OUT_OF_BOUNDS_CALLBACK`, deterministic, tested
+- [x] Slot unavailable → adapts within bounds — `_decide_next_action`'s real fallback-slot logic, tested
+- [x] **Unverified outcome never recorded — proven by test** — `BookingNotVerified` raised structurally; adversarial test proves a `"verified": true`-smuggling fake response still yields `False` from the real structural facts
+- [x] Failure ladder ends in useful human escalation — A56, real documented backoff, escalates fully prepared after exhaustion, reusing the one real `EscalationAgent` (post-fix)
+
+**CTO review, performed literally:** could not find any code path from a `CallOutcomeReport` to a graph write that does not pass through `verified_booking_from_verification`. Read `voice_call_tool.py`'s `check_bounds` and `invoke_idempotent` directly — confirmed bounds are checked before `run_conversation` is ever called, not after.
+
+### Verified personally (not just reported)
+
+- **Root-caused and fixed a real infrastructure incident mid-phase**: the full backend suite hit `ServiceUnavailable`/"connection refused" failures partway through verification — traced to a Firestore emulator process running uninterrupted since the previous Tuesday (76+ minutes of accumulated CPU, wedged into an uninterruptible-sleep state, ignoring SIGTERM). Also found and killed a duplicate concurrent pytest invocation contending for the same emulator. Killed both with SIGKILL, restarted clean via `scripts/emulators.sh`, re-verified: **1110 passed, 7 skipped, 0 failed**, `mypy .` clean across 297 files, `ruff check .` clean (one real lint error found and fixed in the CTO's own new test file, `B008` mutable-default-in-signature).
+- Found the A56/arbitration-boundary violation myself, by reading E2's own final report (which flagged the resulting test failure honestly rather than silently working around it) and confirming the exact import via direct source inspection before designing and implementing the fix.
+- Read `voice_call_tool.py` and `voice_call_agent.py` in full, line by line, before accepting either report — confirmed the bounds-before-call ordering, the disclosure guarantee's structural basis, and the honestly-limited fail-closed disclosability heuristic directly.
+- Independently re-ran the frontend suite on Node 22: hit a 3-test failure on the first run (heavy resource contention — `import`/`environment` phases each took 170-270s, an order of magnitude above normal, coinciding with a concurrent backend verification run); re-ran cleanly in isolation immediately after and got **71 files, 480 tests, all passing** — same discipline applied to every contention-flake this project has hit, never accepted at face value in either direction.
+- Read `verifyCallOutcome`/`buildBookingOutcome` in `frontend/lib/concierge.ts` directly — confirmed the ported "no write without verification" guard is real and matches the backend's own structural logic, not just a UI-layer promise.
+- Grepped the actual rendered component tree and lib code for "audio"/"ringing"/"phone call" — found only the honest disclaimer language ADR-016 requires, never an implication otherwise.
+- Ran clean `pnpm lint`, `pnpm exec tsc --noEmit`, `pnpm build` (confirmed `/concierge` builds as a static route).
+
+### Decisions / ADRs
+
+- ADR-016: real sandboxed text-transcript conversation this phase, audio deferred to Phase 13; no new contract types; `Outcome.attribution_tags` provider-reliability convention formalized.
+
+### Debt / deferred items
+
+- No new `docs/DEBT.md` entries this phase.
+- Not tracked as debt (an honest, in-scope limitation, not a gap): A54's disclosability check is a conservative keyword heuristic, not semantic understanding — documented directly in code as a deliberate safety choice (occasionally over-escalating a genuinely-answerable question is preferred to ever silently answering an unauthorised one).
+
+### Open items for the operator
+
+1. Phase 10 is gated clean — no blocking items.
+2. Recommend Phase 11 (Household Simulator) next, per PHASES.md's dependency order.
+
+**Phase 10 gate: SIGNED. Could not find a code path that writes a booking without real verification, and could not find any UI or backend copy implying a live call happened when it did not.**

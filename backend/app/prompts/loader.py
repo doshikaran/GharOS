@@ -50,6 +50,10 @@ _AGENT_DIR_NAMES: dict[str, str] = {
     "A24_FIRST_STEP": "a24_unblocker_first_step",
     "A25_COUNTERPARTY": "a25_window_scheduling_counterparty",
     "A26": "a26_slippage_analyst",
+    "A50": "a50_requirement_clarifier",
+    "A52": "a52_provider_ranking",
+    "A53": "a53_call_planner",
+    "A55": "a55_confirmation_verifier",
 }
 """Maps a roster agent id to its `backend/app/prompts/<dir>/` directory
 name (ADR-003: "one directory per agent... named by agent ID in lowercase

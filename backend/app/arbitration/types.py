@@ -154,6 +154,16 @@ class EscalationReason(StrEnum):
     at all. Additive only: no existing `EscalationReason` value changes
     meaning, so every already-Gate-5-verified call site is unaffected.
     `app.events.followup_dispatcher` is this value's only producer."""
+    CONCIERGE_CALL_NEEDS_HUMAN = "concierge_call_needs_human"
+    """Added Phase 10 (A56 Fallback Coordinator, ADR-016). A real outbound
+    call ended in a state no further automated retry can resolve — the
+    counterparty was hostile to automated callers, every retry in A56's
+    ladder was exhausted, or the call itself reported
+    `requires_human_callback=True` with nothing left to try
+    automatically. Mirrors `STALE_FOLLOWUP`'s own precedent exactly:
+    additive only, no existing value's meaning changes.
+    `app.agents.concierge.fallback_coordinator_agent.
+    FallbackCoordinatorAgent` is this value's only producer."""
 
 
 @dataclass(frozen=True, slots=True)

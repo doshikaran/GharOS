@@ -2,10 +2,13 @@
 originally for Phase 7 Ledger-agent unit tests (`test_reconciliation_
 agent.py`) that need a real object satisfying the `GraphReader` Protocol
 without a Firestore emulator, extended Phase 9 (`test_unblocker_agent.py`,
-`test_friction_profile.py`) with real `neighbours` support. Every method
-beyond `series`/`neighbours`/`get_node` still raises `NotImplementedError`
-— this fake is a narrow, real stand-in for the specific operations its
-callers actually exercise, not a general-purpose graph.
+`test_friction_profile.py`) with real `neighbours` support, and extended
+Phase 10 (`test_concierge_context.py`) with real `history` support for
+A52's `booked_with` -> `completes_into` `Outcome` walk (ADR-016). Every
+method beyond `series`/`neighbours`/`get_node`/`history` still raises
+`NotImplementedError` — this fake is a narrow, real stand-in for the
+specific operations its callers actually exercise, not a general-purpose
+graph.
 
 Not a test module itself (no `test_*` name, never collected by pytest) —
 mirrors `_gemini_fakes.py`'s established pattern.
@@ -27,13 +30,16 @@ class FakeGraphReader:
         series_by_commitment: dict[str, tuple[object, ...]] | None = None,
         neighbours_by_node_and_type: dict[tuple[str, EdgeType], tuple[object, ...]] | None = None,
         nodes_by_id: dict[str, object] | None = None,
+        history_by_entity: dict[str, tuple[Outcome, ...]] | None = None,
     ) -> None:
         self._series_by_commitment = series_by_commitment or {}
         self._neighbours_by_node_and_type = neighbours_by_node_and_type or {}
         self._nodes_by_id = nodes_by_id or {}
+        self._history_by_entity = history_by_entity or {}
         self.series_calls: list[str] = []
         self.neighbours_calls: list[tuple[str, EdgeType]] = []
         self.get_node_calls: list[str] = []
+        self.history_calls: list[str] = []
 
     def get_node(self, node_id: NodeId) -> object | None:
         self.get_node_calls.append(str(node_id))
@@ -63,7 +69,8 @@ class FakeGraphReader:
         return self._series_by_commitment.get(str(commitment_id), ())
 
     def history(self, entity_id: NodeId) -> tuple[Outcome, ...]:
-        raise NotImplementedError
+        self.history_calls.append(str(entity_id))
+        return self._history_by_entity.get(str(entity_id), ())
 
     def decisions_touching(self, entity_id: NodeId) -> tuple[Decision, ...]:
         raise NotImplementedError

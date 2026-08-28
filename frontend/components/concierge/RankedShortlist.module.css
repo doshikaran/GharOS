@@ -1,0 +1,142 @@
+.wrapper {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.header {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-3);
+  flex-wrap: wrap;
+}
+
+.narrative {
+  margin: 0;
+  color: var(--ink-secondary);
+  font-size: 0.9375rem;
+  line-height: 1.55;
+  flex: 1 1 20rem;
+}
+
+.list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.card {
+  display: flex;
+}
+
+.titleRow {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  flex-wrap: wrap;
+}
+
+.rankBadge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 2rem;
+  height: 2rem;
+  border-radius: var(--radius-full);
+  font-weight: 700;
+  font-size: 0.9375rem;
+  background: var(--royal-soft);
+  color: var(--on-royal);
+}
+
+.rankBadge[data-rank="1"] {
+  background: var(--accent-brass);
+  color: var(--on-brass);
+}
+
+.providerName {
+  font-weight: 600;
+  color: var(--ink-primary);
+}
+
+.score {
+  margin-left: auto;
+  font-size: 0.75rem;
+  color: var(--ink-muted);
+  font-variant-numeric: tabular-nums;
+}
+
+.sectionLabel {
+  margin: var(--space-3) 0 var(--space-2);
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  color: var(--ink-muted);
+}
+
+.sectionLabel:first-child {
+  margin-top: 0;
+}
+
+.reasonsList {
+  margin: 0;
+  padding-left: var(--space-5);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  color: var(--ink-primary);
+  font-size: 0.875rem;
+  line-height: 1.5;
+}
+
+.componentsGrid {
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.componentRow {
+  display: grid;
+  grid-template-columns: 6.5rem 1fr 3rem;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+.componentLabel {
+  margin: 0;
+  font-size: 0.8125rem;
+  color: var(--ink-secondary);
+}
+
+.componentBarTrack {
+  margin: 0;
+  position: relative;
+  height: 0.625rem;
+  border-radius: var(--radius-full);
+  background: var(--surface-overlay);
+  overflow: hidden;
+}
+
+.componentBarFill {
+  position: absolute;
+  inset: 0 auto 0 0;
+  background: var(--royal-primary);
+  border-radius: var(--radius-full);
+}
+
+.componentValue {
+  font-size: 0.75rem;
+  color: var(--ink-muted);
+  white-space: nowrap;
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+.emptyState {
+  color: var(--ink-muted);
+  font-style: italic;
+}

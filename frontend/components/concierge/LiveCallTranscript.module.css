@@ -1,0 +1,112 @@
+.wrapper {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  flex-wrap: wrap;
+}
+
+.honestyNote {
+  margin: 0;
+  color: var(--ink-muted);
+  font-size: 0.8125rem;
+  font-style: italic;
+  max-width: 40rem;
+}
+
+.turnList {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.turnRow {
+  padding: var(--space-3);
+  border-radius: var(--radius-md);
+  background: var(--surface-overlay);
+  border-left: 3px solid var(--ink-muted);
+  animation: turnArrive var(--motion-base) var(--motion-ease-emphasized);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .turnRow {
+    animation: none;
+  }
+}
+
+@keyframes turnArrive {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.turnRow[data-speaker="caller"] {
+  border-left-color: var(--royal-primary);
+}
+
+.turnRow[data-speaker="counterparty"] {
+  border-left-color: var(--accent-brass);
+}
+
+.turnRow[data-disclosure="true"] {
+  border-left-width: 5px;
+  border-left-color: var(--royal-primary);
+  background: color-mix(in srgb, var(--royal-primary) 10%, var(--surface-overlay));
+}
+
+.turnRow[data-noteworthy="true"] {
+  border-left-color: var(--edge-conflict);
+  background: color-mix(in srgb, var(--edge-conflict) 10%, var(--surface-overlay));
+}
+
+.turnMeta {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  margin-bottom: var(--space-1);
+  flex-wrap: wrap;
+}
+
+.speakerLabel {
+  font-weight: 600;
+  font-size: 0.8125rem;
+  color: var(--ink-primary);
+}
+
+.utterance {
+  margin: 0;
+  color: var(--ink-primary);
+  font-size: 0.9375rem;
+  line-height: 1.55;
+}
+
+.playingNote {
+  margin: 0;
+  color: var(--ink-muted);
+  font-size: 0.8125rem;
+  font-style: italic;
+}
+
+.outcomeSummary {
+  margin: 0;
+  padding: var(--space-3);
+  border-radius: var(--radius-md);
+  background: var(--surface-raised);
+  color: var(--ink-primary);
+  font-size: 0.9375rem;
+  font-weight: 600;
+}
