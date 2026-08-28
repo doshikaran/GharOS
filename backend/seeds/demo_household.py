@@ -438,6 +438,112 @@ def build_demo_household() -> SeedResult:
     # by the loader (see `SeedResult.supersession`), so the seed dataset
     # demonstrates real supersession mechanics end-to-end.
 
+    # -- Phase 11 (ADR-017): thin, honest decision-category OUTCOME history ------
+    #
+    # Three small, genuinely past (COMPLETED, closed-status — never inflates
+    # `load()`) OBLIGATIONs, each `completes_into` one OUTCOME tagged with a
+    # Phase 11 decision-category `attribution_tags` value
+    # (`"school_transition"`, `"staff_transition"`, `"major_purchase"`).
+    # Deliberately **one outcome per tag, not a large fabricated history**:
+    # `MIN_SAMPLE_SIZE_FOR_CALIBRATION = 3` (calibration_stats.py) means any
+    # one of these queried alone is thin history (N=1) — the honest amount
+    # for a real demo household, matching spec §11.5's own guidance to seed
+    # thin history and have the calling agent say so rather than fabricate
+    # confidence. `"relocation"` is deliberately left with zero seeded
+    # outcomes — this household has never relocated, and inventing one
+    # would be exactly the fabrication this phase's own calibration agent
+    # is built to refuse.
+    o8_school_admission = Obligation(
+        id=NodeId("obligation-aarav-school-admission"),
+        provenance=_prov(source_document_id="doc-school-whatsapp", region="whole-document", confidence=0.8),
+        title="Enrol Aarav for the new academic year at Greenfield School",
+        obligation_type="school_administrative",
+        due_at=NOW - timedelta(days=90),
+        must_start_by=None,
+        effort_estimate_minutes=120,
+        status=ObligationStatus.COMPLETED,
+        stated_or_implied=ObligationDerivation.STATED,
+    )
+    o9_maya_onboarding = Obligation(
+        id=NodeId("obligation-maya-onboarding"),
+        provenance=_prov(
+            source_document_id="doc-attendance-register", region="whole-document", confidence=0.8
+        ),
+        title="Onboard Maya as full-time domestic help",
+        obligation_type="household_staffing",
+        due_at=NOW - timedelta(days=60),
+        must_start_by=None,
+        effort_estimate_minutes=60,
+        status=ObligationStatus.COMPLETED,
+        stated_or_implied=ObligationDerivation.STATED,
+    )
+    o10_water_purifier = Obligation(
+        id=NodeId("obligation-buy-water-purifier"),
+        provenance=_prov(
+            # No dedicated purchase document exists in this small demo
+            # dataset for a water purifier specifically — reusing the
+            # household's one general receipt-shaped SOURCE_DOCUMENT as the
+            # provenance anchor, the same liberty this file's own `_edge`
+            # helper already takes for edges lacking a topically exact
+            # source (see its docstring reuse of doc-school-whatsapp
+            # throughout). Lower confidence reflects that looseness
+            # honestly rather than hiding it.
+            source_document_id="doc-freshmart-receipt",
+            region="whole-document",
+            derivation=Derivation.INFERRED,
+            confidence=0.6,
+        ),
+        title="Buy a new water purifier for the kitchen",
+        obligation_type="household_purchase",
+        due_at=NOW - timedelta(days=20),
+        must_start_by=None,
+        effort_estimate_minutes=45,
+        status=ObligationStatus.COMPLETED,
+        stated_or_implied=ObligationDerivation.STATED,
+    )
+    nodes += [o8_school_admission, o9_maya_onboarding, o10_water_purifier]
+
+    outcome_school_transition = Outcome(
+        id=NodeId("outcome-aarav-school-admission"),
+        provenance=_prov(
+            source_document_id="doc-school-whatsapp",
+            region="whole-document",
+            derivation=Derivation.INFERRED,
+            confidence=0.75,
+        ),
+        predicted="Enrolment confirmed within a week, no waitlist",
+        actual="Enrolment confirmed after a 2-week waitlist delay",
+        variance=14.0,  # days late vs. predicted
+        attribution_tags=("school_transition",),
+    )
+    outcome_staff_transition = Outcome(
+        id=NodeId("outcome-maya-onboarding"),
+        provenance=_prov(
+            source_document_id="doc-attendance-register",
+            region="whole-document",
+            derivation=Derivation.INFERRED,
+            confidence=0.75,
+        ),
+        predicted="2-week adjustment period expected before Maya works unsupervised",
+        actual="No adjustment issues; working unsupervised and reliably from day one",
+        variance=-14.0,  # days better than predicted (negative = ahead of expectation)
+        attribution_tags=("staff_transition",),
+    )
+    outcome_major_purchase = Outcome(
+        id=NodeId("outcome-water-purifier"),
+        provenance=_prov(
+            source_document_id="doc-freshmart-receipt",
+            region="whole-document",
+            derivation=Derivation.INFERRED,
+            confidence=0.65,
+        ),
+        predicted="Cost around INR 8,000 including installation",
+        actual="Cost INR 9,500 including installation",
+        variance=1500.0,  # INR over predicted
+        attribution_tags=("major_purchase",),
+    )
+    nodes += [outcome_school_transition, outcome_staff_transition, outcome_major_purchase]
+
     # -- recurring commitment / ledger events -------------------------------------
 
     rc1_maintenance = RecurringCommitment(
@@ -842,6 +948,38 @@ def build_demo_household() -> SeedResult:
         _edge("e-implies-o7-attendance-doc", EdgeType.IMPLIES, d5_attendance_register.id, o7_maya_salary.id),
         _edge("e-owned-o7", EdgeType.OWNED_BY, o7_maya_salary.id, priya.id),
         _edge("e-benefits-o7-maya", EdgeType.BENEFITS, o7_maya_salary.id, maya.id),
+        # ADR-017 (Phase 11): thin, honest decision-category OUTCOME
+        # history — one completed OBLIGATION each, owned by Priya like
+        # every other OBLIGATION in this dataset (real ownership, not
+        # skipped for test convenience — `FirestoreObligationRepository.
+        # unassigned()` would otherwise, correctly, flag these as
+        # unassigned, which they are not), each `completes_into` its
+        # OUTCOME. Adding real `owned_by` edges here also grows
+        # `test_traversals.py::TestNeighbours::test_bidirectional_by_
+        # edge_type`'s exact-set assertion of Priya's owned obligation
+        # titles — updated there alongside this seed change.
+        _edge("e-owned-o8", EdgeType.OWNED_BY, o8_school_admission.id, priya.id),
+        _edge("e-benefits-o8-aarav", EdgeType.BENEFITS, o8_school_admission.id, aarav.id),
+        _edge(
+            "e-completes-o8-outcome",
+            EdgeType.COMPLETES_INTO,
+            o8_school_admission.id,
+            outcome_school_transition.id,
+        ),
+        _edge("e-owned-o9", EdgeType.OWNED_BY, o9_maya_onboarding.id, priya.id),
+        _edge(
+            "e-completes-o9-outcome",
+            EdgeType.COMPLETES_INTO,
+            o9_maya_onboarding.id,
+            outcome_staff_transition.id,
+        ),
+        _edge("e-owned-o10", EdgeType.OWNED_BY, o10_water_purifier.id, priya.id),
+        _edge(
+            "e-completes-o10-outcome",
+            EdgeType.COMPLETES_INTO,
+            o10_water_purifier.id,
+            outcome_major_purchase.id,
+        ),
     ]
 
     return SeedResult(

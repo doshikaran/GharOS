@@ -49,6 +49,12 @@ class TestNeighbours:
             "Collect prescription from pharmacy",
             "Buy weekly groceries",
             "Pay Maya's August salary",
+            # ADR-017 (Phase 11): thin, honest decision-category OUTCOME
+            # history additions to seeds.demo_household, also owned_by
+            # Priya like every other real OBLIGATION in this dataset.
+            "Enrol Aarav for the new academic year at Greenfield School",
+            "Onboard Maya as full-time domestic help",
+            "Buy a new water purifier for the kitchen",
         }
 
     def test_from_the_other_endpoint_returns_the_same_relationship(

@@ -1,0 +1,66 @@
+.view {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.informationalNote {
+  margin: 0;
+  padding: var(--space-3);
+  border-radius: var(--radius-md);
+  border: 1px solid var(--accent-brass);
+  background: var(--accent-brass-muted);
+  color: var(--ink-primary);
+  font-size: 0.875rem;
+  line-height: 1.5;
+}
+
+.section {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.sectionLabel {
+  margin: 0;
+  font-size: 0.8125rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--ink-muted);
+}
+
+.text {
+  margin: 0;
+  color: var(--ink-primary);
+  line-height: 1.5;
+}
+
+.failurePoint {
+  border-left: 3px solid var(--edge-conflict);
+  padding-left: var(--space-3);
+}
+
+.list {
+  margin: 0;
+  padding-left: var(--space-5);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  color: var(--ink-primary);
+}
+
+.outcomeChips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-1);
+}
+
+.outcomeChip {
+  font-family: ui-monospace, monospace;
+  font-size: 0.6875rem;
+  padding: var(--space-1) var(--space-2);
+  border-radius: var(--radius-full);
+  background: var(--royal-soft);
+  color: var(--on-royal);
+}

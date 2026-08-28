@@ -1,0 +1,60 @@
+.explorer {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-6);
+}
+
+.section {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.sectionHeading {
+  margin: 0;
+  font-family: var(--font-display), serif;
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: var(--ink-primary);
+}
+
+.sectionIntro {
+  margin: 0;
+  color: var(--ink-secondary);
+  line-height: 1.5;
+  max-width: 60rem;
+}
+
+.tabList {
+  display: flex;
+  gap: var(--space-2);
+  border-bottom: 1px solid var(--ink-muted);
+}
+
+.tab {
+  padding: var(--space-2) var(--space-4);
+  border: none;
+  background: none;
+  font: inherit;
+  font-weight: 600;
+  color: var(--ink-secondary);
+  cursor: pointer;
+  border-bottom: 2px solid transparent;
+  transition: color var(--motion-fast) var(--motion-ease-standard),
+    border-color var(--motion-fast) var(--motion-ease-standard);
+}
+
+.tab:hover {
+  color: var(--ink-primary);
+}
+
+.tabActive {
+  color: var(--royal-primary);
+  border-bottom-color: var(--royal-primary);
+}
+
+.tabPanel {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-6);
+}

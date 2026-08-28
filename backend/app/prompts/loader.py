@@ -50,6 +50,15 @@ _AGENT_DIR_NAMES: dict[str, str] = {
     "A24_FIRST_STEP": "a24_unblocker_first_step",
     "A25_COUNTERPARTY": "a25_window_scheduling_counterparty",
     "A26": "a26_slippage_analyst",
+    "A35": "a35_decision_framing",
+    "A36_QUERY": "a36_grounding_query",
+    "A36_RELEVANCE": "a36_grounding_relevance",
+    "A37": "a37_path_simulator",
+    "A38": "a38_consistency_critic",
+    "A39": "a39_calibration",
+    "A40": "a40_decision_synthesizer",
+    "A40_FOLLOWUP": "a40_decision_synthesizer_followup",
+    "A40_BACKWARD": "a40_decision_synthesizer_backward",
     "A50": "a50_requirement_clarifier",
     "A52": "a52_provider_ranking",
     "A53": "a53_call_planner",
@@ -81,7 +90,19 @@ free text) — A25's other two signals (person schedule, historical
 likelihood) are deterministic and make no model call at all, so need no
 prompt. Every result these produce still records `AgentId("A24")` /
 `AgentId("A25")` respectively — these manifest keys are prompt-loading
-details only, never agent identity."""
+details only, never agent identity.
+
+`"A36_QUERY"`/`"A36_RELEVANCE"` extend the same convention for A36
+(Grounding/Research, Phase 11): two genuinely distinct reasoning jobs at
+two distinct tiers (spec §15.8 A36: "Flash retrieval, Pro-tier
+relevance") — constructing a real search query is Flash, filtering
+already-retrieved grounding results for relevance to the branch's actual
+topic is Pro-tier. `"A40_FOLLOWUP"`/`"A40_BACKWARD"` extend it for A40
+(Decision Synthesizer, Phase 11): three genuinely distinct jobs at the
+same Pro-tier (assembling the forward-mode brief, answering an
+interrogation-mode follow-up, and backward-mode failure-point synthesis
+— ADR-017 decision 3). Every result these produce still records
+`AgentId("A36")` / `AgentId("A40")` respectively."""
 
 
 class PromptNotFound(RuntimeError):

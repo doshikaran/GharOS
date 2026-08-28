@@ -152,12 +152,35 @@ PRO_TIER_ALLOWLIST: frozenset[AgentId] = frozenset(
         # concrete escalation options grounded in real household data is
         # judgment, not lookup.
         "A26",
+        # spec §15.8 A35: Decision Framing (Phase 11) — detecting a false
+        # binary and surfacing an unconsidered option in a real household
+        # decision is judgment, never a lookup.
+        "A35",
+        # spec §15.8 A36: Grounding/Research (Phase 11) — "Flash retrieval,
+        # Pro-tier relevance." Only relevance filtering/summarising of
+        # already-retrieved Google Search grounding results escalates;
+        # the retrieval call itself is not a judgment call
+        # (`app.reasoning.gemini_client.GeminiClient.generate_grounded_text`,
+        # ADR-017).
+        "A36",
         # spec §21.1 "Branch simulation & critique" — Household Simulator
         # (Phase 11): A37 Path Simulator projects one branch.
         "A37",
         # spec §21.1 "Branch simulation & critique" — Household Simulator
         # (Phase 11): A38 Consistency Critic red-teams a branch.
         "A38",
+        # spec §15.8 A39: Calibration (Phase 11) — "Pro-tier; statistics
+        # delegated to a tool." The mean/variance/thin-history arithmetic
+        # itself is deterministic (`app.solvers.calibration_stats`, ADR-017);
+        # this agent's Pro-tier call only narrates what the tool already
+        # computed, honestly, never inventing precision the tool didn't
+        # produce.
+        "A39",
+        # spec §15.8 A40: Decision Synthesizer (Phase 11) — assembling a
+        # trade-off brief (and, in backward mode, a predicted failure
+        # point) from several agents' real outputs, without ever
+        # collapsing them into a verdict, is real judgment (ADR-017).
+        "A40",
         # spec §21.1 "Council specialist reasoning" — Household Council
         # (Phase 12) domain specialists, each reasoning over a distinct
         # subgraph (Finance/Care/Education/Logistics/Legal: A42/A43/A44/

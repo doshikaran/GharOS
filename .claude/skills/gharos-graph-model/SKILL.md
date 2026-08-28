@@ -25,7 +25,7 @@ The design reference is Graphify's core discipline: **the answer is a path, not 
 | **DECISION** | question, trigger, status, resolution, rationale | **Permanent record. Never pruned, ever.** |
 | **BRANCH** | one option within a Decision, projected impacts, grounding refs, critiques | |
 | **COUNCIL_POSITION** | one agent's stance, reasoning, evidence | What makes the Council auditable rather than mystical |
-| **OUTCOME** | predicted vs actual, variance, attribution tags | Calibration substrate for the Simulator. **Provider-reliability `attribution_tags` are a formal convention since Phase 10 (ADR-016)**: `"no_show"`, `"on_time"`, `"rescheduled"`, `"unresponsive_to_automated_caller"` — queried by walking `booked_with` (OBLIGATION → PROVIDER) then that obligation's `completes_into` OUTCOME, no new field. |
+| **OUTCOME** | predicted vs actual, variance, attribution tags | Calibration substrate for the Simulator. **Provider-reliability `attribution_tags` are a formal convention since Phase 10 (ADR-016)**: `"no_show"`, `"on_time"`, `"rescheduled"`, `"unresponsive_to_automated_caller"` — queried by walking `booked_with` (OBLIGATION → PROVIDER) then that obligation's `completes_into` OUTCOME, no new field. **Decision-category `attribution_tags` are a second formal convention since Phase 11 (ADR-017)**: `"relocation"`, `"school_transition"`, `"staff_transition"`, `"major_purchase"` — queried directly via `outcome_variance(tag)`, independent of which entity `completes_into` the OUTCOME, for Calibration's cross-entity "this household's own variance" (as opposed to `history(entity)`'s single-entity variance). Both vocabularies share one field; they are distinguished by which values are in play, not by a type discriminator. |
 | **SOURCE_DOCUMENT** | raw payload reference, channel, extraction record | Every derived node points back here |
 | **ACTION_RECORD** | what the system did, when, under whose approval | |
 | **APPROVAL_REQUEST** | proposed action, evidence bundle, risk tier, confidence, status | |
@@ -146,6 +146,16 @@ The fourth is the non-obvious, highest-value one: **if the nut-free bread never 
 | `expected_but_absent(constraint)` | Verification, Pattern Miner | Constraints the receipts never confirm |
 | `spend_by_category(window)` | Ledger, Council Finance | Real spend from line items, not estimates |
 | `effort_evidence(person, window)` | Fair Allocator | Who actually did the runs, from receipts and transactions |
+
+### Extensions beyond the original 14 (documented precedent, not silent scope creep)
+
+Each is a genuine capability gap the original 14 don't cover, added by the CTO to `contracts.repositories.GraphReader` when a real consuming phase needed it — never invented speculatively ahead of a consumer.
+
+| Operation | Added | Why the original 14 don't cover it |
+|---|---|---|
+| `dependency_chain(obligation, max_depth)` | Phase 4 (E1 built concrete first; promoted to the Protocol) | `neighbours()` is bidirectional by design; nothing else walks a single directed edge type transitively |
+| `blast_radius_multi(node_ids, depth)` | Phase 11 (ADR-017) | `blast_radius` takes one seed; decision-scale traversal (Simulator, Council) needs several real anchors unioned in one pass |
+| `outcome_variance(tag)` | Phase 11 (ADR-017) | `history(entity)` is single-entity; Calibration needs cross-entity variance by decision category |
 
 ## Firestore layout (see `docs/adr/001-firestore-edge-layout.md` for the full decision record)
 

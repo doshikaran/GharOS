@@ -10,21 +10,30 @@ Two tiers, matching this repo's established convention
    failed SDK call raising `GeminiCallFailed`, an empty response raising
    `GeminiCallFailed`, and that `ModelRouter`'s allowlist/tier errors
    propagate unchanged through `generate_text`.
-2. **One live integration test**, marked `live_gcp` and skipped by
-   default — makes a real Flash-tier call to the real
-   `blissful-trail-506312-t0` project via real ADC credentials. Enable
-   with:
+2. **Live integration tests**, marked `live_gcp` and skipped by
+   default — make real calls to the real `blissful-trail-506312-t0`
+   project via real ADC credentials. Enable with:
 
        GHAROS_RUN_LIVE_GCP_TESTS=1 GCP_PROJECT_ID=blissful-trail-506312-t0 \\
            uv run pytest tests/test_gemini_client.py -m live_gcp
 
    Off by default so the rest of the suite never needs live credentials
    or makes a real network call.
+
+`TestGenerateGroundedText*` (ADR-017, Phase 11 A36) covers
+`generate_grounded_text`/`GroundedCitation`/`GroundedGeminiCallResult`:
+unit tests against a fake `Candidate`/`GroundingMetadata` response tree
+for the honest-empty-citations path, plus one live test
+(`test_real_grounded_call_against_live_search`) proving a real
+Google-Search-grounded call against a genuinely time-sensitive query
+returns at least one citation with a real, well-formed URI — run
+personally by the CTO as part of Gate 11 verification (ADR-017).
 """
 
 from __future__ import annotations
 
 import os
+from datetime import UTC, datetime
 from typing import Any, cast
 
 import pytest
@@ -32,9 +41,15 @@ from contracts.agents import ModelTier
 from contracts.graph_types import AgentId
 from google import genai
 from google.genai import errors as genai_errors
+from google.genai import types
 
 from app.reasoning.errors import GeminiCallFailed, ProTierNotAllowlisted
-from app.reasoning.gemini_client import GeminiCallResult, GeminiClient
+from app.reasoning.gemini_client import (
+    GeminiCallResult,
+    GeminiClient,
+    GroundedCitation,
+    GroundedGeminiCallResult,
+)
 from app.reasoning.model_router import ModelRouter
 from app.settings import Settings
 
@@ -45,8 +60,9 @@ _MODEL_PRO = "gemini-2.5-pro"
 
 
 class _FakeResponse:
-    def __init__(self, text: str | None) -> None:
+    def __init__(self, text: str | None, candidates: list[Any] | None = None) -> None:
         self.text = text
+        self.candidates = candidates
 
 
 class _FakeModels:
@@ -54,16 +70,23 @@ class _FakeModels:
     receives so a test can assert the resolved model name was actually
     used, without any real network access."""
 
-    def __init__(self, *, text: str | None = None, error: Exception | None = None) -> None:
+    def __init__(
+        self,
+        *,
+        text: str | None = None,
+        error: Exception | None = None,
+        candidates: list[Any] | None = None,
+    ) -> None:
         self._text = text
         self._error = error
+        self._candidates = candidates
         self.calls: list[dict[str, Any]] = []
 
     def generate_content(self, *, model: str, contents: str, config: object = None) -> _FakeResponse:
         self.calls.append({"model": model, "contents": contents, "config": config})
         if self._error is not None:
             raise self._error
-        return _FakeResponse(self._text)
+        return _FakeResponse(self._text, self._candidates)
 
 
 class _FakeGenaiClient:
@@ -180,6 +203,141 @@ class TestElevatedThinkingBudget:
         assert config.response_mime_type == "application/json"
 
 
+class TestGenerateGroundedText:
+    """`GeminiClient.generate_grounded_text` (ADR-017, Phase 11 A36) —
+    unit tests against a fake SDK response tree. Confirmed shape (see
+    `app.reasoning.gemini_client._extract_grounding_citations`'s
+    docstring): `response.candidates[0].grounding_metadata.
+    grounding_chunks[i].web.{uri,title,domain}` — the fakes below mirror
+    that exact real shape rather than a guessed one."""
+
+    def test_no_response_mime_type_ever_set_on_grounded_call(self) -> None:
+        """The mutually-exclusive-with-Search-tool constraint (confirmed
+        against a real live call — see the module and method docstrings)
+        means this call must never attach `response_mime_type`."""
+        fake_models = _FakeModels(text="grounded answer", candidates=None)
+        router = _router_with_fake_client(fake_models)
+        client = GeminiClient(router=router)
+
+        client.generate_grounded_text(agent_id=AgentId("A36"), tier=ModelTier.FLASH, prompt="ping")
+
+        config = fake_models.calls[0]["config"]
+        assert config is not None
+        assert config.response_mime_type is None
+        assert config.tools is not None and len(config.tools) == 1
+        assert config.tools[0].google_search is not None
+
+    def test_grounding_triggered_parses_real_shape_into_citations(self) -> None:
+        web_chunk = types.GroundingChunk(
+            web=types.GroundingChunkWeb(uri="https://example.com/a", title="Example A", domain="example.com")
+        )
+        candidate = types.Candidate(
+            grounding_metadata=types.GroundingMetadata(grounding_chunks=[web_chunk])
+        )
+        fake_models = _FakeModels(text="grounded answer", candidates=[candidate])
+        router = _router_with_fake_client(fake_models)
+        client = GeminiClient(router=router)
+
+        result = client.generate_grounded_text(agent_id=AgentId("A36"), tier=ModelTier.FLASH, prompt="ping")
+
+        assert isinstance(result, GroundedGeminiCallResult)
+        assert result.text == "grounded answer"
+        assert len(result.citations) == 1
+        citation = result.citations[0]
+        assert isinstance(citation, GroundedCitation)
+        assert citation.uri == "https://example.com/a"
+        assert citation.title == "Example A"
+        # retrieved_at is real UTC "now" at call time, not derived from the
+        # (fake) response at all.
+        assert citation.retrieved_at.tzinfo is not None
+        assert (datetime.now(UTC) - citation.retrieved_at).total_seconds() < 5
+
+    def test_grounding_chunk_title_falls_back_to_domain_then_uri(self) -> None:
+        no_title_chunk = types.GroundingChunk(
+            web=types.GroundingChunkWeb(uri="https://example.com/b", title=None, domain="example.com")
+        )
+        no_title_or_domain_chunk = types.GroundingChunk(
+            web=types.GroundingChunkWeb(uri="https://example.com/c", title=None, domain=None)
+        )
+        candidate = types.Candidate(
+            grounding_metadata=types.GroundingMetadata(
+                grounding_chunks=[no_title_chunk, no_title_or_domain_chunk]
+            )
+        )
+        fake_models = _FakeModels(text="grounded answer", candidates=[candidate])
+        router = _router_with_fake_client(fake_models)
+        client = GeminiClient(router=router)
+
+        result = client.generate_grounded_text(agent_id=AgentId("A36"), tier=ModelTier.FLASH, prompt="ping")
+
+        assert result.citations[0].title == "example.com"
+        assert result.citations[1].title == "https://example.com/c"
+
+    def test_grounding_not_triggered_returns_empty_citations_never_fabricated(self) -> None:
+        """Honest empty case (ADR-017): no `grounding_metadata` at all —
+        a real, expected outcome, never backfilled with an invented
+        citation."""
+        candidate = types.Candidate(grounding_metadata=None)
+        fake_models = _FakeModels(text="a plain, ungrounded answer", candidates=[candidate])
+        router = _router_with_fake_client(fake_models)
+        client = GeminiClient(router=router)
+
+        result = client.generate_grounded_text(agent_id=AgentId("A36"), tier=ModelTier.FLASH, prompt="ping")
+
+        assert result.citations == ()
+        assert result.text == "a plain, ungrounded answer"
+
+    def test_no_candidates_at_all_returns_empty_citations(self) -> None:
+        fake_models = _FakeModels(text="a plain, ungrounded answer", candidates=None)
+        router = _router_with_fake_client(fake_models)
+        client = GeminiClient(router=router)
+
+        result = client.generate_grounded_text(agent_id=AgentId("A36"), tier=ModelTier.FLASH, prompt="ping")
+
+        assert result.citations == ()
+
+    def test_chunk_with_no_web_or_blank_uri_contributes_no_citation(self) -> None:
+        no_web_chunk = types.GroundingChunk(web=None)
+        blank_uri_chunk = types.GroundingChunk(web=types.GroundingChunkWeb(uri="", title="Blank"))
+        candidate = types.Candidate(
+            grounding_metadata=types.GroundingMetadata(grounding_chunks=[no_web_chunk, blank_uri_chunk])
+        )
+        fake_models = _FakeModels(text="answer", candidates=[candidate])
+        router = _router_with_fake_client(fake_models)
+        client = GeminiClient(router=router)
+
+        result = client.generate_grounded_text(agent_id=AgentId("A36"), tier=ModelTier.FLASH, prompt="ping")
+
+        assert result.citations == ()
+
+    def test_api_error_raises_gemini_call_failed(self) -> None:
+        api_error = genai_errors.APIError(500, {"error": {"message": "quota exceeded"}})
+        fake_models = _FakeModels(error=api_error)
+        router = _router_with_fake_client(fake_models)
+        client = GeminiClient(router=router)
+
+        with pytest.raises(GeminiCallFailed):
+            client.generate_grounded_text(agent_id=AgentId("A36"), tier=ModelTier.FLASH, prompt="ping")
+
+    def test_empty_response_raises_gemini_call_failed(self) -> None:
+        fake_models = _FakeModels(text=None)
+        router = _router_with_fake_client(fake_models)
+        client = GeminiClient(router=router)
+
+        with pytest.raises(GeminiCallFailed):
+            client.generate_grounded_text(agent_id=AgentId("A36"), tier=ModelTier.FLASH, prompt="ping")
+
+    def test_pro_tier_from_non_allowlisted_agent_propagates_allowlist_error(self) -> None:
+        fake_models = _FakeModels(text="should never be reached")
+        router = _router_with_fake_client(fake_models)
+        client = GeminiClient(router=router)
+
+        with pytest.raises(ProTierNotAllowlisted):
+            client.generate_grounded_text(agent_id=AgentId("A99"), tier=ModelTier.PRO, prompt="ping")
+
+        assert fake_models.calls == []
+
+
 _LIVE_TESTS_ENABLED = os.environ.get("GHAROS_RUN_LIVE_GCP_TESTS") == "1"
 _LIVE_PROJECT_ID = os.environ.get("GCP_PROJECT_ID", "")
 
@@ -213,3 +371,44 @@ def test_real_flash_tier_call_against_live_vertex_ai() -> None:
 
     assert result.text  # non-empty: a real model response came back
     assert result.model_name == settings.gemini_model_flash
+
+
+@pytest.mark.live_gcp
+@pytest.mark.skipif(
+    not _LIVE_TESTS_ENABLED or not _LIVE_PROJECT_ID,
+    reason=(
+        "live GCP test — set GHAROS_RUN_LIVE_GCP_TESTS=1 and GCP_PROJECT_ID "
+        "to run a real Google-Search-grounded call against Vertex AI"
+    ),
+)
+def test_real_grounded_call_against_live_search() -> None:
+    """ADR-017 / Gate 11's own load-bearing live proof, run personally by
+    the CTO as part of Gate 11 verification: a real `generate_grounded_text`
+    call, real ADC credentials, a real network call, against a genuinely
+    time-sensitive query that should trigger real Google Search grounding
+    — proves at least one real citation with a real, well-formed URI comes
+    back, not a mocked or invented one."""
+    settings = Settings(gcp_project_id=_LIVE_PROJECT_ID)
+    router = ModelRouter(
+        project_id=settings.gcp_project_id,
+        location=settings.vertex_ai_location,
+        model_flash=settings.gemini_model_flash,
+        model_pro=settings.gemini_model_pro,
+    )
+    client = GeminiClient(router=router)
+
+    result = client.generate_grounded_text(
+        agent_id=AgentId("A36"),
+        tier=ModelTier.FLASH,
+        prompt=(
+            "What is today's date, and what is one real current news "
+            "headline from India today? Cite your source."
+        ),
+    )
+
+    assert result.text  # a real model response came back
+    assert len(result.citations) >= 1, "expected real Search grounding for a time-sensitive query"
+    for citation in result.citations:
+        assert citation.uri.startswith("http"), f"citation URI is not well-formed: {citation.uri!r}"
+        assert citation.title
+        assert citation.retrieved_at.tzinfo is not None

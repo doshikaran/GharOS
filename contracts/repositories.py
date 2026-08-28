@@ -56,6 +56,16 @@ class GraphReader(Protocol):
         Simulator and Council."""
         ...
 
+    def blast_radius_multi(self, node_ids: tuple[NodeId, ...], depth: int) -> tuple[object, ...]:
+        """A multi-seed `blast_radius` — "blast radius at decision scale"
+        (PHASES.md Phase 11, E1 work item; ADR-017). A node is included iff
+        its distance from *any* seed in `node_ids` is within `depth` —
+        correctness-equivalent to calling `blast_radius` once per seed and
+        unioning the results, but one traversal pass. Added Phase 11
+        (ADR-017), same status as `dependency_chain`: a justified addition
+        beyond spec §5.7's original 14 enumerated operations."""
+        ...
+
     def conflicts(self, scope: str) -> tuple[Edge, ...]:
         """spec §5.7 — all unresolved conflicts_with/violates edges in scope."""
         ...
@@ -82,6 +92,17 @@ class GraphReader(Protocol):
 
     def history(self, entity_id: NodeId) -> tuple[Outcome, ...]:
         """spec §5.7 — all OUTCOMEs for a given entity, used by Calibration."""
+        ...
+
+    def outcome_variance(self, tag: str) -> tuple[Outcome, ...]:
+        """All OUTCOMEs whose `attribution_tags` contains `tag`, independent
+        of which entity `completes_into` them — cross-entity variance by
+        category (e.g. every past relocation), for Calibration's "this
+        household's own variance," not one entity's history. Added Phase 11
+        (ADR-017), same status as `dependency_chain`: a justified addition
+        beyond spec §5.7's original 14 enumerated operations. `tag` is a
+        value from the `Outcome.attribution_tags` vocabulary (see
+        `gharos-graph-model`), not free text."""
         ...
 
     def decisions_touching(self, entity_id: NodeId) -> tuple[Decision, ...]:

@@ -106,6 +106,9 @@ class _FakeGraphReader:
     def blast_radius(self, node_id: NodeId, depth: int) -> tuple[object, ...]:
         raise NotImplementedError
 
+    def blast_radius_multi(self, node_ids: tuple[NodeId, ...], depth: int) -> tuple[object, ...]:
+        raise NotImplementedError
+
     def conflicts(self, scope: str) -> tuple[Edge, ...]:
         raise NotImplementedError
 
@@ -119,6 +122,9 @@ class _FakeGraphReader:
         raise NotImplementedError
 
     def history(self, entity_id: NodeId) -> tuple[Outcome, ...]:
+        raise NotImplementedError
+
+    def outcome_variance(self, tag: str) -> tuple[Outcome, ...]:
         raise NotImplementedError
 
     def decisions_touching(self, entity_id: NodeId) -> tuple[Decision, ...]:

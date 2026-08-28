@@ -1,0 +1,48 @@
+/**
+ * Documented collapse breakpoint: 960px — matches the breakpoint
+ * `components/graph/GraphExplorer.module.css` already uses for its own
+ * sidebar-to-stacked collapse, kept consistent rather than inventing a
+ * second number.
+ */
+
+.shell {
+  display: flex;
+  height: 100vh;
+  overflow: hidden;
+}
+
+.content {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-width: 0;
+  height: 100%;
+}
+
+.main {
+  flex: 1;
+  overflow-y: auto;
+  background: var(--surface-base);
+}
+
+.backdrop {
+  display: none;
+  position: fixed;
+  inset: 0;
+  z-index: 30;
+  border: none;
+  padding: 0;
+  margin: 0;
+  background: rgb(0 0 0 / 45%);
+  cursor: default;
+}
+
+@media (max-width: 960px) {
+  .shell {
+    position: relative;
+  }
+
+  .shell[data-collapsed="false"] .backdrop {
+    display: block;
+  }
+}

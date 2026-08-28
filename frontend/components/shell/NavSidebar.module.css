@@ -1,0 +1,174 @@
+.sidebar {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  width: 18rem;
+  flex-shrink: 0;
+  background: var(--surface-raised);
+  border-right: 1px solid var(--royal-soft);
+  padding: var(--space-4) var(--space-3);
+  gap: var(--space-5);
+  overflow-y: auto;
+  transition: width var(--motion-base) var(--motion-ease-standard);
+}
+
+.wordmark {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-2);
+  text-decoration: none;
+  color: var(--ink-primary);
+  font-family: var(--font-display), serif;
+  font-weight: 700;
+  font-size: 1.125rem;
+}
+
+.wordmarkMark {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.75rem;
+  height: 1.75rem;
+  border-radius: var(--radius-md);
+  background: var(--royal-primary);
+  color: var(--on-royal);
+  flex-shrink: 0;
+}
+
+.section {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+.sectionTitle {
+  padding: 0 var(--space-2);
+  font-size: 0.6875rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--ink-muted);
+}
+
+.list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+.link {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-2) var(--space-2);
+  border-radius: var(--radius-md);
+  color: var(--ink-secondary);
+  text-decoration: none;
+  font-size: 0.9375rem;
+  white-space: nowrap;
+}
+
+.link:hover {
+  background: var(--royal-soft);
+  color: var(--ink-primary);
+}
+
+.linkActive {
+  background: var(--royal-primary);
+  color: var(--on-royal);
+}
+
+.linkActive:hover {
+  background: var(--royal-primary);
+  color: var(--on-royal);
+}
+
+.icon {
+  flex-shrink: 0;
+}
+
+.label {
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.badge {
+  margin-left: auto;
+}
+
+.footer {
+  margin-top: auto;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  padding-top: var(--space-4);
+  border-top: 1px solid var(--royal-soft);
+}
+
+.designSystemLink {
+  padding: 0 var(--space-2);
+  font-size: 0.75rem;
+  color: var(--ink-muted);
+  text-decoration: none;
+}
+
+.designSystemLink:hover {
+  color: var(--ink-secondary);
+  text-decoration: underline;
+}
+
+/* --------------------------------------------------------------------- *
+ * Icon-only rail — wide viewports (see AppShell.module.css for the
+ * narrow-viewport meaning of the same `data-collapsed` flag).
+ * -------------------------------------------------------------------- */
+.sidebar[data-collapsed="true"] {
+  width: 4.25rem;
+}
+
+.sidebar[data-collapsed="true"] .wordmarkText,
+.sidebar[data-collapsed="true"] .sectionTitle,
+.sidebar[data-collapsed="true"] .label,
+.sidebar[data-collapsed="true"] .designSystemLink {
+  display: none;
+}
+
+.sidebar[data-collapsed="true"] .link {
+  justify-content: center;
+}
+
+.sidebar[data-collapsed="true"] .badge {
+  position: absolute;
+  top: 0.125rem;
+  right: 0.125rem;
+  margin-left: 0;
+}
+
+/* --------------------------------------------------------------------- *
+ * Overlay drawer — narrow viewports, documented 960px breakpoint (matches
+ * GraphExplorer's own collapse breakpoint). The same `data-collapsed`
+ * flag now means "drawer hidden" (true, off-canvas) vs. "drawer open"
+ * (false, full nav shown as an overlay) rather than "icon rail" — the
+ * icon-rail width rule above is harmless here because the drawer is
+ * fully off-canvas via `transform` regardless of its own width.
+ * -------------------------------------------------------------------- */
+@media (max-width: 960px) {
+  .sidebar {
+    position: fixed;
+    inset: 0 auto 0 0;
+    z-index: 40;
+    transform: translateX(-100%);
+    box-shadow: var(--elevation-3);
+    transition: transform var(--motion-base) var(--motion-ease-standard);
+  }
+
+  .sidebar[data-collapsed="false"] {
+    /* Higher specificity than the bare `.sidebar` translateX above, so
+       this wins while the drawer is open. */
+    transform: translateX(0);
+  }
+}

@@ -19,6 +19,7 @@ points share the same allowlist enforcement.
 
 from __future__ import annotations
 
+from collections.abc import Sequence
 from dataclasses import dataclass
 from datetime import UTC, datetime
 from typing import Any, cast
@@ -58,6 +59,45 @@ class GeminiCallResult:
     tier: ModelTier
     model_name: str
     text: str
+    produced_at: datetime
+
+
+@dataclass(frozen=True, slots=True)
+class GroundedCitation:
+    """One real external source Vertex AI's Google Search grounding tool
+    actually cited for a `generate_grounded_text` call (ADR-017, Phase 11
+    Household Simulator A36 Grounding/Research). Parsed from the real
+    SDK response shape (`google.genai.types.GroundingChunk.web`) —
+    confirmed against a real live call (see
+    `test_gemini_client.py::test_real_grounded_call_against_live_search`),
+    never invented when grounding did not trigger for a prompt.
+
+    `retrieved_at` is `datetime.now(UTC)` at call time — real, honest
+    freshness of *this lookup*, regardless of how old the underlying
+    indexed page actually is. A36 states both facts separately and never
+    conflates "we looked this up just now" with "this information is
+    current" (ADR-017 decision 2)."""
+
+    title: str
+    uri: str
+    retrieved_at: datetime
+
+
+@dataclass(frozen=True, slots=True)
+class GroundedGeminiCallResult:
+    """A completed, successful Google-Search-grounded Gemini call. Like
+    `GeminiCallResult`, never constructed for a failed or empty response.
+
+    `citations` is empty exactly when Google Search grounding did not
+    trigger for this prompt — a real, expected outcome (grounding is not
+    guaranteed for every prompt), never backfilled with a fabricated
+    citation (ADR-017: "honest fallback, never fabricated")."""
+
+    agent_id: AgentId
+    tier: ModelTier
+    model_name: str
+    text: str
+    citations: tuple[GroundedCitation, ...]
     produced_at: datetime
 
 
@@ -185,6 +225,108 @@ class GeminiClient:
             agent_id=agent_id, tier=tier, contents=parts, response_mime_type=response_mime_type
         )
 
+    def generate_grounded_text(
+        self, *, agent_id: AgentId, tier: ModelTier, prompt: str
+    ) -> GroundedGeminiCallResult:
+        """Makes one live, Google-Search-grounded text-generation call to
+        Vertex AI Gemini (ADR-017, Phase 11 A36 Grounding/Research) —
+        attaches `types.Tool(google_search=types.GoogleSearch())` to the
+        call's `GenerateContentConfig`, letting the model issue real web
+        searches and ground its answer in real, citable results.
+
+        **`response_mime_type` is never set on this call.** Confirmed
+        directly against a real live Vertex AI call (not assumed from
+        memory, per this project's own live-proof discipline — Phase 2's
+        stack proof, ADR-010's live Pro-tier call): attaching
+        `response_mime_type="application/json"` alongside the Search
+        tool raises a real `400 INVALID_ARGUMENT` — "Unable to submit
+        request because controlled generation is not supported with
+        Search tool." Tool-use and strict JSON mode are genuinely
+        mutually exclusive on the current `google-genai`/Gemini API; a
+        grounded call's response is always free text, parsed by whatever
+        this method's caller does with `GroundedGeminiCallResult.text`
+        (A36 keeps its own output — `GroundingResult` — to a neutral
+        prose summary rather than demanding JSON back from this call).
+
+        Args:
+            agent_id: the calling agent's id — checked against
+                `model_router.PRO_TIER_ALLOWLIST` when `tier` is
+                `ModelTier.PRO`, exactly as `generate_text`.
+            tier: `ModelTier.FLASH` or `ModelTier.PRO`.
+            prompt: the raw text prompt to send — should ask a genuinely
+                researchable, real-world question; grounding does not
+                trigger for every prompt (see `citations`' own honesty
+                contract below).
+
+        Returns:
+            A `GroundedGeminiCallResult`. `citations` is empty when
+            Google Search grounding did not trigger for this prompt (a
+            real, expected outcome) — never fabricated. Every non-empty
+            `citations` entry is parsed from the real
+            `response.candidates[0].grounding_metadata.grounding_chunks`
+            list (confirmed shape, not guessed): each chunk's `web.uri`
+            and `web.title` (falling back to `web.domain`, then the URI
+            itself, if `title` is unset — the real SDK response has
+            returned the bare domain as `title` for some queries, never
+            observed unset entirely, but this module does not assume
+            either field is always populated).
+
+        Raises:
+            ProTierNotAllowlisted: `tier` is `ModelTier.PRO` and
+                `agent_id` is not on the allowlist (raised by
+                `ModelRouter.route()`, propagates unchanged).
+            InvalidRoutingTier: `tier` is `ModelTier.DETERMINISTIC`.
+            GeminiCallFailed: the underlying Vertex AI call raised, or
+                returned a response with no text content.
+        """
+        routed = self._router.route(agent_id=agent_id, requested_tier=tier)
+        config = types.GenerateContentConfig(tools=[types.Tool(google_search=types.GoogleSearch())])
+
+        try:
+            response = routed.client.models.generate_content(
+                model=routed.model_name, contents=prompt, config=config
+            )
+        except genai_errors.APIError as exc:
+            logger.warning(
+                "reasoning.gemini_client.grounded_call_failed",
+                agent_id=agent_id,
+                model_name=routed.model_name,
+                tier=tier.value,
+                reason=str(exc),
+            )
+            raise GeminiCallFailed(agent_id=agent_id, model_name=routed.model_name, reason=str(exc)) from exc
+
+        text = response.text
+        if not text:
+            logger.warning(
+                "reasoning.gemini_client.grounded_empty_response",
+                agent_id=agent_id,
+                model_name=routed.model_name,
+                tier=tier.value,
+            )
+            raise GeminiCallFailed(
+                agent_id=agent_id,
+                model_name=routed.model_name,
+                reason="Vertex AI returned no text content (empty or non-text response)",
+            )
+
+        citations = _extract_grounding_citations(response.candidates)
+        logger.info(
+            "reasoning.gemini_client.grounded_call_succeeded",
+            agent_id=agent_id,
+            model_name=routed.model_name,
+            tier=tier.value,
+            citation_count=len(citations),
+        )
+        return GroundedGeminiCallResult(
+            agent_id=agent_id,
+            tier=tier,
+            model_name=routed.model_name,
+            text=text,
+            citations=citations,
+            produced_at=datetime.now(UTC),
+        )
+
     def _invoke(
         self,
         *,
@@ -277,3 +419,48 @@ class GeminiClient:
             text=text,
             produced_at=datetime.now(UTC),
         )
+
+
+def _extract_grounding_citations(
+    candidates: Sequence[types.Candidate] | None,
+) -> tuple[GroundedCitation, ...]:
+    """Parses `response.candidates[0].grounding_metadata.grounding_chunks`
+    into `GroundedCitation`s — the real SDK shape, confirmed against a
+    real live Vertex AI Google Search grounding call (not assumed from
+    memory): `types.Candidate.grounding_metadata: types.GroundingMetadata
+    | None`, `.grounding_chunks: list[types.GroundingChunk] | None`, each
+    chunk's `.web: types.GroundingChunkWeb | None` carrying `.uri`,
+    `.title`, and `.domain`.
+
+    A module-level function (not a method) — pure, and independently unit-
+    testable against a fake `Candidate`/`GroundingMetadata` object without
+    constructing a whole fake SDK client.
+
+    Returns:
+        Empty tuple whenever `candidates` is falsy, the first candidate
+        has no `grounding_metadata`, or `grounding_metadata.grounding_chunks`
+        is empty — Google Search grounding genuinely does not trigger for
+        every prompt, and this is never backfilled with an invented
+        citation (ADR-017). Otherwise one `GroundedCitation` per chunk
+        that has a real `web.uri` (a chunk with no `web`, or a `web` with
+        no `uri`, contributes nothing — never a citation with a blank or
+        guessed URI).
+    """
+    if not candidates:
+        return ()
+    grounding_metadata = candidates[0].grounding_metadata
+    if grounding_metadata is None:
+        return ()
+    chunks = grounding_metadata.grounding_chunks
+    if not chunks:
+        return ()
+
+    retrieved_at = datetime.now(UTC)
+    citations: list[GroundedCitation] = []
+    for chunk in chunks:
+        web = chunk.web
+        if web is None or not web.uri:
+            continue
+        title = web.title or web.domain or web.uri
+        citations.append(GroundedCitation(title=title, uri=web.uri, retrieved_at=retrieved_at))
+    return tuple(citations)

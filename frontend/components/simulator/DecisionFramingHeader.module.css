@@ -1,0 +1,54 @@
+.header {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  padding: var(--space-5);
+  background: var(--surface-raised);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--elevation-1);
+}
+
+.question {
+  margin: 0;
+  font-family: var(--font-display), serif;
+  font-size: 1.375rem;
+  font-weight: 600;
+  color: var(--ink-primary);
+}
+
+.trigger {
+  margin: 0;
+  color: var(--ink-secondary);
+  line-height: 1.5;
+}
+
+.badgeRow {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  flex-wrap: wrap;
+}
+
+.unconsidered {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  padding: var(--space-4);
+  border-radius: var(--radius-md);
+  background: var(--accent-brass-muted);
+}
+
+.unconsideredLabel {
+  margin: 0;
+  font-weight: 600;
+  color: var(--ink-primary);
+}
+
+.unconsideredList {
+  margin: 0;
+  padding-left: var(--space-5);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  color: var(--ink-primary);
+}

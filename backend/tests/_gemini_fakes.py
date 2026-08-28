@@ -7,6 +7,16 @@ instead of redefining `_FakeModels`/`_FakeGenaiClient` per file (mirrors
 the pattern `test_gemini_client.py` established, generalised to support
 queued multi-call sequences for A3/A3b/A5's two-pass tier-escalation
 designs).
+
+Extended Phase 11 (A36 Grounding/Research, `test_grounding_research_agent.py`
+/ `test_simulator_pipeline.py`) with optional per-call `candidates` support,
+so a call to `GeminiClient.generate_grounded_text` made through this same
+fake can carry a real `google.genai.types.Candidate` tree (or none, for the
+honest empty-citations path) — mirrors `test_gemini_client.py`'s own local
+`_FakeResponse`/`_FakeModels`'s `candidates` field, generalised here to be
+addressable per call index rather than fixed for the whole fake, since a
+Simulator pipeline run makes several `generate_content` calls through one
+shared queue and only specific calls among them are grounded ones.
 """
 
 from __future__ import annotations
@@ -24,8 +34,9 @@ _MODEL_PRO = "gemini-2.5-pro"
 
 
 class FakeResponse:
-    def __init__(self, text: str | None) -> None:
+    def __init__(self, text: str | None, candidates: list[Any] | None = None) -> None:
         self.text = text
+        self.candidates = candidates
 
 
 class FakeModels:
@@ -33,13 +44,26 @@ class FakeModels:
     in order across successive `generate_content` calls (falling back to
     repeating the last queued text once exhausted) — supports both
     single-call agents (A2, A4, A6) and two-pass escalating agents (A3,
-    A3b, A5) from the same fake."""
+    A3b, A5) from the same fake.
 
-    def __init__(self, *, texts: list[str], error: Exception | None = None) -> None:
+    `candidates_by_index` (Phase 11 addition) optionally attaches a real
+    `google.genai.types.Candidate` list to one specific call, by its
+    zero-based index in call order — every other call gets `candidates=None`
+    (the honest "grounding did not trigger"/"not a grounded call at all"
+    default). Omitted entirely, this behaves exactly as before Phase 11."""
+
+    def __init__(
+        self,
+        *,
+        texts: list[str],
+        error: Exception | None = None,
+        candidates_by_index: dict[int, list[Any]] | None = None,
+    ) -> None:
         if not texts:
             raise ValueError("FakeModels requires at least one queued response text")
         self._texts = texts
         self._error = error
+        self._candidates_by_index = candidates_by_index or {}
         self.calls: list[dict[str, Any]] = []
 
     def generate_content(self, *, model: str, contents: object, config: object = None) -> FakeResponse:
@@ -48,7 +72,7 @@ class FakeModels:
         call_index = len(self.calls)
         self.calls.append({"model": model, "contents": contents, "config": config})
         text_index = min(call_index, len(self._texts) - 1)
-        return FakeResponse(self._texts[text_index])
+        return FakeResponse(self._texts[text_index], self._candidates_by_index.get(call_index))
 
 
 class FakeGenaiClient:

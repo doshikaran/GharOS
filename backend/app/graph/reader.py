@@ -162,6 +162,104 @@ class FirestoreGraphReader:
             frontier = next_frontier
         return tuple(result)
 
+    # -- blast_radius_multi (Phase 11 addition, ADR-017, NOT one of the 14 spec §5.7 ops) --
+
+    def blast_radius_multi(self, node_ids: tuple[NodeId, ...], depth: int) -> tuple[object, ...]:
+        """ADR-017 — "blast radius at decision scale" (PHASES.md Phase 11,
+        E1 work item): the Path Simulator (A37) seeds this from every real
+        anchor entity a decision touches (home, school, staff `Person`
+        nodes, recurring `Obligation`s), not one node.
+
+        **Implementation choice, documented per this method's own brief:**
+        this is a **separate, honest, per-seed-union implementation**
+        (`blast_radius(seed, depth)` called once per distinct seed,
+        results unioned and deduplicated by node id) — **not** a single
+        shared-frontier multi-source BFS pass, despite the Protocol
+        docstring's "one traversal pass" framing being the aspiration.
+
+        A single-pass multi-source BFS was tried first and rejected: the
+        reference definition ("correctness-equivalent to calling
+        `blast_radius` once per seed and unioning") has a real subtlety a
+        naive shared-frontier BFS gets wrong — `blast_radius(A, depth)`
+        excludes *only* `A` from its own result, but a *different* seed
+        `B` genuinely reachable within `depth` hops of `A` is an entirely
+        ordinary node from `A`'s BFS's point of view and belongs in `A`'s
+        contribution to the union. A standard multi-source BFS that
+        pre-marks every seed "visited" before it starts (the usual
+        efficiency habit, needed to stop the search from re-expanding a
+        source node) silently drops such mutually-reachable seeds from
+        the result — `test_graph_reader_simulator_ops.py`'s literal
+        union-equivalence test (parametrised across seed/depth
+        combinations, comparing node-id sets, not spot-checking) caught
+        exactly this on real seeded data. The reverse fix (never
+        pre-marking seeds visited) then let a *single* seed's own cyclic
+        paths rediscover itself in later rounds instead, which
+        `blast_radius` itself never does. Making one shared BFS honour
+        both "a seed can be found via another seed" and "a seed can never
+        find only itself" needs per-source-seed visited bookkeeping inside
+        one pass — real complexity for a method the brief itself says is
+        allowed to be "a separate correct implementation proven equivalent
+        by test" instead. Given a demo-scale graph (ADR-001: "hundreds of
+        nodes"), running `blast_radius` a handful of times (one per real
+        anchor entity a decision touches — typically single digits) is not
+        a performance concern; correctness-by-construction against
+        already-Gate-1-proven code is worth more here than the constant-
+        factor saving of a hand-rolled multi-source variant.
+
+        Semantics mirror `blast_radius` exactly, generalised to multiple
+        seeds: a node is included iff *some* seed's own `blast_radius`
+        call includes it — i.e. iff its distance from that seed is within
+        `depth`, per this method's Protocol docstring. A seed is excluded
+        from its *own* contribution (matching `blast_radius`'s own
+        convention) but **can** appear in the result via a different
+        seed's contribution, if genuinely reachable from it within
+        `depth`. Duplicate seed ids are naturally deduplicated (calling
+        `blast_radius` twice on the same id contributes the same set
+        twice); unknown seed ids are tolerated (`blast_radius` itself
+        already returns `()` for a `node_id` with no edges/no node).
+        """
+        if depth < 0 or not node_ids:
+            return ()
+
+        seen_ids: set[NodeId] = set()
+        result: list[object] = []
+        for seed in dict.fromkeys(node_ids):  # de-dup, preserve first-seen order
+            for node in self.blast_radius(seed, depth):
+                node_id = node.id  # type: ignore[attr-defined]
+                if node_id not in seen_ids:
+                    seen_ids.add(node_id)
+                    result.append(node)
+        return tuple(result)
+
+    # -- outcome_variance (Phase 11 addition, ADR-017, NOT one of the 14 spec §5.7 ops) --
+
+    def outcome_variance(self, tag: str) -> tuple[Outcome, ...]:
+        """ADR-017 — cross-entity OUTCOME variance by decision category:
+        every current `Outcome` node whose `attribution_tags` contains
+        `tag`, independent of which entity `completes_into` it (unlike
+        `history(entity)`, which is single-entity). Feeds Calibration's
+        (A39) "this household's own variance" for a category such as
+        `"relocation"` or `"school_transition"` (see `gharos-graph-model`
+        for the full tag vocabulary — both the Phase 10 provider-
+        reliability tags and the Phase 11 decision-category tags share
+        this one field).
+
+        Full-graph scan by design (no entity anchor to restrict from) —
+        same performance envelope as `unexplained`/`unverified`'s existing
+        full-scope scans, so this method matches their approach: it walks
+        `FirestoreGraphStore.all_current_nodes` rather than inventing a new
+        scanning path. Deterministic result order (seeded-data insertion/
+        Firestore read order) — callers requiring a specific order (e.g.
+        `solvers.calibration_stats.rank_by_absolute_variance`'s tie-
+        breaking) sort explicitly rather than relying on this method's
+        order.
+        """
+        return tuple(
+            outcome
+            for outcome in self._store.all_current_nodes((Outcome,))
+            if tag in outcome.attribution_tags
+        )
+
     # -- dependency_chain (Phase 4 addition, NOT one of the 14 spec §5.7 ops) --
 
     def dependency_chain(
