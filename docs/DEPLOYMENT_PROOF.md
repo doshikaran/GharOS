@@ -143,4 +143,51 @@ access-control-allow-origin: https://gharos-web-971309809251.asia-south1.run.app
 
 ---
 
-*Run `./infra/teardown.sh` after any proof-capture session to scale both services back to zero instances (PHASES.md §6.2.6) — services stay deployed, revision history and these logs stay intact, compute cost goes to zero until the next deploy.*
+## Requirement 4 — Phase 14 nightly Memory Consolidation: real deploy, real Scheduler job, real captured firing (ADR-021)
+
+Opened this phase per ADR-021 Decision 6, honestly scoped in two parts: **(a)** below — a real, unattended, Scheduler-triggered firing of the deployed consolidation job, captured today, proving the mechanism works end to end on Cloud Run; **(b)** the accumulated genuine multi-hour/overnight timestamp record, left running unattended from today onward, captured at Phase 15's own gate once real time has passed — not fabricated here under this phase's own deadline.
+
+**Deploy:** `gharos-api` redeployed via `./infra/deploy_backend.sh` (operator-run, real source buildpack build — `gharos-api-00007-px5`), carrying E1's `consolidation_service.py`, E2's `constraint_promotion.py`/`vendor_reliability_scoring.py`, and this phase's `pubsub_receiver.py` dispatch wiring. `./infra/pubsub_topics.sh` then wired the new push subscription and its env vars, producing one further revision (`gharos-api-00008-c6h`, env-var-only change, same code) — this is the revision serving traffic below.
+
+```
+$ gcloud run services describe gharos-api --region=asia-south1 --format="yaml(status.latestReadyRevisionName)"
+status:
+  latestReadyRevisionName: gharos-api-00008-c6h
+```
+No `minScale` annotation present (only `autoscaling.knative.dev/maxScale: '2'`) — `min-instances=0` preserved, per this project's non-negotiable cost rule.
+
+**Cloud Scheduler jobs live, post-deploy** (`gcloud scheduler jobs list --location=asia-south1`):
+
+```
+ID                            SCHEDULE      STATE    LAST_ATTEMPT_TIME
+gharos-heartbeat-tick         */5 * * * *   ENABLED  2026-08-29T16:00:05.359623Z
+gharos-consolidation-nightly  30 21 * * *   ENABLED  2026-08-29T16:03:58.010515Z
+gharos-followup-sweep         0 7,19 * * *  ENABLED
+```
+
+`gharos-consolidation-nightly` (this phase, real off-peak cadence 21:30 UTC = 03:00 IST) and `gharos-followup-sweep` (Phase 7 — already coded in `infra/scheduler_jobs.sh` but never actually applied to the live project until this phase's script re-run) are both now real and `ENABLED`, alongside the Phase 2 heartbeat.
+
+**Today's captured firing** — triggered manually (`gcloud scheduler jobs run gharos-consolidation-nightly`) to start the clock rather than waiting up to ~11 hours for the natural 03:00 IST tick; everything after the trigger is a real, unattended Cloud Run execution with real Cloud Logging output, not a simulation:
+
+```
+$ gcloud scheduler jobs run gharos-consolidation-nightly --location=asia-south1
+(exit 0, 2026-08-29T16:03:57Z)
+
+$ gcloud logging read 'resource.type=cloud_run_revision AND resource.labels.service_name=gharos-api' \
+    --freshness=20m --format=json
+2026-08-29T16:04:01.695068Z  consolidation_nightly_tick_received  cycle_label=2026-08-29 message_id=20276795602353480 publish_time=2026-08-29T16:03:58.04Z subscription=projects/blissful-trail-506312-t0/subscriptions/gharos-consolidation-nightly-push
+2026-08-29T16:04:01.729520Z  consolidation_service.nightly_run_starting  cycle_label=2026-08-29
+2026-08-29T16:04:02.573795Z  graph_maintainer.run_completed  integrity_violations=0 obligations_flagged=0 ran_at=2026-08-29T16:04:01.729875+00:00
+2026-08-29T16:04:02.573895Z  consolidation_service.run_completed  constraint_promotion_wired=False integrity_violations=0 obligations_flagged=0 patterns_mined=0 ran_at=2026-08-29T16:04:01.729875+00:00 vendor_reliability_wired=False
+2026-08-29T16:04:02.573958Z  consolidation_service.nightly_run_finished  cycle_label=2026-08-29 integrity_violations=0 obligations_flagged=0 patterns_mined=0
+2026-08-29T16:04:02.574220Z  consolidation_nightly_completed  cycle_label=2026-08-29 message_id=20276795602353480 summary='ConsolidationRunResult(ran_at=datetime.datetime(2026, 8, 29, 16, 4, 1, 729875, tzinfo=datetime.timezone.utc), patterns_mined=(), maintenance=MaintenanceRunResult(ran_at=datetime.datetime(2026, 8, 29, 16, 4, 1, 729875, tzinfo=datetime.timezone.utc), obligations_flagged=(), integrity_violations=()), constraint_promotion=None, vendor_reliability=None)'
+2026-08-29T16:04:02.574515Z  INFO:  169.254.169.126:45434 - "POST /events/consolidation-nightly HTTP/1.1" 204 No Content
+```
+
+End-to-end trace, real timestamps: Scheduler trigger (16:03:57Z) → Pub/Sub publish (`publishTime=16:03:58.04Z`) → push delivery + OIDC verification + envelope parse (`consolidation_nightly_tick_received`, 16:04:01.695Z) → `ConsolidationService.run()` invoking A10 Pattern Miner and A11 Graph Maintainer for real (16:04:01.729Z–16:04:02.573Z) → real `ConsolidationRunResult` logged and the route returning a genuine `204` (16:04:02.574Z). `patterns_mined=0`/`obligations_flagged=0`/`integrity_violations=0` and `constraint_promotion=None`/`vendor_reliability=None` are honest outputs for an empty/near-empty demo graph and E2's callbacks not yet wired (tracked as DEBT-012) — not a fabricated or suppressed result.
+
+Left running, per ADR-021 Decision 6: no teardown after this capture. The genuine overnight/multi-hour accumulation of further unattended firings (this job's real 03:00 IST tick, plus the heartbeat and follow-up sweep continuing alongside it) is captured at Phase 15's own gate once real time has passed.
+
+---
+
+*Run `./infra/teardown.sh` after any proof-capture session to scale both services back to zero instances (PHASES.md §6.2.6) — services stay deployed, revision history and these logs stay intact, compute cost goes to zero until the next deploy. **Not run after this capture** (ADR-021 Decision 6, Phase 14) — the nightly consolidation job, heartbeat, and follow-up sweep are deliberately left live and unattended for Phase 15 to capture the accumulated overnight evidence.*

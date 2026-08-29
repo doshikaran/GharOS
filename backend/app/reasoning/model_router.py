@@ -285,6 +285,18 @@ PRO_TIER_ALLOWLIST: frozenset[AgentId] = frozenset(
         # E2-owned module, so the entry is added here regardless of which
         # role builds the calling agent.
         "A69",
+        # spec §15.2 A10: Pattern Miner (Phase 14, ADR-021 Decision 1) —
+        # mining OUTCOME regularities into a durable PATTERN claim is
+        # judgment ("mining ... into a durable claim is judgment, not
+        # extraction"), even though *whether* a candidate clears the
+        # support/slip-rate threshold is fully deterministic code
+        # (`app.graph.pattern_miner._find_candidate`) — only the already-
+        # decided candidate's natural-language `description` goes through
+        # this Pro-tier call. A10 itself is E1's implementation
+        # (`backend/app/graph/pattern_miner.py`), same "allowlist lives
+        # here regardless of which role builds the agent" precedent as
+        # A69 immediately above.
+        "A10",
     )
 )
 """Agent ids permitted to request `ModelTier.PRO`.

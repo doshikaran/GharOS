@@ -25,6 +25,29 @@
 #                        endpoint path is read from that module, not
 #                        guessed).
 #
+# Phase 14 (ADR-021 Decision 3) adds a THIRD topic here:
+#
+#   gharos-consolidation-nightly — Cloud Scheduler's off-peak Memory
+#                        Consolidation tick (`infra/scheduler_jobs.sh`'s
+#                        `gharos-consolidation-nightly` job), delivered to
+#                        `POST /events/consolidation-nightly`
+#                        (`backend/app/api/pubsub_receiver.py`'s
+#                        `receive_consolidation_nightly` route).
+#                        Given its own dedicated topic rather than reusing
+#                        `gharos-heartbeat` or `gharos-followup-sweep` —
+#                        matching this project's own established
+#                        precedent (`gharos-followup-sweep` already got
+#                        its own topic + push subscription + route rather
+#                        than overloading `gharos-heartbeat` and branching
+#                        purely on `job_name` inside one shared endpoint):
+#                        one topic per scheduled job keeps each job's push
+#                        subscription, retry policy, and Cloud Logging
+#                        trail independently inspectable, and the
+#                        `job_name` field in the decoded payload is still
+#                        checked defensively inside the receiver as a
+#                        second, cheap guard against a topic/subscription
+#                        miswiring — belt and suspenders, not either/or.
+#
 # Also reconciles the push subscription's OIDC identity: Pub/Sub push
 # subscriptions authenticate to their endpoint via a signed identity token
 # minted for a service account (`--push-auth-service-account`). This script
@@ -81,7 +104,13 @@ readonly FOLLOWUP_TRIGGERS_TOPIC="gharos-followup-triggers"
 # consume — no push subscription is created for this one here (it has no
 # fixed single consumer yet; a future phase wires whichever agent
 # subscribes to it).
-readonly TOPICS=("$EVENTS_TOPIC" "$HEARTBEAT_TOPIC" "$FOLLOWUP_SWEEP_TOPIC" "$FOLLOWUP_TRIGGERS_TOPIC")
+# Phase 14, ADR-021 Decision 3 — see this script's header for why the
+# nightly consolidation job gets its own dedicated topic.
+readonly CONSOLIDATION_NIGHTLY_TOPIC="gharos-consolidation-nightly"
+readonly TOPICS=(
+  "$EVENTS_TOPIC" "$HEARTBEAT_TOPIC" "$FOLLOWUP_SWEEP_TOPIC"
+  "$FOLLOWUP_TRIGGERS_TOPIC" "$CONSOLIDATION_NIGHTLY_TOPIC"
+)
 
 readonly HEARTBEAT_PUSH_SUBSCRIPTION="gharos-heartbeat-push"
 # Must match the route `app.api.pubsub_receiver.router` actually registers
@@ -92,6 +121,11 @@ readonly FOLLOWUP_SWEEP_PUSH_SUBSCRIPTION="gharos-followup-sweep-push"
 # Matches `@router.post("/followup-sweep")` in `app.api.pubsub_receiver` —
 # same rule as $HEARTBEAT_PUSH_PATH above.
 readonly FOLLOWUP_SWEEP_PUSH_PATH="/events/followup-sweep"
+readonly CONSOLIDATION_NIGHTLY_PUSH_SUBSCRIPTION="gharos-consolidation-nightly-push"
+# Matches `@router.post("/consolidation-nightly")` in
+# `app.api.pubsub_receiver` (`receive_consolidation_nightly`, ADR-021
+# Decision 3) — same rule as $HEARTBEAT_PUSH_PATH above.
+readonly CONSOLIDATION_NIGHTLY_PUSH_PATH="/events/consolidation-nightly"
 readonly PUSH_INVOKER_SA_NAME="gharos-pubsub-invoker"
 readonly PUSH_INVOKER_SA_EMAIL="${PUSH_INVOKER_SA_NAME}@${project_id}.iam.gserviceaccount.com"
 
@@ -153,7 +187,8 @@ if service_url="$(gcloud run services describe "$GHAROS_API_SERVICE" \
 
   for entry in \
     "${HEARTBEAT_PUSH_SUBSCRIPTION}|${HEARTBEAT_TOPIC}|${HEARTBEAT_PUSH_PATH}" \
-    "${FOLLOWUP_SWEEP_PUSH_SUBSCRIPTION}|${FOLLOWUP_SWEEP_TOPIC}|${FOLLOWUP_SWEEP_PUSH_PATH}"; do
+    "${FOLLOWUP_SWEEP_PUSH_SUBSCRIPTION}|${FOLLOWUP_SWEEP_TOPIC}|${FOLLOWUP_SWEEP_PUSH_PATH}" \
+    "${CONSOLIDATION_NIGHTLY_PUSH_SUBSCRIPTION}|${CONSOLIDATION_NIGHTLY_TOPIC}|${CONSOLIDATION_NIGHTLY_PUSH_PATH}"; do
     sub_name="${entry%%|*}"
     rest="${entry#*|}"
     topic_name="${rest%%|*}"
@@ -201,6 +236,7 @@ log "Pub/Sub topics reconciled for project $project_id: ${TOPICS[*]}"
 if [[ -n "$service_url" ]]; then
   log "Heartbeat push subscription:      $HEARTBEAT_PUSH_SUBSCRIPTION -> ${service_url}${HEARTBEAT_PUSH_PATH}"
   log "Follow-up sweep push subscription: $FOLLOWUP_SWEEP_PUSH_SUBSCRIPTION -> ${service_url}${FOLLOWUP_SWEEP_PUSH_PATH}"
+  log "Consolidation nightly push subscription: $CONSOLIDATION_NIGHTLY_PUSH_SUBSCRIPTION -> ${service_url}${CONSOLIDATION_NIGHTLY_PUSH_PATH}"
 else
   log "Push subscriptions: not yet created (gharos-api not deployed) — see next steps above."
 fi

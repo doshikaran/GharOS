@@ -85,6 +85,9 @@ class ActionTypes:
     SUBMIT_FORM = "submit_form"
     PLACE_CALL = "place_call"
     CANCEL_SUBSCRIPTION = "cancel_subscription"
+    CONFIRM_CONSTRAINT_PROMOTION = "confirm_constraint_promotion"
+    """Phase 14 (ADR-021 Decision 4) — see `_ACTION_TYPE_RISK_TIER`'s
+    comment for the full R2 justification."""
 
     # --- R3 — Explicit approve (any movement of money) --------------
     PAY_DUES = "pay_dues"
@@ -211,6 +214,21 @@ _ACTION_TYPE_RISK_TIER: dict[str, RiskTier] = {
     # per-vendor-integration fact, not a general rule, but a future
     # caller must not default such a case to R2.
     ActionTypes.CANCEL_SUBSCRIPTION: RiskTier.R2_APPROVE,
+    # Phase 14 (ADR-021 Decision 4) — Memory Consolidation service's
+    # constraint-promotion pass (`app.reasoning.constraint_promotion`, not
+    # a numbered agent — spec §15.9 lists Memory Consolidation under
+    # "Services (not LLM agents)"). Confirming a repeated signal as a new
+    # household-wide HARD constraint is not itself external communication,
+    # but it is classified here at R2 for the same reason `apply_hard_
+    # constraint_floor` already encodes structurally for every other
+    # agent's hard-constraint-adjacent action: spec §18.2 rule 2, "hard-
+    # constraint involvement forces at least R2." Every candidate this
+    # pass produces is, by definition, a proposal to make something HARD.
+    # R2, not R3 (no money moves) and not R4 (R4 never reaches
+    # `ApprovalGate.request_approval` at all — it routes to escalation —
+    # which would contradict "confirmation-gated via the existing
+    # Approval Gate flow," ADR-021's explicit requirement).
+    ActionTypes.CONFIRM_CONSTRAINT_PROMOTION: RiskTier.R2_APPROVE,
     # ----- R3 — Explicit approve: any movement of money -----------------
     # spec §18.1 worked example, verbatim: "Pay dues".
     ActionTypes.PAY_DUES: RiskTier.R3_EXPLICIT_APPROVE,

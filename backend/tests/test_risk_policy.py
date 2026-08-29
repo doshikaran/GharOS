@@ -45,6 +45,9 @@ _EXPECTED_CLASSIFICATIONS: tuple[tuple[str, RiskTier], ...] = (
     (ActionTypes.SUBMIT_FORM, RiskTier.R2_APPROVE),
     (ActionTypes.PLACE_CALL, RiskTier.R2_APPROVE),
     (ActionTypes.CANCEL_SUBSCRIPTION, RiskTier.R2_APPROVE),
+    # Phase 14 (ADR-021 Decision 4) — see `_ACTION_TYPE_RISK_TIER`'s own
+    # comment in risk_policy.py for the full R2 justification.
+    (ActionTypes.CONFIRM_CONSTRAINT_PROMOTION, RiskTier.R2_APPROVE),
     # R3 — Explicit approve
     (ActionTypes.PAY_DUES, RiskTier.R3_EXPLICIT_APPROVE),
     (ActionTypes.PAY_SALARY, RiskTier.R3_EXPLICIT_APPROVE),

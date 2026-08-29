@@ -32,6 +32,19 @@ Approval Gate — it is the entry point that will, in later phases, publish
 a `ScheduledTickPayload`-shaped event onward into the routing layer
 (`contracts.events.SubsystemName`) for the Consolidation, Ledger, and
 Concierge follow-up cycles (PHASES.md §7, §10, §14) to consume.
+
+Phase 14 (ADR-021 Decision 3) adds `POST /events/consolidation-nightly`:
+the `gharos-consolidation-nightly` Cloud Scheduler job
+(`infra/scheduler_jobs.sh`) publishing onto its own dedicated
+`gharos-consolidation-nightly` Pub/Sub topic (`infra/pubsub_topics.sh`),
+delivered here in the identical envelope shape and push-verification path
+as the heartbeat and follow-up-sweep routes above it. Unlike those two
+(which are deliberately thin — proving the mechanism, not yet consuming
+it), this route actually invokes the Memory Consolidation service
+(`app.graph.consolidation_service`, E1, ADR-021 Decisions 1-3) — see
+`invoke_nightly_consolidation`'s docstring for the exact entry-point shape
+assumed and why the import is deferred to call time rather than module
+load time.
 """
 
 from __future__ import annotations
@@ -40,6 +53,7 @@ import base64
 import binascii
 import json
 from collections.abc import Callable
+from datetime import UTC, datetime
 from typing import Annotated, Any
 
 import structlog
@@ -269,4 +283,163 @@ async def receive_followup_sweep(
         subscription=envelope.subscription,
         attributes=envelope.message.attributes,
         payload=payload,
+    )
+
+
+_CONSOLIDATION_NIGHTLY_JOB_NAME = "gharos-consolidation-nightly"
+
+ConsolidationRunner = Callable[[str], object]
+"""`(cycle_label) -> ConsolidationRunSummary`. Injected exactly like
+`TokenVerifier` above and for the same reason: testability without a real
+call to the thing being wrapped. Return type is `object`, not
+`ConsolidationRunSummary`, because this module (`backend/app/api/`, E3)
+must import cleanly whether or not `app.graph.consolidation_service`
+(E1, landing in parallel this phase per ADR-021 Decision 3) exists yet —
+see `_default_consolidation_runner`."""
+
+
+def _default_consolidation_runner(cycle_label: str) -> object:
+    """Lazily imports and invokes E1's Memory Consolidation service entry
+    point. The import is deferred to call time — not module load time —
+    so this receiver module (and therefore `app.main`, and therefore
+    every test that imports it) does not hard-fail merely because
+    `app.graph.consolidation_service` has not landed yet; only an actual
+    nightly-consolidation invocation needs it to be present.
+
+    Assumed shape (documented here for E1 to reconcile against once their
+    real module lands, same seam as Phase 13's E3/E2 dispatch, which
+    needed one small follow-up afterward — expected, not a defect):
+
+        # backend/app/graph/consolidation_service.py
+        def run_nightly_consolidation(*, cycle_label: str) -> ConsolidationRunSummary: ...
+
+    `ConsolidationRunSummary` is whatever dataclass/model E1 defines to
+    carry the run's pattern counts / maintenance actions (ADR-021
+    Decisions 1-2); this function returns it untouched. Only its
+    presence and `str()`-ability are relied on by the caller for logging.
+
+    Raises whatever `run_nightly_consolidation` raises, including
+    `ImportError` if the module is not present yet — never swallowed into
+    a fabricated success (gharos-standards non-negotiable #7).
+    """
+    from app.graph.consolidation_service import run_nightly_consolidation
+
+    result: object = run_nightly_consolidation(cycle_label=cycle_label)
+    return result
+
+
+def invoke_nightly_consolidation(cycle_label: str, *, runner: ConsolidationRunner | None = None) -> object:
+    """Invokes the Memory Consolidation service entry point for one
+    nightly cycle.
+
+    `runner` defaults to `None`, in which case the module-level
+    `_default_consolidation_runner` is looked up **by name at call
+    time** (not bound as a parameter default) — this is deliberate: a
+    parameter default is evaluated once, at function-definition time, so
+    binding it directly would freeze in whichever function object existed
+    when this module was first imported, defeating a test's ability to
+    monkeypatch `app.api.pubsub_receiver._default_consolidation_runner`
+    and have the route pick up the replacement.
+
+    Raises whatever the runner raises — a failed consolidation run must
+    reach the caller as a real failure (surfaced as a 500 to Pub/Sub,
+    which retries per the subscription's retry policy), never swallowed
+    into a fabricated 204 (gharos-standards non-negotiable #7, mirrored
+    from `receive_heartbeat`'s own documented posture on malformed input).
+    """
+    active_runner = runner if runner is not None else _default_consolidation_runner
+    return active_runner(cycle_label)
+
+
+def _derive_consolidation_cycle_label(publish_time: str) -> str:
+    """Derives the per-run `cycle_label` (`YYYY-MM-DD`) for a nightly
+    consolidation tick from Pub/Sub's own `publishTime` on the envelope.
+
+    Same reasoning `receive_heartbeat`'s module-level docstring already
+    documents for `ScheduledTickPayload.scheduled_for`: Cloud Scheduler's
+    Pub/Sub-target message body is a static string baked in at job
+    create/update time (`infra/scheduler_jobs.sh`), so it cannot carry a
+    live per-tick date — the one genuinely real per-tick timestamp is
+    Pub/Sub's own `publishTime`, assigned at publish time, which this
+    function parses instead.
+
+    Falls back to the current UTC date if `publish_time` fails to parse.
+    This is a defensive fallback, not a silent swallow of a real problem:
+    a real Pub/Sub push always sets `publishTime` to a valid RFC 3339
+    timestamp, so a parse failure here would itself be a symptom worth a
+    caller noticing — callers of this function log the derived
+    `cycle_label` unconditionally, so a fallback value is always visible
+    in Cloud Logging, never hidden.
+    """
+    try:
+        normalised = publish_time.replace("Z", "+00:00")
+        parsed_dt = datetime.fromisoformat(normalised)
+    except ValueError:
+        parsed_dt = datetime.now(tz=UTC)
+    return parsed_dt.date().isoformat()
+
+
+@router.post("/consolidation-nightly", status_code=status.HTTP_204_NO_CONTENT)
+async def receive_consolidation_nightly(
+    envelope: PubSubPushEnvelope,
+    settings: Annotated[Settings, Depends(get_settings)],
+    authorization: Annotated[str | None, Header()] = None,
+) -> None:
+    """Receives the Phase 14 nightly Memory Consolidation Cloud Scheduler
+    tick (ADR-021 Decision 3).
+
+    Target of the `gharos-consolidation-nightly` topic's push subscription
+    (`infra/pubsub_topics.sh`), fed by the `gharos-consolidation-nightly`
+    Cloud Scheduler job (`infra/scheduler_jobs.sh`) on a genuinely
+    off-peak cadence. Same envelope shape and push-auth verification as
+    `receive_heartbeat`/`receive_followup_sweep` above.
+
+    Validates the decoded payload's own `job_name` matches this route's
+    expected job — defense in depth against a topic/subscription
+    miswiring sending the wrong tick here, matching this project's
+    fail-closed posture (Phase 5's expiry-never-auto-approves, Phase 12's
+    deny-by-default `ScopedGraphReader`) — and derives `cycle_label` from
+    the envelope's own `publishTime` (`_derive_consolidation_cycle_label`),
+    never from the static message body.
+
+    Unlike `receive_followup_sweep`, this route actually invokes the
+    consolidation service (`invoke_nightly_consolidation`) rather than
+    only logging receipt, because the upstream dependency it needs
+    (`app.graph.consolidation_service.run_nightly_consolidation`, E1) is
+    real, parallel Phase 14 work rather than a not-yet-landed later-phase
+    contract.
+
+    Raises:
+        HTTPException: 400 if the payload's `job_name` does not match
+            `gharos-consolidation-nightly`.
+    """
+    verify_push_request(authorization=authorization, settings=settings)
+    payload = _decode_message_data(envelope.message)
+    job_name = payload.get("job_name") if isinstance(payload, dict) else None
+    if job_name != _CONSOLIDATION_NIGHTLY_JOB_NAME:
+        logger.warning(
+            "consolidation_nightly_job_name_mismatch",
+            got=job_name,
+            expected=_CONSOLIDATION_NIGHTLY_JOB_NAME,
+            message_id=envelope.message.message_id,
+        )
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"unexpected job_name for /events/consolidation-nightly: {job_name!r}",
+        )
+
+    cycle_label = _derive_consolidation_cycle_label(envelope.message.publish_time)
+    logger.info(
+        "consolidation_nightly_tick_received",
+        message_id=envelope.message.message_id,
+        publish_time=envelope.message.publish_time,
+        subscription=envelope.subscription,
+        cycle_label=cycle_label,
+    )
+    summary = invoke_nightly_consolidation(cycle_label)
+    logger.info(
+        "consolidation_nightly_completed",
+        message_id=envelope.message.message_id,
+        cycle_label=cycle_label,
+        summary=str(summary),
     )

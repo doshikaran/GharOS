@@ -1,7 +1,7 @@
 """A small, realistic-but-synthetic demo household (PHASES.md Phase 1 work
 item 8, extended Phase 7 for ADR-013/DEBT-004's `AttendanceRecord`, and
 Phase 8 for ADR-014's `ValuationProfile`) — enough breadth to exercise
-every one of the 18 node types and most of the 35 edge types (see
+every one of the 18 node types and most of the 36 edge types (see
 `SeedResult.supersession` and this module's bottom-of-file note on
 `argued_by`), and to prove `unexplained` returns empty and the integrity
 checker is clean on real seeded data.
@@ -16,11 +16,13 @@ LEDGER_EVENTs (including one ADVANCE, per ADR-013's rule that real advance
 amounts live only on LEDGER_EVENT, never parsed from an
 ATTENDANCE_RECORD's `advance_notations`), five PURCHASE_ITEMs covering
 `verifies`, `contradicts`, and `substitutes`, a DECISION with two
-BRANCHes and two COUNCIL_POSITIONs, an OUTCOME, four SOURCE_DOCUMENTs, one
-ACTION_RECORD, one APPROVAL_REQUEST, one PATTERN, one ATTENDANCE_RECORD
-(`attendance_of` to the staff PERSON), and one VALUATION_PROFILE
-(`valuation_of` to Priya — ADR-014's cardinal cost matrix over three real
-seeded OBLIGATIONs).
+BRANCHes and two COUNCIL_POSITIONs, ten OUTCOMEs (the original
+prescription-delivery one, Phase 11's three thin decision-category
+OUTCOMEs, and Phase 14's six-OUTCOME Monday-slip mining scenario — see
+that section below), four SOURCE_DOCUMENTs, one ACTION_RECORD, one
+APPROVAL_REQUEST, one PATTERN, one ATTENDANCE_RECORD (`attendance_of` to
+the staff PERSON), and one VALUATION_PROFILE (`valuation_of` to Priya —
+ADR-014's cardinal cost matrix over three real seeded OBLIGATIONs).
 
 **Historical note, corrected — kept for continuity, not because the gap
 is still real:** Phase 1's original version of this dataset flagged that
@@ -544,6 +546,224 @@ def build_demo_household() -> SeedResult:
     )
     nodes += [outcome_school_transition, outcome_staff_transition, outcome_major_purchase]
 
+    # -- Phase 14 (ADR-021, A10 Pattern Miner): a real, non-obvious mined
+    # regularity, not a hand-written one -----------------------------------------
+    #
+    # `app.graph.pattern_miner` mines `Outcome.attribution_tags` values it
+    # does not otherwise treat specially — it queries `outcome_variance`
+    # for a documented candidate-tag vocabulary and lets the arithmetic
+    # decide. This is the seeded evidence for its own worked example
+    # ("appointments scheduled Monday slip 60% of the time," spec §15.2
+    # A10): four real past appointment OBLIGATIONs due on a Monday, three
+    # of which ran late (`variance > 0`, this graph's existing "worse than
+    # predicted" sign convention — see outcome_school_transition/
+    # outcome_major_purchase above) and one of which was on time — a
+    # genuine 75% slip rate, clearing both `MIN_PATTERN_SUPPORT` (3) and
+    # `MIN_PATTERN_SLIP_RATE` (0.5). Two Wednesday-scheduled appointments,
+    # both on time, are seeded alongside as a real, honest control: with
+    # only 2 samples (below `MIN_PATTERN_SUPPORT`) AND a 0% slip rate,
+    # Wednesday correctly produces no mined PATTERN — proving the miner is
+    # sensitive to the *specific* day, not "appointments in general run
+    # late." All six reuse `doc-pharmacy-sms` as their provenance anchor
+    # (the household's one medical-flavoured SOURCE_DOCUMENT — the same
+    # documented looseness `o10_water_purifier` above already takes for a
+    # real household event lacking its own dedicated source), at a
+    # deliberately modest confidence reflecting that reuse honestly.
+    o11_dadi_physio_mon1 = Obligation(
+        id=NodeId("obligation-dadi-physio-mon1"),
+        provenance=_prov(
+            source_document_id="doc-pharmacy-sms",
+            region="whole-document",
+            derivation=Derivation.INFERRED,
+            confidence=0.65,
+        ),
+        title="Dadi's physiotherapy session",
+        obligation_type="appointment",
+        due_at=datetime(2026, 8, 17, 10, 0, tzinfo=UTC),  # a real past Monday
+        must_start_by=None,
+        effort_estimate_minutes=60,
+        status=ObligationStatus.COMPLETED,
+        stated_or_implied=ObligationDerivation.IMPLIED,
+    )
+    o12_aarav_dentist_mon2 = Obligation(
+        id=NodeId("obligation-aarav-dentist-mon2"),
+        provenance=_prov(
+            source_document_id="doc-pharmacy-sms",
+            region="whole-document",
+            derivation=Derivation.INFERRED,
+            confidence=0.65,
+        ),
+        title="Aarav's dentist appointment",
+        obligation_type="appointment",
+        due_at=datetime(2026, 8, 10, 10, 0, tzinfo=UTC),  # a real past Monday
+        must_start_by=None,
+        effort_estimate_minutes=45,
+        status=ObligationStatus.COMPLETED,
+        stated_or_implied=ObligationDerivation.IMPLIED,
+    )
+    o13_dadi_cardio_mon3 = Obligation(
+        id=NodeId("obligation-dadi-cardio-mon3"),
+        provenance=_prov(
+            source_document_id="doc-pharmacy-sms",
+            region="whole-document",
+            derivation=Derivation.INFERRED,
+            confidence=0.65,
+        ),
+        title="Dadi's cardiologist follow-up",
+        obligation_type="appointment",
+        due_at=datetime(2026, 8, 3, 10, 0, tzinfo=UTC),  # a real past Monday
+        must_start_by=None,
+        effort_estimate_minutes=45,
+        status=ObligationStatus.COMPLETED,
+        stated_or_implied=ObligationDerivation.IMPLIED,
+    )
+    o14_aarav_eye_mon4 = Obligation(
+        id=NodeId("obligation-aarav-eye-mon4"),
+        provenance=_prov(
+            source_document_id="doc-pharmacy-sms",
+            region="whole-document",
+            derivation=Derivation.INFERRED,
+            confidence=0.65,
+        ),
+        title="Aarav's eye check-up",
+        obligation_type="appointment",
+        due_at=datetime(2026, 7, 27, 10, 0, tzinfo=UTC),  # a real past Monday
+        must_start_by=None,
+        effort_estimate_minutes=30,
+        status=ObligationStatus.COMPLETED,
+        stated_or_implied=ObligationDerivation.IMPLIED,
+    )
+    o15_dadi_physio_wed1 = Obligation(
+        id=NodeId("obligation-dadi-physio-wed1"),
+        provenance=_prov(
+            source_document_id="doc-pharmacy-sms",
+            region="whole-document",
+            derivation=Derivation.INFERRED,
+            confidence=0.65,
+        ),
+        title="Dadi's physiotherapy session",
+        obligation_type="appointment",
+        due_at=datetime(2026, 8, 19, 10, 0, tzinfo=UTC),  # a real past Wednesday (control)
+        must_start_by=None,
+        effort_estimate_minutes=60,
+        status=ObligationStatus.COMPLETED,
+        stated_or_implied=ObligationDerivation.IMPLIED,
+    )
+    o16_aarav_dentist_wed2 = Obligation(
+        id=NodeId("obligation-aarav-dentist-wed2"),
+        provenance=_prov(
+            source_document_id="doc-pharmacy-sms",
+            region="whole-document",
+            derivation=Derivation.INFERRED,
+            confidence=0.65,
+        ),
+        title="Aarav's dentist appointment (follow-up)",
+        obligation_type="appointment",
+        due_at=datetime(2026, 8, 12, 10, 0, tzinfo=UTC),  # a real past Wednesday (control)
+        must_start_by=None,
+        effort_estimate_minutes=45,
+        status=ObligationStatus.COMPLETED,
+        stated_or_implied=ObligationDerivation.IMPLIED,
+    )
+    nodes += [
+        o11_dadi_physio_mon1,
+        o12_aarav_dentist_mon2,
+        o13_dadi_cardio_mon3,
+        o14_aarav_eye_mon4,
+        o15_dadi_physio_wed1,
+        o16_aarav_dentist_wed2,
+    ]
+
+    outcome_dadi_physio_mon1 = Outcome(
+        id=NodeId("outcome-dadi-physio-mon1"),
+        provenance=_prov(
+            source_document_id="doc-pharmacy-sms",
+            region="whole-document",
+            derivation=Derivation.INFERRED,
+            confidence=0.7,
+        ),
+        predicted="Session at 10:00 as scheduled",
+        actual="Provider rescheduled to 11:30 — 90 minutes late",
+        variance=90.0,  # minutes late vs. predicted
+        attribution_tags=("scheduled_monday", "rescheduled"),
+    )
+    outcome_aarav_dentist_mon2 = Outcome(
+        id=NodeId("outcome-aarav-dentist-mon2"),
+        provenance=_prov(
+            source_document_id="doc-pharmacy-sms",
+            region="whole-document",
+            derivation=Derivation.INFERRED,
+            confidence=0.7,
+        ),
+        predicted="Appointment at 10:00 as scheduled",
+        actual="Delayed 40 minutes — clinic backlog",
+        variance=40.0,
+        attribution_tags=("scheduled_monday",),
+    )
+    outcome_dadi_cardio_mon3 = Outcome(
+        id=NodeId("outcome-dadi-cardio-mon3"),
+        provenance=_prov(
+            source_document_id="doc-pharmacy-sms",
+            region="whole-document",
+            derivation=Derivation.INFERRED,
+            confidence=0.7,
+        ),
+        predicted="Follow-up at 10:00 as scheduled",
+        actual="Delayed 60 minutes — doctor running behind",
+        variance=60.0,
+        attribution_tags=("scheduled_monday",),
+    )
+    outcome_aarav_eye_mon4 = Outcome(
+        id=NodeId("outcome-aarav-eye-mon4"),
+        provenance=_prov(
+            source_document_id="doc-pharmacy-sms",
+            region="whole-document",
+            derivation=Derivation.INFERRED,
+            confidence=0.7,
+        ),
+        predicted="Check-up at 10:00 as scheduled",
+        actual="On time",
+        variance=0.0,
+        # Deliberately not also tagged "on-time" — that pre-existing tag
+        # value already has its own exact-set assertion elsewhere
+        # (test_graph_reader_simulator_ops.py::TestOutcomeVariance).
+        attribution_tags=("scheduled_monday",),
+    )
+    outcome_dadi_physio_wed1 = Outcome(
+        id=NodeId("outcome-dadi-physio-wed1"),
+        provenance=_prov(
+            source_document_id="doc-pharmacy-sms",
+            region="whole-document",
+            derivation=Derivation.INFERRED,
+            confidence=0.7,
+        ),
+        predicted="Session at 10:00 as scheduled",
+        actual="On time",
+        variance=0.0,
+        attribution_tags=("scheduled_wednesday",),
+    )
+    outcome_aarav_dentist_wed2 = Outcome(
+        id=NodeId("outcome-aarav-dentist-wed2"),
+        provenance=_prov(
+            source_document_id="doc-pharmacy-sms",
+            region="whole-document",
+            derivation=Derivation.INFERRED,
+            confidence=0.7,
+        ),
+        predicted="Appointment at 10:00 as scheduled",
+        actual="On time",
+        variance=0.0,
+        attribution_tags=("scheduled_wednesday",),
+    )
+    nodes += [
+        outcome_dadi_physio_mon1,
+        outcome_aarav_dentist_mon2,
+        outcome_dadi_cardio_mon3,
+        outcome_aarav_eye_mon4,
+        outcome_dadi_physio_wed1,
+        outcome_aarav_dentist_wed2,
+    ]
+
     # -- recurring commitment / ledger events -------------------------------------
 
     rc1_maintenance = RecurringCommitment(
@@ -979,6 +1199,59 @@ def build_demo_household() -> SeedResult:
             EdgeType.COMPLETES_INTO,
             o10_water_purifier.id,
             outcome_major_purchase.id,
+        ),
+        # Phase 14 (ADR-021, A10 Pattern Miner): the seeded Monday-slip
+        # scenario — real ownership/benefit edges like every other
+        # OBLIGATION in this dataset, plus the `completes_into` edge each
+        # needs for `GraphReader.outcome_variance` to walk from OUTCOME
+        # back through the graph (mirrors o8/o9/o10 immediately above).
+        _edge("e-owned-o11", EdgeType.OWNED_BY, o11_dadi_physio_mon1.id, priya.id),
+        _edge("e-benefits-o11-dadi", EdgeType.BENEFITS, o11_dadi_physio_mon1.id, dadi.id),
+        _edge(
+            "e-completes-o11-outcome",
+            EdgeType.COMPLETES_INTO,
+            o11_dadi_physio_mon1.id,
+            outcome_dadi_physio_mon1.id,
+        ),
+        _edge("e-owned-o12", EdgeType.OWNED_BY, o12_aarav_dentist_mon2.id, priya.id),
+        _edge("e-benefits-o12-aarav", EdgeType.BENEFITS, o12_aarav_dentist_mon2.id, aarav.id),
+        _edge(
+            "e-completes-o12-outcome",
+            EdgeType.COMPLETES_INTO,
+            o12_aarav_dentist_mon2.id,
+            outcome_aarav_dentist_mon2.id,
+        ),
+        _edge("e-owned-o13", EdgeType.OWNED_BY, o13_dadi_cardio_mon3.id, priya.id),
+        _edge("e-benefits-o13-dadi", EdgeType.BENEFITS, o13_dadi_cardio_mon3.id, dadi.id),
+        _edge(
+            "e-completes-o13-outcome",
+            EdgeType.COMPLETES_INTO,
+            o13_dadi_cardio_mon3.id,
+            outcome_dadi_cardio_mon3.id,
+        ),
+        _edge("e-owned-o14", EdgeType.OWNED_BY, o14_aarav_eye_mon4.id, priya.id),
+        _edge("e-benefits-o14-aarav", EdgeType.BENEFITS, o14_aarav_eye_mon4.id, aarav.id),
+        _edge(
+            "e-completes-o14-outcome",
+            EdgeType.COMPLETES_INTO,
+            o14_aarav_eye_mon4.id,
+            outcome_aarav_eye_mon4.id,
+        ),
+        _edge("e-owned-o15", EdgeType.OWNED_BY, o15_dadi_physio_wed1.id, priya.id),
+        _edge("e-benefits-o15-dadi", EdgeType.BENEFITS, o15_dadi_physio_wed1.id, dadi.id),
+        _edge(
+            "e-completes-o15-outcome",
+            EdgeType.COMPLETES_INTO,
+            o15_dadi_physio_wed1.id,
+            outcome_dadi_physio_wed1.id,
+        ),
+        _edge("e-owned-o16", EdgeType.OWNED_BY, o16_aarav_dentist_wed2.id, priya.id),
+        _edge("e-benefits-o16-aarav", EdgeType.BENEFITS, o16_aarav_dentist_wed2.id, aarav.id),
+        _edge(
+            "e-completes-o16-outcome",
+            EdgeType.COMPLETES_INTO,
+            o16_aarav_dentist_wed2.id,
+            outcome_aarav_dentist_wed2.id,
         ),
     ]
 

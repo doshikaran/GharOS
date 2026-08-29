@@ -1,6 +1,6 @@
 """All 14 traversal operations (spec §5.7), each proven against the
-seeded demo household (`seeds.demo_household`) — a non-trivial graph (36
-nodes, 46+ edges, multiple hops, a real supersession, conflicting
+seeded demo household (`seeds.demo_household`) — a non-trivial graph (59
+nodes, 80+ edges, multiple hops, a real supersession, conflicting
 obligations, a resolved Decision with two Branches and two
 CouncilPositions) rather than a 2-node happy path, per Gate 1 and the E1
 charter's explicit instruction.
@@ -55,6 +55,14 @@ class TestNeighbours:
             "Enrol Aarav for the new academic year at Greenfield School",
             "Onboard Maya as full-time domestic help",
             "Buy a new water purifier for the kitchen",
+            # Phase 14 (ADR-021, A10 Pattern Miner): the seeded Monday-slip
+            # scenario's six appointment OBLIGATIONs, also owned_by Priya
+            # like every other real OBLIGATION in this dataset.
+            "Dadi's physiotherapy session",
+            "Aarav's dentist appointment",
+            "Dadi's cardiologist follow-up",
+            "Aarav's eye check-up",
+            "Aarav's dentist appointment (follow-up)",
         }
 
     def test_from_the_other_endpoint_returns_the_same_relationship(
@@ -187,9 +195,7 @@ class TestDependencyChain:
     def test_no_dependencies_returns_empty(self, reader: FirestoreGraphReader, seeded: SeedResult) -> None:
         assert reader.dependency_chain(NodeId("obligation-weekly-groceries")) == ()
 
-    def test_unknown_obligation_returns_empty(
-        self, reader: FirestoreGraphReader, seeded: SeedResult
-    ) -> None:
+    def test_unknown_obligation_returns_empty(self, reader: FirestoreGraphReader, seeded: SeedResult) -> None:
         assert reader.dependency_chain(NodeId("does-not-exist")) == ()
 
     def test_transitive_chain_and_direction_is_respected(

@@ -47,6 +47,36 @@ Original entry, for the record:
 
 ## OPEN
 
+### DEBT-012 — constraint promotion and vendor reliability scoring are real per-item primitives, not yet wired into the automatic nightly consolidation run
+
+**Opened:** Phase 14, 2026-08-29
+**Owner:** e1 (graph query primitive / possible `OUTCOME`→`VENDOR` edge) + e2 (the two consolidation modules, once a real pool-assembly caller exists)
+**Repayment phase:** whichever phase first needs a real, fully-automatic (no per-item manual assembly) nightly constraint-promotion/vendor-scoring run demonstrated — no phase currently commits to this; flagged here rather than silently deferred.
+
+**What's the gap, found independently by both E1 and E2 while building in parallel this phase:** `backend/app/reasoning/constraint_promotion.py`'s `scan_for_constraint_promotions(mentions=...)` and `backend/app/reasoning/vendor_reliability_scoring.py`'s `VendorAttributionReliabilityScorer.score_and_write(vendor=..., recent_outcomes=...)` are both real, correct, fully-tested modules — given a caller-assembled pool of constraint mentions or a vendor's recent outcomes, they behave exactly as specified (proven by real tests, including a hand-verified worked example for the scoring formula). What doesn't exist yet: (a) `contracts.repositories.GraphReader` has no "list every node of type X" primitive — A16 (Phase 4) and A33 (Phase 7) already documented this same limitation for their own, narrower purposes; (b) no `EdgeType` connects `OUTCOME` to `VENDOR` at all, so there is no graph-native way to assemble "this vendor's recent outcomes" without a caller doing it by hand. `backend/app/graph/consolidation_service.py`'s `run_nightly_consolidation` therefore leaves its two optional aggregate callback hooks (`ConstraintPromotionFn`/`VendorReliabilityFn`) as `None` rather than force-fitting a mismatched adapter over these per-item primitives.
+
+**A related, smaller finding folded in here rather than a separate entry:** `backend/app/adapters/vendor_relations.py` (A33, Phase 7) already writes `Vendor.reliability_score`/`response_latency_hours` from a different signal (raw request/response timestamps) — ADR-021 originally claimed these fields were untouched before this phase, which was wrong, corrected in that ADR's own post-implementation note. E2's new attribution-tag-based scorer is a real, deliberate second signal path, documented as such — but the two writers are not yet sequenced against each other, so a real risk exists that one's `supersede_node` call could clobber the other's most recent write if both ran unattended without coordination.
+
+**Why this isn't being fixed now:** designing the missing `OUTCOME`→`VENDOR` edge and a real graph-wide "list nodes by type" query is real, non-trivial graph-model work that deserves its own reasoned pass against a concrete consuming need — exactly the same discipline this project applied to DEBT-005/006/010, all of which were left open rather than guessed at ahead of a real consumer. None of Gate 14's own checklist items require automatic constraint-promotion/vendor-scoring to run unattended — they require A10 Pattern Miner and A11 Graph Maintainer's consolidation run to fire on schedule, which it does, independent of this gap.
+
+**Repayment condition:** a real `GraphReader` "list by type" primitive (or an equivalent scoped query) and, if still needed at that point, an `OUTCOME`→`VENDOR` edge, designed against whichever phase's real consuming need makes the exact query pattern concrete — then `run_nightly_consolidation`'s two callbacks are wired for real, with a test proving a full unattended run performs constraint promotion and vendor scoring across more than one hand-picked item, and the two vendor-reliability writers' sequencing is resolved (e.g. one signal feeding into the other's `recent_outcomes`, or an explicit precedence rule) rather than left to write-order chance.
+
+---
+
+### DEBT-013 — staleness rule duplicated between `app.solvers.staleness` and `intention_capture_agent`'s private copy
+
+**Opened:** Phase 14, 2026-08-29
+**Owner:** e2 (owns `backend/app/agents/intention_action/`, the file that needs to change)
+**Repayment phase:** next time either copy needs a behavior change — trivial, low-urgency.
+
+**What's the gap:** A11 Graph Maintainer needs A22 Intention Capture's real, deterministic, grace-period-aware staleness rule (Phase 9's `_is_stale`) applied graph-wide, but E1 (this phase) has no write access to `backend/app/agents/` to change A22's private function into an importable shared one. Extracted a byte-for-byte copy to `backend/app/solvers/staleness.py` (`is_stale`/`StalenessCheck`) instead, documented as a deliberate, temporary duplication in both locations.
+
+**Why this isn't being fixed now:** the fix (swap A22's private `_is_stale` for an import of the new shared `app.solvers.staleness.is_stale`) is real but crosses a file-ownership boundary this phase's dispatch didn't include — a one-line owner's job, not worth a mid-phase escalation for.
+
+**Repayment condition:** `intention_capture_agent.py` imports `app.solvers.staleness.is_stale` instead of keeping its own private copy, verified by the existing A22 tests continuing to pass unchanged.
+
+---
+
 ### DEBT-011 — Council's per-decision `ValuationProfile` is never persisted as its own graph node
 
 **Opened:** Phase 12, 2026-08-29
