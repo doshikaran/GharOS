@@ -71,6 +71,12 @@ _AGENT_DIR_NAMES: dict[str, str] = {
     "A52": "a52_provider_ranking",
     "A53": "a53_call_planner",
     "A55": "a55_confirmation_verifier",
+    "A64": "a64_language_script_identifier",
+    "A65": "a65_normalisation",
+    "A65_AMOUNT": "a65_normalisation_amount_disambiguation",
+    "A67": "a67_voice_intent_classifier",
+    "A68": "a68_confirmation_agent",
+    "A68_EVALUATE": "a68_confirmation_agent_evaluate",
 }
 """Maps a roster agent id to its `backend/app/prompts/<dir>/` directory
 name (ADR-003: "one directory per agent... named by agent ID in lowercase
@@ -110,7 +116,21 @@ topic is Pro-tier. `"A40_FOLLOWUP"`/`"A40_BACKWARD"` extend it for A40
 same Pro-tier (assembling the forward-mode brief, answering an
 interrogation-mode follow-up, and backward-mode failure-point synthesis
 — ADR-017 decision 3). Every result these produce still records
-`AgentId("A36")` / `AgentId("A40")` respectively."""
+`AgentId("A36")` / `AgentId("A40")` respectively.
+
+`"A65_AMOUNT"` extends the same convention for A65 (Normalisation Agent,
+Phase 13, ADR-020 Decision 4): the primary Flash-tier pass normalises a
+whole turn, but a genuinely ambiguous spoken amount gets one further,
+batched Pro-tier disambiguation pass with its own distinct prompt —
+"ambiguous-amount escalation only" (spec §15.11 A65). `"A68_EVALUATE"`
+extends it for A68 (Confirmation Agent, Phase 13): read-back generation
+and read-back-response semantic narrowing are two genuinely distinct
+Pro-tier jobs (`confirmation_agent.ConfirmationAgent.generate_readback`
+vs `.evaluate_response`) — the second only ever narrows an already-
+matched canonical affirmative to `False`, never the reverse (spec
+§14.6). Every result these produce still records `AgentId("A65")` /
+`AgentId("A68")` respectively — these manifest keys are prompt-loading
+details only, never agent identity."""
 
 
 class PromptNotFound(RuntimeError):

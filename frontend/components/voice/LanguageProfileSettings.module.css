@@ -1,0 +1,95 @@
+.wrapper {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-5);
+}
+
+.personPicker {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  max-width: 24rem;
+}
+
+.label {
+  font-size: 0.8125rem;
+  font-weight: 700;
+  color: var(--ink-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+.select {
+  padding: var(--space-2) var(--space-3);
+  border-radius: var(--radius-md);
+  border: 1px solid var(--ink-muted);
+  background: var(--surface-raised);
+  color: var(--ink-primary);
+  font-size: 0.9375rem;
+}
+
+.card {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.fieldset {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  border: none;
+  padding: 0;
+  margin: 0;
+}
+
+.legend {
+  font-family: var(--font-display), serif;
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--ink-primary);
+  padding: 0;
+}
+
+.checkboxLabel,
+.radioLabel {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-2);
+  color: var(--ink-secondary);
+  font-size: 0.9375rem;
+  line-height: 1.4;
+}
+
+.readOnlyField {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+.readOnlyValue {
+  margin: 0;
+  padding: var(--space-2) var(--space-3);
+  background: var(--surface-base);
+  border-radius: var(--radius-md);
+  color: var(--ink-muted);
+  font-style: italic;
+  font-size: 0.9375rem;
+}
+
+.loading {
+  color: var(--ink-muted);
+}
+
+.error {
+  margin: 0;
+  color: var(--state-danger);
+  font-size: 0.875rem;
+}
+
+.success {
+  margin: 0;
+  color: var(--state-success);
+  font-size: 0.875rem;
+  font-weight: 600;
+}

@@ -3,6 +3,7 @@ import {
   CircleCheck,
   GitBranch,
   Landmark,
+  Mic,
   Network,
   PhoneCall,
   Route,
@@ -52,6 +53,7 @@ export const NAV_SECTIONS: readonly NavSection[] = [
       { href: "/concierge", label: "Outbound Concierge", icon: PhoneCall },
       { href: "/simulator", label: "Household Simulator", icon: GitBranch },
       { href: "/council", label: "Household Council", icon: Landmark },
+      { href: "/voice", label: "Voice & Multilingual", icon: Mic },
     ],
   },
 ] as const;

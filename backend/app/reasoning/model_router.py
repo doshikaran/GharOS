@@ -245,6 +245,46 @@ PRO_TIER_ALLOWLIST: frozenset[AgentId] = frozenset(
         # own — and can only narrow an already-passing verdict, never
         # widen a failing one.
         "A55",
+        # spec §15.11 A65: Normalisation Agent (Phase 13, ADR-020
+        # Decision 4) — "ambiguous-amount disambiguation only." The
+        # primary normalisation pass (transliteration, dates, kinship
+        # tagging, unambiguous amounts) stays Flash; only a genuinely
+        # ambiguous spoken amount ("teen-chaar hazaar" — a real
+        # approximate-range idiom, not a mistranscription) escalates to
+        # one batched Pro-tier disambiguation call
+        # (`app.agents.voice.normalisation_agent`). A real-money path, so
+        # this escalation never rounds or guesses — it either resolves
+        # confidently or reports `needs_clarification`.
+        "A65",
+        # spec §21.1 "Voice interaction (in/outbound)" / spec §15.11 A67:
+        # Voice Intent Classifier (Phase 13) — classifying one of seven
+        # intent classes (capture/intention/command/query/approval/
+        # decision_trigger/correction) from a real, code-mixed household
+        # utterance is judgment, not keyword routing
+        # (`app.agents.voice.voice_intent_classifier_agent`).
+        "A67",
+        # spec §21.1 "Voice interaction (in/outbound)" / spec §15.11 A68:
+        # Confirmation Agent (Phase 13) — spec explicitly assigns
+        # Pro-tier: read-back generation must correctly phrase a
+        # normalised amount/name/date in the speaker's own language and
+        # register, and the response-evaluation semantic narrowing pass
+        # catches a negated/hedged affirmative a bare keyword match would
+        # miss. The safety-critical "silence/ambiguity is never approval"
+        # guarantee itself is structural (a real, enumerated affirmative-
+        # phrase table checked before any model call), never resting on
+        # this Pro-tier call alone
+        # (`app.agents.voice.confirmation_agent`).
+        "A68",
+        # spec §15.11 A69: Voice Response Agent (Phase 13, ADR-020
+        # Decision 4) — "Pro-tier + TTS." Generating a spoken response in
+        # the speaker's own language/register, with pacing adapted to the
+        # listener (elder mode, noisy-environment mode), is real
+        # generation judgment, not routing — matches spec's own tier
+        # assignment. A69 itself is E3's implementation
+        # (`backend/app/voice/`), but `PRO_TIER_ALLOWLIST` lives in this
+        # E2-owned module, so the entry is added here regardless of which
+        # role builds the calling agent.
+        "A69",
     )
 )
 """Agent ids permitted to request `ModelTier.PRO`.

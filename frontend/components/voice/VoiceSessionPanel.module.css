@@ -1,0 +1,15 @@
+.panel {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-5);
+}
+
+.connectionError {
+  margin: 0;
+  padding: var(--space-3) var(--space-4);
+  background: color-mix(in srgb, var(--state-danger) 10%, var(--surface-raised));
+  border: 1px solid var(--state-danger);
+  border-radius: var(--radius-md);
+  color: var(--state-danger);
+  font-size: 0.875rem;
+}

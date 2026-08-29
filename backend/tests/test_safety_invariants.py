@@ -12,7 +12,7 @@ lands, never `xfail`.
 | 5 | Financial/irreversible need approval    | Approval Gate               | REAL (Firestore, Phase 5)     |
 | 7 | No fabricated tool success               | Tool error contract         | REAL (Firestore, Phase 5)     |
 | 6 | No debate framing                       | Grep-based lint rule        | REAL (Phase 12)               |
-| 8 | Voice confers no action capability      | Voice intent routing        | skip -> Phase 13              |
+| 8 | Voice confers no action capability      | Voice intent routing        | REAL (Phase 13)               |
 
 Invariants #2 and #3 were provable against Phase 0's in-memory stub
 repositories; Phase 1 (E1) upgraded both proofs to run against the real,
@@ -27,15 +27,17 @@ every prompt `.md` under `backend/app/prompts/` (this test file and
 `backend/tests/test_council_structural_invariants.py` are themselves
 excluded — both legitimately *name* the forbidden word to define and
 enforce the rule, exactly as this very sentence and `GharOS_Build_Spec_
-v2.md` §12.2 itself must). #8 remains a tracked skip naming its correct
-future phase (Gate 5 explicitly allows this: "All eight invariants now
-real tests (6 and 8 may still be placeholders)").
+v2.md` §12.2 itself must). Phase 13 (E3) upgrades #8 to a real, three-part
+structural proof (see `TestInvariant8VoiceConfersNoActionCapability`
+below) — the same "tracked skip, then closed for real by that phase's
+own lead" pattern #6 followed in Phase 12.
 """
 
 from __future__ import annotations
 
 from dataclasses import dataclass
 from datetime import UTC, datetime
+from pathlib import Path
 from types import SimpleNamespace
 
 import pytest
@@ -73,6 +75,7 @@ from app.reasoning.gemini_client import GeminiClient
 from app.reasoning.risk_policy import ActionTypes
 from app.tools.errors import GatedToolRegistrationDenied
 from app.tools.registry import ToolRegistry
+from app.voice.tts_client import TtsAudio
 
 from ._fake_agent_tool_registration import attempt_gated_registration
 from ._fake_idempotency_store import InMemoryIdempotencyStore
@@ -516,7 +519,193 @@ class TestInvariant7NoFabricatedToolSuccess:
             assert result.ok is not True
 
 
-@pytest.mark.skip(reason="implemented in Phase 13")
-def test_invariant_8_voice_confers_no_action_capability() -> None:
+class TestInvariant8VoiceConfersNoActionCapability:
     """Voice confers no action capability beyond what was pre-authorised —
-    enforced by voice intent routing (Phase 13)."""
+    enforced by voice intent routing (Phase 13, ADR-020 Decision 5). Real,
+    repo-wide structural proof, in the same family as invariant 6's own
+    repo-wide grep and Phase 7/10/12's arbitration-import boundary tests
+    — closed for real this phase by E3 (Phase 13's lead), the same way
+    invariant 6 was closed for real by E2 in Phase 12.
+
+    Three independent pieces, matching ADR-020 Decision 5 exactly:
+
+    1. No module under `backend/app/agents/voice/` (A64/A65/A67/A68, E2)
+       or `backend/app/voice/` EXCEPT `session_manager.py`/`routing.py`/
+       `session_types.py` (A62/A63/A66/A69, E3) imports `app.arbitration`
+       or a gated-tool name from `contracts.tools` — reproduced here
+       directly (not merely "see test_voice_agents_arbitration_
+       boundary.py / test_voice_infra_arbitration_boundary.py") so this
+       invariant's own proof does not silently go stale if either of
+       those dedicated suites is ever deleted.
+    2. `routing.py` (A62) IS the real, deliberate exception — a sanity
+       check that this invariant's own exclusion list still names a
+       module that genuinely imports `app.arbitration` (the R-tier gating
+       logic was deliberately split out of `session_manager.py` into its
+       own file, `routing.py`, for file-size discipline and auditability
+       — see that module's own docstring), not a module that happens to
+       import nothing at all (which would make check #1 vacuously true
+       for the wrong reason).
+    3. The safety-critical behaviour itself: constructing a real
+       `VoiceIntentResult` at `risk_tier=R3_EXPLICIT_APPROVE` plus a
+       maximally-affirmative `ConfirmationResult` and a real
+       `GatedExecutionRequest`, then asserting `ApprovalGate.
+       approve_and_execute` is never called — the concrete "R3 is never
+       approved by voice alone" proof. See `test_voice_session_manager.py
+       ::TestR3NeverApprovedByVoiceAlone` for the fuller suite this
+       summarizes the headline claim of.
+    """
+
+    _VOICE_REASONING_ROOT = Path(__file__).resolve().parent.parent / "app" / "agents" / "voice"
+    _VOICE_INFRA_ROOT = Path(__file__).resolve().parent.parent / "app" / "voice"
+    _INFRA_EXCLUDED = {"session_manager.py", "routing.py", "session_types.py", "__init__.py"}
+    _FORBIDDEN_IMPORT_SUBSTRINGS = (
+        "app.arbitration",
+        "arbitration.actions",
+        "arbitration.gated_tool",
+        "arbitration.approval_gate",
+    )
+
+    def _scanned_voice_files(self) -> list[Path]:
+        reasoning_files = [
+            p for p in self._VOICE_REASONING_ROOT.glob("*.py") if "__pycache__" not in p.parts
+        ]
+        infra_files = [
+            p
+            for p in self._VOICE_INFRA_ROOT.glob("*.py")
+            if "__pycache__" not in p.parts and p.name not in self._INFRA_EXCLUDED
+        ]
+        return sorted(reasoning_files + infra_files)
+
+    def test_no_voice_reasoning_or_infra_agent_imports_arbitration(self) -> None:
+        import ast
+
+        violations: list[str] = []
+        for path in self._scanned_voice_files():
+            tree = ast.parse(path.read_text(encoding="utf-8"), filename=str(path))
+            for node in ast.walk(tree):
+                module_name: str | None = None
+                if isinstance(node, ast.Import):
+                    for alias in node.names:
+                        module_name = alias.name
+                        if any(s in module_name for s in self._FORBIDDEN_IMPORT_SUBSTRINGS):
+                            violations.append(f"{path.name} imports {module_name!r}")
+                elif isinstance(node, ast.ImportFrom) and node.module is not None:
+                    module_name = node.module
+                    if any(s in module_name for s in self._FORBIDDEN_IMPORT_SUBSTRINGS):
+                        violations.append(f"{path.name} imports {module_name!r}")
+        assert violations == [], (
+            "A64/A65/A67/A68 (E2) and A63/A66/A69 (E3) must have no import path to "
+            "the arbitration/action-execution layer:\n" + "\n".join(violations)
+        )
+
+    def test_routing_module_is_the_real_single_exception(self) -> None:
+        routing_path = self._VOICE_INFRA_ROOT / "routing.py"
+        assert routing_path.is_file()
+        source = routing_path.read_text(encoding="utf-8")
+        assert "app.arbitration" in source, (
+            "routing.py (A62) is supposed to be the ONE module that legitimately holds an "
+            "ApprovalGate reference (ADR-020 Decision 5) — it doesn't appear to import "
+            "app.arbitration at all, which would make check #1 above vacuous."
+        )
+
+    def test_r3_intent_confirmed_true_never_reaches_approve_and_execute(self) -> None:
+        from contracts.tools import ApprovalGatedTool
+
+        from app.agents.intake.entity_resolution import EntityResolutionAgent
+        from app.agents.voice.confirmation_agent import ConfirmationAgent
+        from app.agents.voice.language_script_identifier_agent import LanguageScriptIdentifierAgent
+        from app.agents.voice.normalisation_agent import NormalisationAgent
+        from app.agents.voice.types import ConfirmationResult, VoiceIntentClass, VoiceIntentResult
+        from app.agents.voice.voice_intent_classifier_agent import VoiceIntentClassifierAgent
+        from app.voice.session_manager import VoiceSessionManager
+        from app.voice.session_types import ApprovalContext, GatedExecutionRequest
+        from app.voice.speaker_identification import SpeakerIdentificationAgent
+        from app.voice.speech_recognition_handler import SpeechRecognitionHandler
+        from app.voice.voice_response_agent import VoiceResponseAgent
+
+        from ._fake_approval_gate import FakeApprovalGate
+        from ._fake_graph_writer import FakeGraphWriter
+        from ._fake_raw_payload_store import FakeRawPayloadStore
+        from ._gemini_fakes import FakeModels, fake_router
+
+        idle_client = GeminiClient(router=fake_router(FakeModels(texts=["{}"])))
+        gate = FakeApprovalGate()
+        manager = VoiceSessionManager(
+            speech_recognition=SpeechRecognitionHandler(gemini_client=idle_client),
+            speaker_identification=SpeakerIdentificationAgent(gemini_client=idle_client),
+            language_identifier=LanguageScriptIdentifierAgent(gemini_client=idle_client),
+            normalisation=NormalisationAgent(gemini_client=idle_client),
+            entity_resolution=EntityResolutionAgent(gemini_client=idle_client),
+            intent_classifier=VoiceIntentClassifierAgent(gemini_client=idle_client),
+            confirmation=ConfirmationAgent(gemini_client=idle_client),
+            response_agent=VoiceResponseAgent(gemini_client=idle_client, tts_client=_IdleTtsClient()),
+            approval_gate=gate,
+            graph_writer=FakeGraphWriter(),
+            raw_payload_store=FakeRawPayloadStore(),
+        )
+
+        class _FakeGatedTool(ApprovalGatedTool):
+            def __init__(self) -> None:
+                self.name = "fake_gated_tool"
+                self.tier: PermissionTier = PermissionTier.T6_FINANCIAL
+                self.bounds: dict[str, object] = {}
+
+            def invoke_idempotent(self, idempotency_key: str, **kwargs: object) -> ActionResult[object]:
+                raise AssertionError("must never be invoked — this IS the invariant under test")
+
+        r3_intent = VoiceIntentResult(
+            turn_id="invariant-8-turn",
+            intent=VoiceIntentClass.APPROVAL,
+            risk_tier=RiskTier.R3_EXPLICIT_APPROVE,
+            target_summary="pay the staff salary",
+            requires_confirmation=True,
+            reasoning="a real money-movement request",
+            confidence=0.98,
+            model_tier="pro",
+            prompt_version="v1",
+            invocation_id="inv-1",
+            classified_at=datetime.now(UTC),
+        )
+        maximally_affirmative = ConfirmationResult(
+            turn_id="invariant-8-turn",
+            confirmed=True,
+            reason="explicit, unambiguous, repeated affirmative",
+            matched_affirmative_phrase="haan kar do",
+            model_tier="pro",
+            prompt_version="v1",
+            invocation_id="inv-2",
+            evaluated_at=datetime.now(UTC),
+        )
+        gated_execution = GatedExecutionRequest(
+            tool=_FakeGatedTool(), invoke_kwargs={}, approved_by_person_id=NodeId("person-1")
+        )
+
+        outcome = manager._router.route(  # noqa: SLF001 — this IS the safety-critical method under test
+            r3_intent,
+            confirmation=maximally_affirmative,
+            approval_context=ApprovalContext(
+                action_type="voice_pay_salary",
+                entity_id="staff-1",
+                cycle="2026-08",
+                target_node_id=NodeId("ledger-event-1"),
+            ),
+            gated_execution=gated_execution,
+            # a real, IDENTIFIED speaker — this test is about R3, not A66's unknown-speaker gate
+            speaker_person_id=NodeId("person-1"),
+        )
+
+        assert outcome.kind == "approval_pending"
+        assert len(gate.request_approval_calls) == 1
+        assert gate.approve_and_execute_calls == [], (
+            "safety invariant 8 violated: an R3-tier voice intent reached "
+            "ApprovalGate.approve_and_execute off a voice confirmation alone"
+        )
+
+
+class _IdleTtsClient:
+    """A minimal TTS stand-in for `TestInvariant8VoiceConfersNoActionCapability`
+    — never actually invoked, since `_route` (the method under test) never
+    reaches A69's response generation."""
+
+    def synthesize(self, *, text: str, voice_name: str, language_code: str) -> TtsAudio:
+        raise AssertionError("must never be invoked by this invariant's own routing-only test")

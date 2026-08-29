@@ -1,0 +1,41 @@
+.liveRegion {
+  display: block;
+}
+
+.card {
+  border-color: var(--accent-brass);
+  border-width: 2px;
+}
+
+.readback {
+  margin: 0 0 var(--space-3) 0;
+  font-family: var(--font-display), serif;
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: var(--ink-primary);
+  line-height: 1.4;
+}
+
+.instruction {
+  margin: 0;
+  color: var(--ink-secondary);
+  font-size: 0.9375rem;
+  line-height: 1.5;
+}
+
+.moneyNotice {
+  margin: var(--space-3) 0 0 0;
+  padding: var(--space-3) var(--space-4);
+  background: color-mix(in srgb, var(--state-warning) 12%, var(--surface-raised));
+  border: 1px solid var(--state-warning);
+  border-radius: var(--radius-md);
+  color: var(--ink-primary);
+  font-size: 0.9375rem;
+  line-height: 1.5;
+}
+
+.approvalsLink {
+  color: var(--royal-primary);
+  font-weight: 700;
+  text-decoration: underline;
+}

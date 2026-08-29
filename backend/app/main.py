@@ -18,6 +18,17 @@ lifespan builds one `firestore.Client` + one change-stream instance,
 starts its Firestore listeners, and stores both on `app.state` for
 `app.api.graph_router`'s dependency providers to read.
 
+Phase 13 adds the inbound-voice router (`app.api.voice_router`, E3 —
+PHASES.md Phase 13, ADR-020 Decision 3): a real WebSocket session endpoint
+plus the voiceprint-enrollment and per-person language-profile REST
+endpoints. It needs no CORS `allow_methods` change here — `POST`/`PATCH`
+already require the frontend's own explicit fetch configuration, and a
+WebSocket upgrade is not subject to `CORSMiddleware`'s `allow_methods` at
+all (a browser's WebSocket handshake uses `Origin` checking, not CORS
+preflight) — no origin restriction is added for it this phase, matching
+this module's own stated local-dev-first posture for every other
+non-GET-eligible surface introduced so far.
+
 This module stays thin; it wires, it does not implement.
 """
 
@@ -32,6 +43,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from app.api.debug import router as debug_router
 from app.api.graph_router import router as graph_router
 from app.api.pubsub_receiver import router as pubsub_router
+from app.api.voice_router import router as voice_router
 from app.graph.change_stream import FirestoreGraphChangeStream
 from app.persistence.firestore_client import create_firestore_client
 from app.settings import get_settings
@@ -76,6 +88,7 @@ if _allowed_origins:
 app.include_router(pubsub_router)
 app.include_router(debug_router)
 app.include_router(graph_router)
+app.include_router(voice_router)
 
 
 @app.get("/health")
