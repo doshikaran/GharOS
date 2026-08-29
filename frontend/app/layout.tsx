@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Fraunces, Inter } from "next/font/google";
+import { Fraunces, Instrument_Serif, Inter } from "next/font/google";
 import { ThemeProvider } from "next-themes";
 import "./globals.css";
 
@@ -15,6 +15,17 @@ const inter = Inter({
   subsets: ["latin"],
 });
 
+// 2026-08-29 royal redesign (docs/design/2026-08-29-redesign-brief.md):
+// the accent serif for hero/pull-quote/landing-page storytelling moments
+// only — bound to --font-accent-family, which tokens.css's --font-accent
+// falls back to. Instrument Serif only ships weight 400, normal + italic.
+const instrumentSerif = Instrument_Serif({
+  variable: "--font-accent-family",
+  subsets: ["latin"],
+  weight: ["400"],
+  style: ["normal", "italic"],
+});
+
 export const metadata: Metadata = {
   title: "GharOS",
   description:
@@ -25,7 +36,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
     <html
       lang="en"
-      className={`${fraunces.variable} ${inter.variable} h-full`}
+      className={`${fraunces.variable} ${inter.variable} ${instrumentSerif.variable} h-full`}
       suppressHydrationWarning
     >
       <body className="min-h-full flex flex-col antialiased">

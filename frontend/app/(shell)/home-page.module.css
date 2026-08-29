@@ -1,12 +1,69 @@
+/**
+ * The landing page's own visual identity (2026-08-29 royal redesign,
+ * docs/design/2026-08-29-redesign-brief.md) — the graph-paper grid texture
+ * and the margin-rule motif get to fully express themselves here. No
+ * other page in the app carries the full-strength version of either; the
+ * app shell's chrome carries a much subtler echo (see
+ * components/shell/NavSidebar.module.css / TopBar.module.css) and dense
+ * subsystem pages carry neither, by design (the brief's own instruction:
+ * a calm, low-texture surface so dense real data stands out).
+ */
+
 .page {
-  flex: 1;
+  position: relative;
   display: flex;
   flex-direction: column;
-  align-items: center;
-  justify-content: center;
+  gap: var(--space-9);
+  padding: var(--space-8) var(--space-5) var(--space-9);
+  padding-left: calc(var(--space-9) + var(--space-4));
+  background-color: var(--surface-base);
+  background-image: linear-gradient(var(--paper-grid-line) 1px, transparent 1px),
+    linear-gradient(90deg, var(--paper-grid-line) 1px, transparent 1px);
+  background-size: var(--paper-grid-size) var(--paper-grid-size);
+}
+
+/* The margin rule itself — a single vertical ledger-red line down the
+ * page, exactly as a real ruled ledger page carries one. Decorative/
+ * structural only (tokens.css's own comment on --margin-rule: never a
+ * status colour), so it is intentionally not held to a text-contrast bar. */
+.page::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: var(--space-8);
+  width: 2px;
+  background: var(--margin-rule);
+  opacity: 0.55;
+}
+
+@media (max-width: 640px) {
+  .page {
+    padding-left: var(--space-6);
+  }
+
+  .page::before {
+    left: var(--space-4);
+    opacity: 0.35;
+  }
+}
+
+.section {
+  display: flex;
+  flex-direction: column;
   gap: var(--space-6);
-  padding: var(--space-8) var(--space-5);
-  text-align: center;
+  max-width: 56rem;
+}
+
+/* ---------------------------------------------------------------- *
+ * 1. HERO
+ * ---------------------------------------------------------------- */
+.hero {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  max-width: 42rem;
+  padding-top: var(--space-6);
 }
 
 .eyebrow {
@@ -17,38 +74,231 @@
   font-size: 0.8125rem;
 }
 
-.title {
+.heroTitle {
   font-family: var(--font-display), serif;
-  font-size: clamp(2.25rem, 5vw, 3.5rem);
+  font-size: clamp(2.5rem, 6vw, 4.25rem);
   font-weight: 600;
+  line-height: 1.08;
   color: var(--ink-primary);
   margin: 0;
-  max-width: 40rem;
 }
 
-.subtitle {
+.heroSubtitle {
+  font-family: var(--font-accent), serif;
+  font-style: italic;
+  font-size: clamp(1.375rem, 2.5vw, 1.75rem);
+  color: var(--royal-primary);
+  margin: 0;
+}
+
+.heroBody {
   color: var(--ink-secondary);
-  max-width: 34rem;
   font-size: 1.0625rem;
+  line-height: 1.65;
+  max-width: 38rem;
+  margin: 0;
+}
+
+.heroActions {
+  display: flex;
+  gap: var(--space-3);
+  flex-wrap: wrap;
+  margin-top: var(--space-2);
+}
+
+/* ---------------------------------------------------------------- *
+ * 2. THE PAIN
+ * ---------------------------------------------------------------- */
+.leadLine {
+  font-family: var(--font-display), serif;
+  font-size: clamp(1.25rem, 2.2vw, 1.5rem);
+  line-height: 1.5;
+  color: var(--ink-primary);
+  max-width: 48rem;
+  margin: 0;
+}
+
+.vignetteGrid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: var(--space-5);
+}
+
+@media (max-width: 800px) {
+  .vignetteGrid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.vignette {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  padding: var(--space-4);
+  border-radius: var(--radius-lg);
+  background: var(--surface-raised);
+  box-shadow: var(--elevation-1);
+}
+
+.vignetteTitle {
+  font-family: var(--font-display), serif;
+  font-size: 1.0625rem;
+  font-weight: 600;
+  color: var(--royal-primary);
+  margin: 0;
+}
+
+.vignetteBody {
+  color: var(--ink-secondary);
+  font-size: 0.9375rem;
   line-height: 1.6;
   margin: 0;
 }
 
-.actions {
-  display: flex;
-  gap: var(--space-3);
-  flex-wrap: wrap;
-  justify-content: center;
+/* ---------------------------------------------------------------- *
+ * Section headline/body — shared by sections 3 and 5
+ * ---------------------------------------------------------------- */
+.sectionHeadline {
+  font-family: var(--font-display), serif;
+  font-size: clamp(1.75rem, 3.5vw, 2.25rem);
+  font-weight: 600;
+  color: var(--ink-primary);
+  margin: 0;
+}
+
+.sectionBody {
+  color: var(--ink-secondary);
+  font-size: 1.0625rem;
+  line-height: 1.65;
+  max-width: 44rem;
+  margin: 0;
 }
 
 .badgeRow {
   display: flex;
   gap: var(--space-2);
-  margin-top: var(--space-3);
+  flex-wrap: wrap;
 }
 
-.footer {
-  padding: var(--space-5);
+/* ---------------------------------------------------------------- *
+ * 4. THE JOURNEY — nine scroll-revealed chapters
+ * ---------------------------------------------------------------- */
+.journeyList {
+  list-style: none;
+  margin: 0;
+  padding: 0;
   display: flex;
-  justify-content: center;
+  flex-direction: column;
+  gap: var(--space-6);
+  max-width: 44rem;
+}
+
+.chapter {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  column-gap: var(--space-4);
+  row-gap: var(--space-1);
+  align-items: baseline;
+  padding-left: var(--space-4);
+  border-left: 2px solid var(--royal-soft);
+}
+
+.chapterNumber {
+  grid-row: 1 / 3;
+  font-family: var(--font-accent), serif;
+  font-style: italic;
+  font-size: 1.75rem;
+  color: var(--accent-brass);
+  line-height: 1;
+}
+
+.chapterName {
+  font-family: var(--font-display), serif;
+  font-size: 1.1875rem;
+  font-weight: 600;
+  color: var(--ink-primary);
+  margin: 0;
+}
+
+.chapterBody {
+  grid-column: 2;
+  color: var(--ink-secondary);
+  font-size: 0.9375rem;
+  line-height: 1.6;
+  margin: 0;
+}
+
+/* ---------------------------------------------------------------- *
+ * 5. THE PROOF
+ * ---------------------------------------------------------------- */
+.stackStrip {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+}
+
+.stackItem {
+  padding: var(--space-2) var(--space-4);
+  border-radius: var(--radius-full);
+  border: 1px solid var(--royal-soft);
+  color: var(--royal-primary);
+  font-size: 0.875rem;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.invariantList {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  max-width: 42rem;
+}
+
+.invariantItem {
+  display: flex;
+  align-items: baseline;
+  gap: var(--space-3);
+  padding: var(--space-2) 0;
+  border-bottom: 1px solid var(--royal-soft);
+  color: var(--ink-primary);
+  font-size: 0.9375rem;
+}
+
+.invariantItem:last-child {
+  border-bottom: none;
+}
+
+.invariantNumber {
+  font-family: var(--font-accent), serif;
+  font-style: italic;
+  font-size: 1.125rem;
+  color: var(--accent-brass);
+  min-width: 1.5rem;
+}
+
+/* ---------------------------------------------------------------- *
+ * 6. CLOSING CTA
+ * ---------------------------------------------------------------- */
+.closing {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--space-5);
+  max-width: 40rem;
+  padding: var(--space-7) 0 var(--space-8);
+  border-top: 1px solid var(--royal-soft);
+}
+
+.closingHeadline {
+  font-family: var(--font-display), serif;
+  font-size: clamp(1.75rem, 4vw, 2.5rem);
+  font-weight: 600;
+  color: var(--ink-primary);
+  margin: 0;
 }

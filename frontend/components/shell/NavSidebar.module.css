@@ -4,7 +4,15 @@
   height: 100%;
   width: 18rem;
   flex-shrink: 0;
-  background: var(--surface-raised);
+  /* 2026-08-29 royal redesign: a subtle graph-paper texture in the chrome,
+     so the "ledger" feeling is present everywhere the product is used, not
+     just on the marketing page (redesign brief, "where they actually
+     appear") — background-color first so this degrades gracefully if
+     background-image is ever stripped, then the grid layered on top. */
+  background-color: var(--surface-raised);
+  background-image: linear-gradient(var(--paper-grid-line) 1px, transparent 1px),
+    linear-gradient(90deg, var(--paper-grid-line) 1px, transparent 1px);
+  background-size: var(--paper-grid-size) var(--paper-grid-size);
   border-right: 1px solid var(--royal-soft);
   padding: var(--space-4) var(--space-3);
   gap: var(--space-5);
@@ -43,7 +51,12 @@
 }
 
 .sectionTitle {
-  padding: 0 var(--space-2);
+  /* Light-touch signature detail (redesign brief, item 6): a thin
+     margin-rule accent, the same ledger-margin motif the landing page
+     uses at full expression, echoed here as a single quiet border rather
+     than a layout change — never a status colour, purely structural. */
+  padding: 0 var(--space-2) 0 calc(var(--space-2) - 2px);
+  border-left: 2px solid var(--margin-rule);
   font-size: 0.6875rem;
   font-weight: 700;
   letter-spacing: 0.08em;

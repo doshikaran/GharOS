@@ -1,0 +1,29 @@
+/**
+ * Marketing/landing-only reveal animation (--reveal-* tokens,
+ * docs/design/2026-08-29-redesign-brief.md). Ordinary product UI never
+ * imports this — it stays on the existing --motion-* scale.
+ */
+.reveal {
+  opacity: 0;
+  transform: translateY(var(--reveal-distance));
+  transition: opacity var(--reveal-duration) var(--reveal-ease),
+    transform var(--reveal-duration) var(--reveal-ease);
+  will-change: opacity, transform;
+}
+
+.reveal[data-visible="true"] {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* Reduced motion: no reveal animation, content just appears — always
+ * rendered at its final, fully-visible state regardless of the
+ * IntersectionObserver's own `data-visible` value (same convention as
+ * LiveCallTranscript.module.css's `animation: none` override). */
+@media (prefers-reduced-motion: reduce) {
+  .reveal {
+    opacity: 1;
+    transform: none;
+    transition: none;
+  }
+}

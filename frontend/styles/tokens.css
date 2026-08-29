@@ -25,22 +25,36 @@
  * for small-text contrast and must not carry small foreground text; use
  * the non-muted sibling or `--ink-*` for text instead.
  *
+ * 2026-08-29 royal redesign (docs/design/2026-08-29-redesign-brief.md):
+ * `--surface-base/-raised/-overlay` changed (lighter/crisper ivory in
+ * light mode, true near-black in dark mode). Every ratio below was
+ * recomputed against the new surface values (WCAG 2.1 relative
+ * luminance, all three surfaces checked, not just `--surface-base`) —
+ * every one improved or held; nothing dropped below 4.5:1, so no
+ * foreground colour itself changed. `--royal-*`, `--accent-brass*`,
+ * `--state-*`, `--derivation-*` and `--edge-conflict` values are
+ * otherwise untouched by this pass.
+ *
  * No component may use a raw hex value. Every colour a component needs
  * must come from this file.
  */
 
 :root {
   /* ---------------------------------------------------------------- *
-   * SURFACES — warm parchment, light theme
+   * SURFACES — "fine stationery" ivory, light theme (2026-08-29 royal
+   * redesign; replaces the old warm-parchment beige — lighter, crisper,
+   * still warm rather than clinical white).
    * ---------------------------------------------------------------- */
-  --surface-base: #f1ecdf;
-  --surface-raised: #f8f5ed;
-  --surface-overlay: #fcfbf7;
+  --surface-base: #f9f7f1;
+  --surface-raised: #fdfcf8;
+  --surface-overlay: #ffffff;
 
   /* ---------------------------------------------------------------- *
    * INK — warm near-black text on parchment
-   * Contrast vs --surface-base: primary 13.7:1, secondary 7.5:1,
-   * muted 4.7:1 (all clear AA 4.5:1 for normal text).
+   * Contrast vs --surface-base: primary 15.1:1, secondary 8.2:1,
+   * muted 5.2:1 (all clear AA 4.5:1 for normal text; recomputed
+   * 2026-08-29 against the lighter surface-base above — was 13.7:1 /
+   * 7.5:1 / 4.7:1, all improved).
    * ---------------------------------------------------------------- */
   --ink-primary: #291f14;
   --ink-secondary: #594736;
@@ -48,9 +62,9 @@
 
   /* ---------------------------------------------------------------- *
    * ROYAL — deep lapis blue
-   * royal-primary vs surface-base: 9.0:1. royal-deep is a fill-only
-   * near-navy (13.1:1, but intended as a background, not text-on-text).
-   * royal-soft is a fill/tint (3.6:1) — background use only.
+   * royal-primary vs surface-base: 9.9:1 (was 9.0:1). royal-deep is a
+   * fill-only near-navy, intended as a background, not text-on-text.
+   * royal-soft is a fill/tint — background use only.
    * ---------------------------------------------------------------- */
   --royal-primary: #223c77;
   --royal-deep: #122349;
@@ -62,8 +76,8 @@
 
   /* ---------------------------------------------------------------- *
    * ACCENT — antique brass
-   * accent-brass vs surface-base: 5.1:1. accent-brass-muted is a
-   * fill/tint token (chips, subtle borders) — background use only.
+   * accent-brass vs surface-base: 5.7:1 (was 5.1:1). accent-brass-muted
+   * is a fill/tint token (chips, subtle borders) — background use only.
    * ---------------------------------------------------------------- */
   --accent-brass: #7b5e24;
   --accent-brass-muted: #c2a770;
@@ -74,10 +88,10 @@
   /* ---------------------------------------------------------------- *
    * STATE — all verified >=4.5:1 vs --surface-base
    * ---------------------------------------------------------------- */
-  --state-success: #27683f; /* 5.7:1 */
-  --state-warning: #8b5218; /* 5.4:1 */
-  --state-danger: #82262e; /* 7.9:1 */
-  --state-info: #25617e; /* 5.8:1 */
+  --state-success: #27683f; /* 6.3:1 (was 5.7:1) */
+  --state-warning: #8b5218; /* 5.9:1 (was 5.4:1) */
+  --state-danger: #82262e; /* 8.7:1 (was 7.9:1) */
+  --state-info: #25617e; /* 6.3:1 (was 5.8:1) */
 
   /* ---------------------------------------------------------------- *
    * DERIVATION — load-bearing, not decorative. These mark
@@ -87,15 +101,61 @@
    * border convention (see DerivationBadge) reinforces the difference
    * for colour-blind users. All verified >=4.5:1 vs --surface-base.
    * ---------------------------------------------------------------- */
-  --derivation-extracted: #21635e; /* teal — 5.9:1 — solid border */
-  --derivation-inferred: #5a3a88; /* violet — 7.4:1 — dashed border */
-  --derivation-ambiguous: #7e3064; /* magenta — 7.1:1 — dotted border */
+  --derivation-extracted: #21635e; /* teal — 6.5:1 (was 5.9:1) — solid border */
+  --derivation-inferred: #5a3a88; /* violet — 8.2:1 (was 7.4:1) — dashed border */
+  --derivation-ambiguous: #7e3064; /* magenta — 7.9:1 (was 7.1:1) — dotted border */
 
   /* The red that matters — reserved for conflict edges in the graph.
      Deliberately a different hue register (vivid red-orange) from
      --state-danger (brick red) so a conflict edge never reads as "just
-     another error colour." Verified 5.0:1 vs --surface-base. */
+     another error colour." Verified 5.5:1 vs --surface-base (was 5.0:1). */
   --edge-conflict: #bb301b;
+
+  /* ---------------------------------------------------------------- *
+   * PAPER TEXTURE + MARGIN RULE — 2026-08-29 royal redesign. The
+   * literal callback to "a ledger and archive that happens to think":
+   * a faint graph-paper grid and a red margin rule, exactly as a real
+   * ledger page carries. Applied only on the landing page and, more
+   * subtly, in the app shell's own chrome — never on a dense subsystem
+   * page's own data surface (graph canvas, ledger table, cost matrix).
+   * ---------------------------------------------------------------- */
+  /* A faint royal-blue grid line, low enough opacity to read as
+     texture, never as UI chrome. */
+  --paper-grid-line: rgba(34, 60, 119, 0.08);
+  --paper-grid-size: 28px;
+
+  /* A deep, classic ledger red — richer/more restrained than a bright
+     red, matching "royal" rather than "alert." Deliberately a distinct
+     hue register from --state-danger and --edge-conflict: this is
+     decorative/structural, never a status colour — must never be
+     reused for an error or a conflict. Not a small-text foreground
+     token (used only as a rule/border), so it is not held to the
+     4.5:1 text-contrast bar the tokens above are. */
+  --margin-rule: #8a2332;
+
+  /* ---------------------------------------------------------------- *
+   * FONT-ACCENT — elegant accent serif, 2026-08-29 royal redesign.
+   * Hero headlines / pull-quotes / landing-page storytelling moments
+   * ONLY — never body copy, never dense UI text. `--font-display`
+   * (Fraunces) and `--font-body` (Inter) are unchanged and keep their
+   * existing roles everywhere else. `--font-accent-family` is bound in
+   * `app/layout.tsx` by `next/font/google` (Instrument Serif), the same
+   * pattern Fraunces/Inter already use.
+   * ---------------------------------------------------------------- */
+  --font-accent: var(--font-accent-family, "Instrument Serif", var(--font-display));
+
+  /* ---------------------------------------------------------------- *
+   * REVEAL MOTION — 2026-08-29 royal redesign. For marketing/landing
+   * surfaces ONLY (the scroll-revealed journey chapters on the new
+   * landing page). The existing --motion-* tokens above are unchanged
+   * and still govern ordinary UI transitions (buttons, panels, the
+   * approval queue, etc) — those stay quick and quiet by design; this
+   * is the one place "more animation" is deliberately allowed to live.
+   * ---------------------------------------------------------------- */
+  --reveal-duration: 640ms;
+  --reveal-stagger: 90ms;
+  --reveal-distance: 24px;
+  --reveal-ease: cubic-bezier(0.16, 1, 0.3, 1);
 
   /* ---------------------------------------------------------------- *
    * SPACING — 4px base unit
@@ -152,44 +212,59 @@
  * dark surfaces, not derived by mechanically flipping the light values.
  * ==================================================================== */
 [data-theme="dark"] {
-  /* SURFACES — deep warm ink */
-  --surface-base: #1f1a14;
-  --surface-raised: #2d261f;
-  --surface-overlay: #383029;
+  /* SURFACES — true near-black (2026-08-29 royal redesign; replaces the
+     old brownish-ink dark, which read muddy next to true near-black). */
+  --surface-base: #0c0a08;
+  --surface-raised: #17130f;
+  --surface-overlay: #211b15;
 
   /* INK — warm parchment text on ink
-     Contrast vs --surface-base: primary 14.9:1, secondary 11.0:1,
-     muted 6.2:1. */
+     Contrast vs --surface-base: primary 17.1:1, secondary 12.5:1,
+     muted 7.1:1 (recomputed 2026-08-29 against the new near-black
+     surface-base — was 14.9:1 / 11.0:1 / 6.2:1, all improved). */
   --ink-primary: #f4eee1;
   --ink-secondary: #d8cdb6;
   --ink-muted: #a79981;
 
   /* ROYAL — lighter lapis so it reads against dark ink; royal-primary
-     vs surface-base: 5.0:1. royal-deep / royal-soft are fill-only. */
+     vs surface-base: 5.8:1 (was 5.0:1). royal-deep / royal-soft are
+     fill-only. */
   --royal-primary: #6989d3;
   --royal-deep: #335299;
   --royal-soft: #324267;
   --on-royal: #1f1a14;
 
-  /* ACCENT — candlelight brass; accent-brass vs surface-base: 8.8:1.
-     accent-brass-muted is a fill/tint token, background use only. */
+  /* ACCENT — candlelight brass; accent-brass vs surface-base: 10.1:1
+     (was 8.8:1). accent-brass-muted is a fill/tint token, background
+     use only. */
   --accent-brass: #ddb35f;
   --accent-brass-muted: #8a7242;
   --on-brass: #1f1a14;
 
   /* STATE — all verified >=4.5:1 vs --surface-base */
-  --state-success: #69bf88; /* 7.7:1 */
-  --state-warning: #df9949; /* 7.2:1 */
-  --state-danger: #d8646e; /* 4.9:1 */
-  --state-info: #61acd1; /* 6.9:1 */
+  --state-success: #69bf88; /* 8.9:1 (was 7.7:1) */
+  --state-warning: #df9949; /* 8.3:1 (was 7.2:1) */
+  --state-danger: #d8646e; /* 5.6:1 (was 4.9:1) */
+  --state-info: #61acd1; /* 7.8:1 (was 6.9:1) */
 
   /* DERIVATION — all verified >=4.5:1 vs --surface-base */
-  --derivation-extracted: #59c0b7; /* teal — 7.9:1 */
-  --derivation-inferred: #a789d2; /* violet — 5.9:1 */
-  --derivation-ambiguous: #ce7eb3; /* magenta — 6.0:1 */
+  --derivation-extracted: #59c0b7; /* teal — 9.1:1 (was 7.9:1) */
+  --derivation-inferred: #a789d2; /* violet — 6.7:1 (was 5.9:1) */
+  --derivation-ambiguous: #ce7eb3; /* magenta — 6.8:1 (was 6.0:1) */
 
-  /* Edge conflict red — verified 5.1:1 vs --surface-base */
+  /* Edge conflict red — verified 5.8:1 vs --surface-base (was 5.1:1) */
   --edge-conflict: #eb5d47;
+
+  /* Margin rule, dark theme: warmed/lightened so it stays legible and
+     rich against near-black rather than reading as pure alarm-red.
+     Same distinct-hue-register rule as the light value above — never
+     reused as a status colour. */
+  --margin-rule: #c9605a;
+
+  /* Dark theme reuses --accent-brass's own hue for the paper-grid
+     texture (a faint brass line) rather than introducing a seventh
+     colour family. */
+  --paper-grid-line: rgba(221, 179, 95, 0.08);
 
   /* Elevation shadows are darker/deeper against ink surfaces */
   --elevation-1: 0 1px 2px rgba(0, 0, 0, 0.4), 0 1px 1px rgba(0, 0, 0, 0.3);

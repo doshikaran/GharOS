@@ -6,7 +6,12 @@
   flex-shrink: 0;
   padding: 0 var(--space-5);
   border-bottom: 1px solid var(--royal-soft);
-  background: var(--surface-raised);
+  /* 2026-08-29 royal redesign: same subtle graph-paper texture as
+     NavSidebar.module.css — see that file's comment for the rationale. */
+  background-color: var(--surface-raised);
+  background-image: linear-gradient(var(--paper-grid-line) 1px, transparent 1px),
+    linear-gradient(90deg, var(--paper-grid-line) 1px, transparent 1px);
+  background-size: var(--paper-grid-size) var(--paper-grid-size);
 }
 
 .toggle {
