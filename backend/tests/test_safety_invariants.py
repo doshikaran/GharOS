@@ -11,7 +11,7 @@ lands, never `xfail`.
 | 1 | Money reasoners hold no money tools     | Tool registration           | REAL (Phase 5)                |
 | 5 | Financial/irreversible need approval    | Approval Gate               | REAL (Firestore, Phase 5)     |
 | 7 | No fabricated tool success               | Tool error contract         | REAL (Firestore, Phase 5)     |
-| 6 | No debate framing                       | Code review + lint rule     | skip -> Phase 12              |
+| 6 | No debate framing                       | Grep-based lint rule        | REAL (Phase 12)               |
 | 8 | Voice confers no action capability      | Voice intent routing        | skip -> Phase 13              |
 
 Invariants #2 and #3 were provable against Phase 0's in-memory stub
@@ -21,9 +21,15 @@ Firestore-emulator-backed `FirestoreGraphWriter` and `FirestoreAuditLog` /
 #4, #5, and #7 — real tests against `app.tools.registry.ToolRegistry`,
 `app.arbitration.confidence_arbiter.ConfidenceArbiter`,
 `app.arbitration.approval_gate.ApprovalGate`, and the concrete tools in
-`app.tools`/`app.arbitration`, not placeholders. #6 and #8 remain tracked
-skips naming their correct future phase (Gate 5 explicitly allows this:
-"All eight invariants now real tests (6 and 8 may still be placeholders)").
+`app.tools`/`app.arbitration`, not placeholders. Phase 12 (E2) upgrades #6
+to a real, repo-wide grep across every `.py` file under `backend/app/` and
+every prompt `.md` under `backend/app/prompts/` (this test file and
+`backend/tests/test_council_structural_invariants.py` are themselves
+excluded — both legitimately *name* the forbidden word to define and
+enforce the rule, exactly as this very sentence and `GharOS_Build_Spec_
+v2.md` §12.2 itself must). #8 remains a tracked skip naming its correct
+future phase (Gate 5 explicitly allows this: "All eight invariants now
+real tests (6 and 8 may still be placeholders)").
 """
 
 from __future__ import annotations
@@ -435,11 +441,50 @@ class TestInvariant5FinancialIrreversibleNeedsApproval:
         assert outcome.tool_result.ok is True  # type: ignore[union-attr]
 
 
-@pytest.mark.skip(reason="implemented in Phase 12")
 def test_invariant_6_no_debate_framing() -> None:
     """Agent-to-agent interaction is never framed as "debate" — it is
-    specialization and interest representation — enforced by code review
-    and a lint rule (Phase 12)."""
+    specialization and interest representation (spec §12.2). Real,
+    repo-wide grep-based lint rule (Phase 12): the literal word "debate"
+    (case-insensitive) must not appear in any `.py` file under
+    `backend/app/` or any prompt `.md` under `backend/app/prompts/` — the
+    Council (§12.2) and Simulator (§11, "parallel exploration, never
+    debate") are the two subsystems this risk actually applies to, but
+    the check runs across all of `backend/app/` so a future subsystem
+    cannot quietly reintroduce debate framing either.
+
+    This test file and `test_council_structural_invariants.py` are
+    excluded from the scan — both legitimately *name* the forbidden word
+    to define and enforce this exact rule, precisely as this sentence,
+    `CLAUDE.md`'s own rule 7, and `GharOS_Build_Spec_v2.md` §12.2 itself
+    must (the frozen spec is never edited and is not scanned here at
+    all)."""
+    import re
+    from pathlib import Path
+
+    backend_root = Path(__file__).resolve().parent.parent
+    app_root = backend_root / "app"
+    excluded_test_files = {"test_safety_invariants.py", "test_council_structural_invariants.py"}
+    pattern = re.compile(r"debate", re.IGNORECASE)
+
+    violations: list[str] = []
+    for path in sorted(app_root.rglob("*.py")):
+        if "__pycache__" in path.parts:
+            continue
+        if pattern.search(path.read_text(encoding="utf-8")):
+            violations.append(str(path.relative_to(backend_root)))
+    for path in sorted((app_root / "prompts").rglob("*.md")):
+        if pattern.search(path.read_text(encoding="utf-8")):
+            violations.append(str(path.relative_to(backend_root)))
+    for path in sorted((backend_root / "tests").glob("*.py")):
+        if path.name in excluded_test_files:
+            continue
+        # Belt-and-braces: no other test file should need to name the
+        # forbidden word either — only the two files that define/enforce
+        # the rule itself are exempt.
+        if pattern.search(path.read_text(encoding="utf-8")):
+            violations.append(str(path.relative_to(backend_root)))
+
+    assert violations == [], f"the word 'debate' must never appear in real code/prompts: {violations}"
 
 
 class TestInvariant7NoFabricatedToolSuccess:

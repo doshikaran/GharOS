@@ -1,0 +1,66 @@
+.panel {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  padding: var(--space-4);
+  background: color-mix(in srgb, var(--accent-brass) 10%, var(--surface-raised));
+  border: 1px solid var(--accent-brass-muted);
+  border-radius: var(--radius-lg);
+}
+
+.kicker {
+  margin: 0;
+  font-size: 0.6875rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--accent-brass);
+}
+
+.target {
+  margin: 0;
+  font-family: var(--font-display), serif;
+  font-size: 1.0625rem;
+  font-weight: 600;
+  color: var(--ink-primary);
+}
+
+.critique {
+  margin: 0;
+  color: var(--ink-primary);
+  font-size: 0.875rem;
+  line-height: 1.5;
+}
+
+.citations {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+.citationsLabel {
+  margin: 0;
+  font-size: 0.6875rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--ink-muted);
+}
+
+.citationsList {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-1);
+}
+
+.citationChip {
+  font-family: ui-monospace, monospace;
+  font-size: 0.6875rem;
+  padding: var(--space-1) var(--space-2);
+  border-radius: var(--radius-full);
+  background: var(--royal-soft);
+  color: var(--on-royal);
+}

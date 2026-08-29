@@ -2,6 +2,7 @@ import {
   Activity,
   CircleCheck,
   GitBranch,
+  Landmark,
   Network,
   PhoneCall,
   Route,
@@ -14,8 +15,8 @@ import {
  * The unified shell's information architecture (ADR-018) — two sections,
  * ordered exactly as the ADR specifies: the graph first (the demo's own
  * "spine" framing, spec §5.8/Phase 6), then the thing needing attention
- * next (Approvals), then the five subsystems in build order with the
- * Simulator newly added this phase.
+ * next (Approvals), then the six subsystems in build order with the
+ * Household Council newly added this phase (PHASES.md Phase 12).
  *
  * This is the single source of truth for nav items: `NavSidebar` renders
  * from it directly, and `ROUTE_TITLES` below derives the top bar's
@@ -50,6 +51,7 @@ export const NAV_SECTIONS: readonly NavSection[] = [
       { href: "/intention-action", label: "Intention → Action", icon: Route },
       { href: "/concierge", label: "Outbound Concierge", icon: PhoneCall },
       { href: "/simulator", label: "Household Simulator", icon: GitBranch },
+      { href: "/council", label: "Household Council", icon: Landmark },
     ],
   },
 ] as const;

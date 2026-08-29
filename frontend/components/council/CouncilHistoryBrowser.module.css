@@ -1,0 +1,117 @@
+.browser {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.status,
+.empty {
+  margin: 0;
+  color: var(--ink-muted);
+  font-size: 0.875rem;
+}
+
+.srOnly {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+}
+
+.searchRow {
+  display: flex;
+}
+
+.searchInput {
+  width: 100%;
+  max-width: 28rem;
+  padding: var(--space-2) var(--space-3);
+  border: 1px solid var(--surface-overlay);
+  border-radius: var(--radius-md);
+  background: var(--surface-base);
+  color: var(--ink-primary);
+  font: inherit;
+  font-size: 0.875rem;
+}
+
+.searchInput:focus-visible {
+  outline: 2px solid var(--royal-primary);
+  outline-offset: 2px;
+}
+
+.layout {
+  display: grid;
+  grid-template-columns: minmax(16rem, 20rem) 1fr;
+  gap: var(--space-4);
+  align-items: start;
+}
+
+.decisionList {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.decisionButton {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--space-1);
+  padding: var(--space-3);
+  border: 1px solid var(--surface-overlay);
+  border-radius: var(--radius-md);
+  background: var(--surface-raised);
+  color: var(--ink-primary);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+  transition: border-color var(--motion-fast) var(--motion-ease-standard);
+}
+
+.decisionButton:hover {
+  border-color: var(--royal-soft);
+}
+
+.decisionButtonActive {
+  border-color: var(--royal-primary);
+  box-shadow: var(--elevation-1);
+}
+
+.decisionQuestion {
+  font-weight: 600;
+  font-size: 0.875rem;
+}
+
+.decisionStatus {
+  font-size: 0.6875rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--ink-muted);
+}
+
+.detail {
+  min-width: 0;
+}
+
+.emptyDetail {
+  margin: 0;
+  padding: var(--space-4);
+  color: var(--ink-muted);
+  font-size: 0.875rem;
+  background: var(--surface-raised);
+  border-radius: var(--radius-lg);
+}
+
+@media (max-width: 60rem) {
+  .layout {
+    grid-template-columns: 1fr;
+  }
+}

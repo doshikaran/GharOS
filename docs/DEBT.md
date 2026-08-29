@@ -47,6 +47,22 @@ Original entry, for the record:
 
 ## OPEN
 
+### DEBT-011 — Council's per-decision `ValuationProfile` is never persisted as its own graph node
+
+**Opened:** Phase 12, 2026-08-29
+**Owner:** e1 (graph shape, if a node is the right fix) or e2 (A49 Recorder, if extending its writes is the right fix)
+**Repayment phase:** whichever phase first builds a real "the person corrects their own delegate's valuation" UI flow — no earlier phase needs it structurally, so none is committed yet.
+
+**What's the gap:** ADR-019 Decision 5 enumerates A49 Council Recorder's writes exhaustively as one `CouncilPosition` per specialist/delegate/adversary output plus the arbiter's `CONCEDED_BY` edges — no `ValuationProfile` node write is named there, and A49's own module docstring documents this exclusion explicitly. E2 built exactly that, correctly, and flagged the consequence honestly rather than silently working around it: A47 Member Delegate's real, decision-scoped `ValuationProfile` (person's cardinal cost per surviving branch) is never written to the graph as its own addressable node. The data is not lost — every priced branch is folded losslessly into that delegate's `CouncilPosition.evidence_refs` (`app.agents.council.recorder._cost_evidence_refs`), so it remains real, auditable evidence in the permanent record — but there is no independently-addressable `ValuationProfile` node a future correction UI could read or write.
+
+**Why this matters:** spec §12.7's own failure-mode table names this directly: "Delegate misrepresents its person | Valuation profiles are visible and confirmable; the person can correct their own delegate." Confirmable/correctable implies a real, addressable object — a string baked into `CouncilPosition.evidence_refs` is readable but not independently editable without either re-deriving it from text or adding real structure later.
+
+**Why this isn't being fixed now:** no phase before this one, and no currently-planned phase, actually builds a "the person opens their own delegate's cost matrix and corrects it" UI flow — designing the persistence shape ahead of that real consumer risks exactly the "declared a shape nothing produces or consumes correctly" mistake this project has corrected multiple times already (DEBT-004/005/006/010's identical reasoning). E4's Phase 12 `DelegateScores` component reads `ValuationProfile` data from the `CouncilBrief` API response directly (not the graph), which is sufficient for this phase's own Gate 12 checklist and does not need this gap closed.
+
+**Repayment condition:** whichever phase first needs real, independently-addressable, correctable per-decision valuation data writes a `ValuationProfile` node (the type already exists, frozen since Phase 8 — this would be A49 gaining one more write, or a dedicated correction-flow writer) and updates A49/the pipeline accordingly, verified by a real round-trip test.
+
+---
+
 ### DEBT-009 — no end-to-end raw-document-to-graph orchestrator exists for any node type
 
 **Opened:** Phase 7, 2026-08-27

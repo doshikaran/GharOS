@@ -181,19 +181,30 @@ PRO_TIER_ALLOWLIST: frozenset[AgentId] = frozenset(
         # point) from several agents' real outputs, without ever
         # collapsing them into a verdict, is real judgment (ADR-017).
         "A40",
+        # spec §15.9 A41: Council Convener (Phase 12) — dynamic composition
+        # (deciding which specialists and delegates a real trigger warrants)
+        # is judgment; *holding a position itself* is this agent's own
+        # forbidden list, enforced structurally (ADR-019) by giving it no
+        # scoring/critique output shape at all.
+        "A41",
         # spec §21.1 "Council specialist reasoning" — Household Council
-        # (Phase 12) domain specialists, each reasoning over a distinct
-        # subgraph (Finance/Care/Education/Logistics/Legal: A42/A43/A44/
-        # A45/A46). A41 Convener, A47 Member Delegate and A48 Adversary
-        # are also Pro-tier per the roster but are added when Phase 12
-        # actually builds them, per gharos-agent-roster's per-agent tier
-        # table — this allowlist is extended by whichever phase builds the
-        # agent, not pre-populated ahead of the code that will use it.
+        # (Phase 12) domain specialists, each reasoning over a distinct,
+        # structurally-enforced subgraph (Finance/Care/Education/Logistics/
+        # Legal: A42/A43/A44/A45/A46, ADR-019's `ScopedGraphReader`).
         "A42",
         "A43",
         "A44",
         "A45",
         "A46",
+        # spec §15.9 A47: Member Delegate (Phase 12) — scoring options
+        # against one real person's own valuation profile, never inventing
+        # a preference the profile doesn't support, is judgment applied to
+        # real data, not lookup.
+        "A47",
+        # spec §15.9 A48: Council Adversary (Phase 12) — attacking the
+        # arbiter's resolved option using this household's own real
+        # OUTCOME history (never a generic risk template) is judgment.
+        "A48",
         # spec §21.1 "Voice interaction (outbound)" — Outbound Concierge /
         # Voice interface (Phase 10/13): A54 conducts the call, Pro-tier
         # realtime.

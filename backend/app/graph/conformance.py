@@ -30,12 +30,21 @@ from app.graph.obligation_repository import FirestoreObligationRepository
 from app.graph.pattern_repository import FirestorePatternRepository
 from app.graph.person_repository import FirestorePersonRepository
 from app.graph.reader import FirestoreGraphReader
+from app.graph.scoped_reader import FINANCE_SCOPE, ScopedGraphReader
 from app.graph.writer import FirestoreGraphWriter
 from app.persistence.firestore_store import FirestoreGraphStore
 
 
 def _graph_reader_conforms(store: FirestoreGraphStore) -> GraphReader:
     return FirestoreGraphReader(store)
+
+
+def _scoped_graph_reader_conforms(store: FirestoreGraphStore) -> GraphReader:
+    """`ScopedGraphReader` (Phase 12, ADR-019) wraps any `GraphReader` and
+    must itself structurally satisfy the same Protocol — any one scope
+    constant proves the wrapper's own shape, since the scope only affects
+    runtime filtering/denial, never the method signatures checked here."""
+    return ScopedGraphReader(reader=FirestoreGraphReader(store), scope=FINANCE_SCOPE)
 
 
 def _graph_writer_conforms(store: FirestoreGraphStore) -> GraphWriter:

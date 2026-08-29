@@ -117,6 +117,12 @@ class ConstraintKind(str, Enum):
     LEGAL = "legal"
     CUSTODY = "custody"
     MOBILITY = "mobility"
+    EDUCATION = "education"
+    """Added Phase 12 (ADR-019). Checked against all 8 existing kinds first:
+    none covers exam years, admission cycles, transfer windows, or
+    catchment — genuinely temporal/eligibility facts a household must plan
+    around, not a schedule (a fixed weekly time block) and not financial.
+    The Education Council specialist's (A44) entire subgraph scope."""
 
 
 class ConstraintSeverity(str, Enum):

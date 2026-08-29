@@ -1,0 +1,53 @@
+.page {
+  min-height: 100%;
+  padding: var(--space-7) var(--space-6);
+  max-width: 80rem;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-8);
+}
+
+.header {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.heading {
+  font-family: var(--font-display), serif;
+  font-size: 2rem;
+  font-weight: 600;
+  margin: 0;
+  color: var(--ink-primary);
+}
+
+.subheading {
+  color: var(--ink-secondary);
+  max-width: 60rem;
+  margin: 0;
+  line-height: 1.5;
+}
+
+.historySection {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  padding-top: var(--space-6);
+  border-top: 1px solid var(--surface-overlay);
+}
+
+.historyHeading {
+  margin: 0;
+  font-family: var(--font-display), serif;
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: var(--ink-primary);
+}
+
+.historyIntro {
+  margin: 0;
+  color: var(--ink-secondary);
+  max-width: 60rem;
+  line-height: 1.5;
+}

@@ -1,0 +1,155 @@
+.panel {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  padding: var(--space-5);
+  background: var(--surface-raised);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--elevation-2);
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+}
+
+.question {
+  margin: 0;
+  font-family: var(--font-display), serif;
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: var(--ink-primary);
+}
+
+.trigger,
+.resolutionSummary,
+.rationale {
+  margin: 0;
+  color: var(--ink-secondary);
+  font-size: 0.875rem;
+  line-height: 1.5;
+}
+
+.subheading {
+  margin: 0 0 var(--space-2);
+  font-size: 0.8125rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--ink-muted);
+}
+
+.empty {
+  margin: 0;
+  color: var(--ink-muted);
+  font-size: 0.8125rem;
+}
+
+.branchList,
+.positionList {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.branchCard,
+.positionCard {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  padding: var(--space-3) var(--space-4);
+  background: var(--surface-overlay);
+  border-radius: var(--radius-md);
+}
+
+.branchLabel {
+  margin: 0;
+  font-weight: 600;
+  color: var(--ink-primary);
+}
+
+.impactList,
+.critiqueList {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+.impactRow {
+  font-size: 0.8125rem;
+  color: var(--ink-secondary);
+}
+
+.impactDimension {
+  font-weight: 600;
+  color: var(--ink-primary);
+  text-transform: capitalize;
+}
+
+.critiqueRow {
+  font-size: 0.8125rem;
+  color: var(--state-warning);
+}
+
+.positionHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2);
+}
+
+.agentName {
+  font-family: var(--font-display), serif;
+  font-weight: 600;
+  color: var(--ink-primary);
+}
+
+.positionBranch {
+  margin: 0;
+  font-size: 0.75rem;
+  color: var(--royal-primary);
+  font-weight: 600;
+}
+
+.positionReasoning {
+  margin: 0;
+  font-size: 0.875rem;
+  color: var(--ink-primary);
+  line-height: 1.5;
+}
+
+.evidenceList,
+.concederList {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-1);
+}
+
+.evidenceChip {
+  font-family: ui-monospace, monospace;
+  font-size: 0.6875rem;
+  padding: var(--space-1) var(--space-2);
+  border-radius: var(--radius-full);
+  background: var(--royal-soft);
+  color: var(--on-royal);
+}
+
+.concederChip {
+  font-size: 0.75rem;
+  font-weight: 600;
+  padding: var(--space-1) var(--space-3);
+  border-radius: var(--radius-full);
+  background: color-mix(in srgb, var(--accent-brass) 18%, transparent);
+  color: var(--accent-brass);
+}

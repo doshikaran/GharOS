@@ -1,0 +1,75 @@
+.list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(18rem, 1fr));
+  gap: var(--space-4);
+}
+
+.card {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  padding: var(--space-4);
+  background: var(--surface-raised);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--elevation-1);
+  min-width: 0;
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2);
+}
+
+.personName {
+  margin: 0;
+  font-family: var(--font-display), serif;
+  font-size: 1.0625rem;
+  font-weight: 600;
+  color: var(--ink-primary);
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.8125rem;
+}
+
+.caption {
+  text-align: left;
+  caption-side: top;
+  color: var(--ink-muted);
+  font-size: 0.6875rem;
+  padding-bottom: var(--space-2);
+  line-height: 1.4;
+}
+
+.table th,
+.table td {
+  text-align: left;
+  padding: var(--space-1) var(--space-2);
+  border-bottom: 1px solid var(--surface-overlay);
+  color: var(--ink-primary);
+}
+
+.table tr[data-top-pick="true"] td {
+  font-weight: 700;
+  color: var(--royal-primary);
+}
+
+.topPickTag {
+  font-size: 0.6875rem;
+  font-weight: 600;
+  color: var(--accent-brass);
+}
+
+.reasoning {
+  margin: 0;
+  font-size: 0.8125rem;
+  color: var(--ink-secondary);
+  line-height: 1.45;
+}

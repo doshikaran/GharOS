@@ -2,8 +2,9 @@
 — E2's `backend/app/agents/simulator/`.
 
 *Responsibility:* project **exactly one branch** across the entire graph
-— per spec §15.8: "instantiated per branch, parallel... **parallel
-exploration, never debate**." This module's `simulate()` method signature
+— per spec §15.8: "instantiated per branch, parallel" — genuinely
+independent, parallel exploration of one option, never several agents
+arguing toward a shared answer. This module's `simulate()` method signature
 is the structural guarantee: it takes exactly one `types.
 PathSimulationRequest` (one branch's own topic, candidate anchors, and
 grounding) and returns exactly one `types.BranchProjection` — there is no
