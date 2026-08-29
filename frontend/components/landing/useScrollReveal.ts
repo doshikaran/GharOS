@@ -31,21 +31,37 @@ export interface UseScrollRevealOptions {
  * SSR/no-`IntersectionObserver` safe: if the API is unavailable (very old
  * browsers, or a non-DOM test environment that hasn't polyfilled it),
  * content reveals immediately rather than staying permanently hidden.
+ *
+ * The initial value is always `false`, on both server and client — never
+ * computed from `typeof IntersectionObserver`, which is `"undefined"`
+ * during SSR (no DOM globals in Node) but defined in every real browser,
+ * so branching on it in `useState`'s initializer made the server-rendered
+ * HTML (`data-visible="true"`) permanently disagree with React's own
+ * first client render (`data-visible="false"`) — a real hydration
+ * mismatch, not a cosmetic one. The no-`IntersectionObserver` fallback
+ * below now runs inside the effect instead (client-only, post-mount by
+ * definition), which causes one ordinary extra client render rather than
+ * a hydration-time disagreement.
  */
 export function useScrollReveal<T extends HTMLElement>(
   options: UseScrollRevealOptions = {},
 ): { ref: React.RefObject<T | null>; visible: boolean } {
   const { threshold = 0.15, rootMargin = "0px 0px -10% 0px" } = options;
   const ref = useRef<T | null>(null);
-  // Computed once, in the initializer rather than an effect: an effect
-  // that calls setState synchronously on every run causes a cascading
-  // extra render for no benefit here, and this value can never change
-  // for the lifetime of a given runtime anyway.
-  const [visible, setVisible] = useState(() => typeof IntersectionObserver === "undefined");
+  const [visible, setVisible] = useState(false);
 
   useEffect(() => {
+    if (typeof IntersectionObserver === "undefined") {
+      // Same documented hydration-safety pattern as ThemeSwitcher.tsx:
+      // this fact is only knowable on the client, one tick past mount —
+      // computing it in the initializer instead is what caused the
+      // hydration mismatch this effect exists to avoid.
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      setVisible(true);
+      return;
+    }
     const node = ref.current;
-    if (!node || typeof IntersectionObserver === "undefined") return;
+    if (!node) return;
 
     const observer = new IntersectionObserver(
       (entries) => {
