@@ -231,9 +231,7 @@ class TestGenerateGroundedText:
         web_chunk = types.GroundingChunk(
             web=types.GroundingChunkWeb(uri="https://example.com/a", title="Example A", domain="example.com")
         )
-        candidate = types.Candidate(
-            grounding_metadata=types.GroundingMetadata(grounding_chunks=[web_chunk])
-        )
+        candidate = types.Candidate(grounding_metadata=types.GroundingMetadata(grounding_chunks=[web_chunk]))
         fake_models = _FakeModels(text="grounded answer", candidates=[candidate])
         router = _router_with_fake_client(fake_models)
         client = GeminiClient(router=router)

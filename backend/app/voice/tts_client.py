@@ -143,9 +143,7 @@ class VertexTtsClient:
         try:
             response = client.models.generate_content(model=self._model_name, contents=text, config=config)
         except Exception as exc:  # noqa: BLE001 — tool boundary; converted to a typed error below.
-            logger.warning(
-                "voice.tts_client.call_failed", model_name=self._model_name, reason=str(exc)
-            )
+            logger.warning("voice.tts_client.call_failed", model_name=self._model_name, reason=str(exc))
             raise TtsCallFailed(model_name=self._model_name, reason=str(exc)) from exc
 
         candidates = response.candidates

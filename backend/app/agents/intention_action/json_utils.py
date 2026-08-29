@@ -89,9 +89,7 @@ def require_bool(obj: dict[str, object], key: str, *, agent_id: AgentId, default
     return value
 
 
-def require_int(
-    obj: dict[str, object], key: str, *, agent_id: AgentId, default: int | None = None
-) -> int:
+def require_int(obj: dict[str, object], key: str, *, agent_id: AgentId, default: int | None = None) -> int:
     value = obj.get(key, default)
     if isinstance(value, bool) or not isinstance(value, int):
         raise _type_mismatch(agent_id=agent_id, obj=obj, key=key, expected="integer", value=value)

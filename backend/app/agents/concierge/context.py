@@ -87,9 +87,7 @@ def _schedule_known_fact(reader: GraphReader, *, person_id: NodeId) -> GraphKnow
     mirrors `app.agents.intention_action.schedule_parsing.
     person_availability_for_window`'s established open-world convention:
     absence of evidence is evidence of availability, not of ignorance."""
-    constraints = [
-        c for c in reader.neighbours(person_id, EdgeType.CONSTRAINS) if isinstance(c, Constraint)
-    ]
+    constraints = [c for c in reader.neighbours(person_id, EdgeType.CONSTRAINS) if isinstance(c, Constraint)]
     schedule_constraints = [c for c in constraints if c.kind is ConstraintKind.SCHEDULE]
     if not schedule_constraints:
         return GraphKnownFact(
@@ -109,9 +107,7 @@ def _insurance_known_fact(reader: GraphReader, *, person_id: NodeId) -> GraphKno
     entry when one exists. Genuinely absent from many households' graphs
     (not every household has recorded this) — `None` is a real, honest
     "not on file", never a guessed default."""
-    constraints = [
-        c for c in reader.neighbours(person_id, EdgeType.CONSTRAINS) if isinstance(c, Constraint)
-    ]
+    constraints = [c for c in reader.neighbours(person_id, EdgeType.CONSTRAINS) if isinstance(c, Constraint)]
     for constraint in constraints:
         insurer = constraint.structured.get("insurance_provider")
         if insurer:

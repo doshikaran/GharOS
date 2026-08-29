@@ -104,8 +104,7 @@ def _region_convention_note(*, is_multimodal: bool) -> str:
             "bbox coordinates are pixels of the image you were shown."
         )
     return (
-        'Give `region` as `"<start>-<end>"` — a zero-indexed, half-open byte-offset span into the '
-        "text below."
+        'Give `region` as `"<start>-<end>"` — a zero-indexed, half-open byte-offset span into the text below.'
     )
 
 

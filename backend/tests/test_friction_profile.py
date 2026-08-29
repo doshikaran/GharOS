@@ -218,9 +218,12 @@ class TestFindMatchingPatternAndSummary:
     def test_find_matching_pattern_returns_none_when_absent(self) -> None:
         reader = FakeGraphReader()
 
-        assert friction_profile.find_matching_pattern(
-            reader, person_id=_PERSON_ID, blocker_type=BlockerType.WINDOW
-        ) is None
+        assert (
+            friction_profile.find_matching_pattern(
+                reader, person_id=_PERSON_ID, blocker_type=BlockerType.WINDOW
+            )
+            is None
+        )
 
     def test_summarise_for_person_is_none_when_no_patterns(self) -> None:
         reader = FakeGraphReader()

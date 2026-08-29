@@ -243,7 +243,8 @@ class RenegotiationTriggerAgent:
         node_result = tool.invoke_idempotent(node_key, operation="write_node", node=decision)
         if not node_result.ok or node_result.value is None:
             raise ToolFailure(
-                tool_name="graph_writer", reason=node_result.error or "concession decision write failed",
+                tool_name="graph_writer",
+                reason=node_result.error or "concession decision write failed",
                 retryable=True,
             )
         written_id = NodeId(str(node_result.value))
@@ -261,7 +262,8 @@ class RenegotiationTriggerAgent:
         edge_result = tool.invoke_idempotent(edge_key, operation="write_edge", edge=edge)
         if not edge_result.ok:
             raise ToolFailure(
-                tool_name="graph_writer", reason=edge_result.error or "conceded_by edge write failed",
+                tool_name="graph_writer",
+                reason=edge_result.error or "conceded_by edge write failed",
                 retryable=True,
             )
         return written_id

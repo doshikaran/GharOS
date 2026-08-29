@@ -79,9 +79,7 @@ class TestGenerateReadbackStructuralChecks:
         readback_text = (
             "Confirming: pay ₹3,500 — three thousand five hundred — to Aarav, your son. Shall I proceed?"
         )
-        agent, _ = _agent_and_fake(
-            texts=[json.dumps({"readback_text": readback_text, "confidence": 0.95})]
-        )
+        agent, _ = _agent_and_fake(texts=[json.dumps({"readback_text": readback_text, "confidence": 0.95})])
         request = ReadbackRequest(
             turn_id="turn-1",
             intent=_intent_result(),
@@ -191,7 +189,7 @@ class TestEvaluateResponseSilenceAmbiguousAffirmative:
         assert result.model_tier == "pro"
 
     def test_matched_token_inside_hedge_is_narrowed_to_not_confirmed(self) -> None:
-        """"haan, lekin abhi nahi" ("yes, but not right now") matches the
+        """ "haan, lekin abhi nahi" ("yes, but not right now") matches the
         "haan" token but is not a genuine affirmative — the semantic check
         must narrow this to `confirmed=False`."""
         agent, _ = _agent_and_fake(

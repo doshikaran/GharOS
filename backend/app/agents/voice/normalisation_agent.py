@@ -225,9 +225,7 @@ class NormalisationAgent:
                     continue
                 value, reason = resolutions[span.original_text]
                 if value is not None:
-                    resolved_spans.append(
-                        replace(span, amount_value=value, amount_display=format_inr(value))
-                    )
+                    resolved_spans.append(replace(span, amount_value=value, amount_display=format_inr(value)))
                 else:
                     resolved_spans.append(
                         replace(span, needs_clarification=True, clarification_reason=reason)

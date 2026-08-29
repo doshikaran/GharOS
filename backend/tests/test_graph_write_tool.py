@@ -82,7 +82,7 @@ class TestForcedReplayNeverDoubleExecutes:
     def test_replay_after_simulated_crash_before_record_result(
         self, writer: FirestoreGraphWriter, idempotency_store: FirestoreIdempotencyStore
     ) -> None:
-        """"Kill a run mid-flight, restart" (spec §19.1), literally: the
+        """ "Kill a run mid-flight, restart" (spec §19.1), literally: the
         first call reserves the key and performs the real write, but
         never gets to call `record_result` (simulating a crash between the
         effect and the bookkeeping) — a second, fresh call with the same

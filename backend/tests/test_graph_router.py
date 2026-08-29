@@ -38,9 +38,7 @@ def payload_store(tmp_path: Path) -> LocalFilesystemPayloadStore:
 
 
 @pytest.fixture
-def client(
-    store: FirestoreGraphStore, payload_store: LocalFilesystemPayloadStore
-) -> Iterator[TestClient]:
+def client(store: FirestoreGraphStore, payload_store: LocalFilesystemPayloadStore) -> Iterator[TestClient]:
     """A `TestClient` wired to this test's own isolated emulator project —
     never the app's real lifespan-constructed client (see this module's
     docstring)."""
@@ -53,9 +51,7 @@ def client(
 
 
 class TestGraphSnapshot:
-    def test_returns_seeded_nodes_and_edges(
-        self, client: TestClient, seeded: SeedResult
-    ) -> None:
+    def test_returns_seeded_nodes_and_edges(self, client: TestClient, seeded: SeedResult) -> None:
         response = client.get("/graph/snapshot")
         assert response.status_code == 200
         body = response.json()
@@ -109,9 +105,7 @@ class TestGraphSnapshot:
 
 
 class TestGraphJustification:
-    def test_known_node_returns_200_with_matching_root(
-        self, client: TestClient, seeded: SeedResult
-    ) -> None:
+    def test_known_node_returns_200_with_matching_root(self, client: TestClient, seeded: SeedResult) -> None:
         response = client.get("/graph/nodes/obligation-renew-prescription/justification")
         assert response.status_code == 200
         body = response.json()

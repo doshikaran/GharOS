@@ -84,7 +84,7 @@ AGENT_ID = AgentId("A68")
 
 def _amounts_block(request: ReadbackRequest) -> str:
     lines = [
-        f'- {span.original_text!r} -> {span.amount_display} (must appear verbatim in the read-back)'
+        f"- {span.original_text!r} -> {span.amount_display} (must appear verbatim in the read-back)"
         for span in request.amount_spans
     ]
     return "\n".join(lines) if lines else "(no amounts to confirm)"

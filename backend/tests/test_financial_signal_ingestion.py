@@ -188,7 +188,7 @@ class TestReplaySafety:
     def test_reingesting_the_same_document_never_double_writes(
         self, writer: FirestoreGraphWriter, idempotency_store: FirestoreIdempotencyStore
     ) -> None:
-        """"Kill a run mid-flight, restart" (spec §19.1) applied to A27: the
+        """ "Kill a run mid-flight, restart" (spec §19.1) applied to A27: the
         same document (same source_document_id + region) processed twice —
         e.g. a retried Pub/Sub delivery — must write its LedgerEvent
         exactly once."""
@@ -252,10 +252,7 @@ class TestModuleHoldsNoActionCapability:
         from pathlib import Path
 
         module_path = (
-            Path(__file__).resolve().parent.parent
-            / "app"
-            / "adapters"
-            / "financial_signal_ingestion.py"
+            Path(__file__).resolve().parent.parent / "app" / "adapters" / "financial_signal_ingestion.py"
         )
         tree = ast.parse(module_path.read_text(encoding="utf-8"), filename=str(module_path))
         imported_names: list[str] = []

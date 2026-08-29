@@ -104,11 +104,7 @@ def test_raises_when_no_line_matches_export_format() -> None:
 
 
 def test_blank_lines_between_messages_are_skipped() -> None:
-    text = (
-        "22/08/26, 14:03 - Priya Sharma: first message\n"
-        "\n"
-        "22/08/26, 14:05 - Rohan Sharma: second message\n"
-    )
+    text = "22/08/26, 14:03 - Priya Sharma: first message\n\n22/08/26, 14:05 - Rohan Sharma: second message\n"
     adapter = ChatExportAdapter()
     result = adapter.normalize(_raw(text=text))
     assert result.participants == ("Priya Sharma", "Rohan Sharma")

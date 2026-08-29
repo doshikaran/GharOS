@@ -172,9 +172,7 @@ class TestResolveObservedEffortSignals:
         usable as per-task valuation evidence — never guessed at which
         task it might belong to."""
         item = _purchase_item("item-2", "an unrelated purchase")
-        reader = _FakeGraphReader(
-            effort_items_by_person={"person-priya": (item,)}, discharges_by_item={}
-        )
+        reader = _FakeGraphReader(effort_items_by_person={"person-priya": (item,)}, discharges_by_item={})
 
         signals = resolve_observed_effort_signals(reader, person_id=NodeId("person-priya"), window=_WINDOW)
 

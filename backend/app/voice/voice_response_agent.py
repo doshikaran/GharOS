@@ -81,6 +81,7 @@ class TtsClientProtocol(Protocol):
 
     def synthesize(self, *, text: str, voice_name: str, language_code: str) -> TtsAudio: ...
 
+
 _MAX_ITEMS_SPOKEN = 2
 """At 3 or more `ResponseRequest.list_items`, only this many are ever
 shown to the model (spec's own A69 forbidden list: "reading long lists

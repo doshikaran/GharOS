@@ -184,9 +184,7 @@ class DecisionSynthesizerAgent:
             field="branch_summaries", values=branch_summaries, raw_text=call_result.text
         )
         _reject_if_verdict_leaked(field="trade_offs", values=trade_offs, raw_text=call_result.text)
-        _reject_if_verdict_leaked(
-            field="open_questions", values=open_questions, raw_text=call_result.text
-        )
+        _reject_if_verdict_leaked(field="open_questions", values=open_questions, raw_text=call_result.text)
 
         return DecisionBrief(
             decision_id=decision.id,

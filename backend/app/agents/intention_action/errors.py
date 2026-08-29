@@ -57,9 +57,7 @@ class NoMatchingFrictionPattern(IntentionActionAgentError):
     def __init__(self, *, person_id: NodeId, blocker_type: str) -> None:
         self.person_id = person_id
         self.blocker_type = blocker_type
-        super().__init__(
-            f"no existing '{blocker_type}' friction pattern characterizes person {person_id!r}"
-        )
+        super().__init__(f"no existing '{blocker_type}' friction pattern characterizes person {person_id!r}")
 
 
 __all__ = ["IntentionActionAgentError", "ModelResponseMalformed", "NoMatchingFrictionPattern"]

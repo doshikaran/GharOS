@@ -78,10 +78,7 @@ def _summarize_one(node: object) -> str | None:
     if isinstance(node, Person):
         return f"Person({node.display_name}, role={node.role.value})"
     if isinstance(node, Constraint):
-        return (
-            f"Constraint(kind={node.kind.value}, severity={node.severity.value}, "
-            f'"{node.original_text}")'
-        )
+        return f'Constraint(kind={node.kind.value}, severity={node.severity.value}, "{node.original_text}")'
     if isinstance(node, Obligation):
         due = node.due_at.isoformat() if node.due_at else "no due date on file"
         return f"Obligation({node.title!r}, type={node.obligation_type}, due={due})"

@@ -148,9 +148,7 @@ class SpeakerIdentificationAgent:
             identified_at=now,
         )
 
-    def _compare(
-        self, *, turn_audio: bytes, turn_mime_type: str, candidate: EnrolledSpeaker
-    ) -> _Comparison:
+    def _compare(self, *, turn_audio: bytes, turn_mime_type: str, candidate: EnrolledSpeaker) -> _Comparison:
         call_result = self._gemini_client.generate_multimodal(
             agent_id=AGENT_ID,
             tier=ModelTier.FLASH,

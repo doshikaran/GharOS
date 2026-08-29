@@ -35,9 +35,9 @@ from app.reasoning.gemini_client import GeminiClient
 from ._gemini_fakes import FakeModels, fake_router
 
 
-def _agent(*, texts: list[str], candidates_by_index: dict[int, list[object]] | None = None) -> tuple[
-    GroundingResearchAgent, FakeModels
-]:
+def _agent(
+    *, texts: list[str], candidates_by_index: dict[int, list[object]] | None = None
+) -> tuple[GroundingResearchAgent, FakeModels]:
     fake_models = FakeModels(texts=texts, candidates_by_index=candidates_by_index)
     client = GeminiClient(router=fake_router(fake_models))
     return GroundingResearchAgent(gemini_client=client), fake_models
@@ -89,9 +89,7 @@ class TestRealCitationsFlowThroughUnchanged:
                 domain="example.com",
             )
         )
-        candidate = types.Candidate(
-            grounding_metadata=types.GroundingMetadata(grounding_chunks=[web_chunk])
-        )
+        candidate = types.Candidate(grounding_metadata=types.GroundingMetadata(grounding_chunks=[web_chunk]))
         relevance_response = json.dumps(
             {
                 "summary": "Sources report rents in central Bangalore rose roughly 8% year over year.",
@@ -112,9 +110,7 @@ class TestRealCitationsFlowThroughUnchanged:
         assert len(result.citations) == 1
         assert result.citations[0].uri == "https://example.com/bangalore-cost-of-living"
         assert result.citations[0].title == "Bangalore Cost of Living 2026"
-        assert result.summary == (
-            "Sources report rents in central Bangalore rose roughly 8% year over year."
-        )
+        assert result.summary == ("Sources report rents in central Bangalore rose roughly 8% year over year.")
         assert len(fake_models.calls) == 3
 
 
@@ -127,9 +123,7 @@ class TestForbiddenProjectingConsequences:
         web_chunk = types.GroundingChunk(
             web=types.GroundingChunkWeb(uri="https://example.com/a", title="A", domain="example.com")
         )
-        candidate = types.Candidate(
-            grounding_metadata=types.GroundingMetadata(grounding_chunks=[web_chunk])
-        )
+        candidate = types.Candidate(grounding_metadata=types.GroundingMetadata(grounding_chunks=[web_chunk]))
         relevance_response = json.dumps(
             {
                 "summary": f"{phrase} relocating will disrupt the household's routine.",
@@ -156,9 +150,7 @@ class TestForbiddenProjectingConsequences:
         web_chunk = types.GroundingChunk(
             web=types.GroundingChunkWeb(uri="https://example.com/a", title="A", domain="example.com")
         )
-        candidate = types.Candidate(
-            grounding_metadata=types.GroundingMetadata(grounding_chunks=[web_chunk])
-        )
+        candidate = types.Candidate(grounding_metadata=types.GroundingMetadata(grounding_chunks=[web_chunk]))
         relevance_response = json.dumps(
             {"summary": "You should expect higher fees.", "freshness_note": "recent"}
         )

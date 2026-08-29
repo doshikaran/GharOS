@@ -45,9 +45,7 @@ _FORBIDDEN_IMPORT_SUBSTRINGS = (
 
 def _iter_scanned_files(root: Path) -> list[Path]:
     return sorted(
-        p
-        for p in root.glob("*.py")
-        if "__pycache__" not in p.parts and p.name not in _EXCLUDED_FILENAMES
+        p for p in root.glob("*.py") if "__pycache__" not in p.parts and p.name not in _EXCLUDED_FILENAMES
     )
 
 

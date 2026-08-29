@@ -125,7 +125,7 @@ def _candidates_block(candidates: tuple[ImpliedObligationCandidate, ...]) -> str
     for candidate in candidates:
         due = candidate.due_at.isoformat() if candidate.due_at is not None else "no due date"
         lines.append(
-            f"- id={candidate.candidate_id} \"{candidate.title}\" (type: {candidate.obligation_type}; "
+            f'- id={candidate.candidate_id} "{candidate.title}" (type: {candidate.obligation_type}; '
             f"due: {due}; reasoning: {candidate.reasoning})"
         )
     return "\n".join(lines)
@@ -138,8 +138,7 @@ def _obligations_block(obligations: tuple[Obligation, ...]) -> str:
     for obligation in obligations:
         due = obligation.due_at.isoformat() if obligation.due_at is not None else "no due date"
         lines.append(
-            f'- id={obligation.id} "{obligation.title}" '
-            f"(type: {obligation.obligation_type}; due: {due})"
+            f'- id={obligation.id} "{obligation.title}" (type: {obligation.obligation_type}; due: {due})'
         )
     return "\n".join(lines)
 

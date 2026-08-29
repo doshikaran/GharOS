@@ -254,10 +254,7 @@ class TestNeverWritesDecisionStatus:
         source_path = Path(recorder_module.__file__)
         tree = ast.parse(source_path.read_text(encoding="utf-8"), filename=str(source_path))
         imported_names = {
-            alias.name
-            for node in ast.walk(tree)
-            if isinstance(node, ast.ImportFrom)
-            for alias in node.names
+            alias.name for node in ast.walk(tree) if isinstance(node, ast.ImportFrom) for alias in node.names
         }
         assert "DecisionStatus" not in imported_names
 

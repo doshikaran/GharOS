@@ -163,7 +163,8 @@ class TestBoundsPrecheckRunsBeforeAnyConversation:
         )
         with pytest.raises(OutOfBounds):
             tool.invoke_idempotent(
-                "call-1", brief=_brief(target_provider_id=NodeId("provider-different")),
+                "call-1",
+                brief=_brief(target_provider_id=NodeId("provider-different")),
                 counterparty=self._never_call_counterparty(),
             )
 

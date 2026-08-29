@@ -50,9 +50,9 @@ def _outcome(node_id: str, *, predicted: str, actual: str, variance: float | Non
     )
 
 
-def _agent(*, texts: list[str], outcomes_by_tag: dict[str, tuple[Outcome, ...]]) -> tuple[
-    CalibrationAgent, FakeModels
-]:
+def _agent(
+    *, texts: list[str], outcomes_by_tag: dict[str, tuple[Outcome, ...]]
+) -> tuple[CalibrationAgent, FakeModels]:
     fake_models = FakeModels(texts=texts)
     client = GeminiClient(router=fake_router(fake_models))
     reader = FakeGraphReader(outcome_variance_by_tag=outcomes_by_tag)

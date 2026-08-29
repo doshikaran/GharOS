@@ -582,9 +582,7 @@ class TestFullPipelineHappyPath:
         )
         responses = [
             # 1. A63 ASR
-            json.dumps(
-                {"raw_text": "turn on the water heater", "tokens": [], "overall_confidence": 0.9}
-            ),
+            json.dumps({"raw_text": "turn on the water heater", "tokens": [], "overall_confidence": 0.9}),
             # 2. A64 language identification
             json.dumps(
                 {

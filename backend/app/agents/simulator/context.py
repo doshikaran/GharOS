@@ -33,9 +33,7 @@ from contracts.repositories import GraphReader
 _SUMMARIZABLE_TYPES = (Person, Obligation, Constraint)
 
 
-def resolve_real_anchor_ids(
-    reader: GraphReader, *, candidate_ids: tuple[NodeId, ...]
-) -> tuple[NodeId, ...]:
+def resolve_real_anchor_ids(reader: GraphReader, *, candidate_ids: tuple[NodeId, ...]) -> tuple[NodeId, ...]:
     """Filters `candidate_ids` down to ones that actually resolve to a
     real, currently-live `Person`, `Obligation`, or `Constraint` node —
     A37's real "derive real anchor NodeIds from the graph" step, never a
@@ -73,10 +71,7 @@ def _summarize_one(node: object) -> str | None:
         due = node.due_at.isoformat() if node.due_at else "no due date on file"
         return f"Obligation({node.title!r}, type={node.obligation_type}, due={due})"
     if isinstance(node, Constraint):
-        return (
-            f"Constraint(kind={node.kind.value}, severity={node.severity.value}, "
-            f'"{node.original_text}")'
-        )
+        return f'Constraint(kind={node.kind.value}, severity={node.severity.value}, "{node.original_text}")'
     return None
 
 

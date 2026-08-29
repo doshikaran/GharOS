@@ -162,9 +162,7 @@ class TestPassiveIntentionCapture:
         )
         agent = _agent(texts=[response])
 
-        detection = agent.detect_passive_intention(
-            source_text="what time is it?", speaker_person_id=None
-        )
+        detection = agent.detect_passive_intention(source_text="what time is it?", speaker_person_id=None)
 
         assert detection is None
 
@@ -177,8 +175,12 @@ def _references_write_or_tool_machinery() -> bool:
 
     tree = ast.parse(inspect.getsource(intention_capture_agent))
     for node in ast.walk(tree):
-        if isinstance(node, ast.ImportFrom) and node.module and (
-            "graph_write_tool" in node.module or "registry" in node.module or "arbitration" in node.module
+        if (
+            isinstance(node, ast.ImportFrom)
+            and node.module
+            and (
+                "graph_write_tool" in node.module or "registry" in node.module or "arbitration" in node.module
+            )
         ):
             return True
     return False

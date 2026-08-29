@@ -82,9 +82,7 @@ class TestSelectNextComparison:
         assert question is None
 
     def test_unknown_task_id_rejected(self) -> None:
-        agent = _agent(
-            {"done": False, "task_a_id": "t-1", "task_b_id": "t-ghost", "rationale": "n/a"}
-        )
+        agent = _agent({"done": False, "task_a_id": "t-1", "task_b_id": "t-ghost", "rationale": "n/a"})
 
         with pytest.raises(ModelResponseMalformed):
             agent.select_next_comparison(_request())

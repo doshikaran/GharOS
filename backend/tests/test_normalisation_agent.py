@@ -98,7 +98,7 @@ class TestPlainDateKinshipNormalisation:
 
 class TestUnambiguousAmounts:
     def test_spoken_amount_resolves_and_gets_digit_grouped_display(self) -> None:
-        """"saade teen hazaar" = 3,500 — spec §14.2's own worked example."""
+        """ "saade teen hazaar" = 3,500 — spec §14.2's own worked example."""
         response = json.dumps(
             {
                 "spans": [
@@ -175,11 +175,7 @@ class TestAmbiguousAmountEscalation:
         original_text = "paanch sau ya cheh sau"
         flash_response = self._flash_flags_ambiguous(original_text=original_text)
         pro_response = json.dumps(
-            {
-                "resolutions": [
-                    {"original_text": original_text, "resolved": True, "amount_value": 500}
-                ]
-            }
+            {"resolutions": [{"original_text": original_text, "resolved": True, "amount_value": 500}]}
         )
         agent = _agent(texts=[flash_response, pro_response])
 
@@ -192,7 +188,7 @@ class TestAmbiguousAmountEscalation:
         assert result.model_tier == "pro"
 
     def test_escalation_still_ambiguous_never_rounds_or_guesses(self) -> None:
-        """"teen-chaar hazaar" ("three-four thousand") is a genuine
+        """ "teen-chaar hazaar" ("three-four thousand") is a genuine
         approximate-range idiom, not a single figure — spec §15.11 A65
         failure mode: always clarify, never round or guess."""
         original_text = "teen-chaar hazaar"

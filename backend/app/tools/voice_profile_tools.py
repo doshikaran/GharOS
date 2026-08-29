@@ -291,9 +291,7 @@ class LanguageProfileTool(IdempotentTool):
             primary_language=_str_or_current("primary_language", current.primary_language),
             languages_understood=languages_understood,
             script_preference=_str_or_current("script_preference", current.script_preference),
-            code_mixing_profile=_optional_str_or_current(
-                "code_mixing_profile", current.code_mixing_profile
-            ),
+            code_mixing_profile=_optional_str_or_current("code_mixing_profile", current.code_mixing_profile),
             formality_preference=_optional_str_or_current(
                 "formality_preference", current.formality_preference
             ),

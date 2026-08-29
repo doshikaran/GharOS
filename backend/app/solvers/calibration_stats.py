@@ -179,9 +179,7 @@ def compute_calibration(tag: str, outcomes: tuple[Outcome, ...]) -> CalibrationE
     return result
 
 
-def rank_by_absolute_variance(
-    outcomes: tuple[Outcome, ...], *, top_n: int = 3
-) -> tuple[RankedOutcome, ...]:
+def rank_by_absolute_variance(outcomes: tuple[Outcome, ...], *, top_n: int = 3) -> tuple[RankedOutcome, ...]:
     """For backward mode: the outcomes with the largest `|variance|` for
     this category — the honest candidates for "likely failure point," not
     a verdict (A40 Decision Synthesizer's forbidden list: "no verdict,
@@ -207,9 +205,7 @@ def rank_by_absolute_variance(
         raise ValueError(f"top_n must be >= 0, got {top_n!r}")
 
     ranked = [
-        RankedOutcome(outcome=o, abs_variance=abs(o.variance))
-        for o in outcomes
-        if o.variance is not None
+        RankedOutcome(outcome=o, abs_variance=abs(o.variance)) for o in outcomes if o.variance is not None
     ]
     ranked.sort(key=lambda r: (-r.abs_variance, str(r.outcome.id)))
     return tuple(ranked[:top_n])

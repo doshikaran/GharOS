@@ -279,7 +279,8 @@ class ValuationExtractionAgent:
         node_result = tool.invoke_idempotent(node_key, operation="write_node", node=profile)
         if not node_result.ok or node_result.value is None:
             raise ToolFailure(
-                tool_name="graph_writer", reason=node_result.error or "valuation profile write failed",
+                tool_name="graph_writer",
+                reason=node_result.error or "valuation profile write failed",
                 retryable=True,
             )
         written_id = NodeId(str(node_result.value))
@@ -299,7 +300,8 @@ class ValuationExtractionAgent:
         edge_result = tool.invoke_idempotent(edge_key, operation="write_edge", edge=edge)
         if not edge_result.ok:
             raise ToolFailure(
-                tool_name="graph_writer", reason=edge_result.error or "valuation_of edge write failed",
+                tool_name="graph_writer",
+                reason=edge_result.error or "valuation_of edge write failed",
                 retryable=True,
             )
         return written_id

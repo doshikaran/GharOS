@@ -253,7 +253,7 @@ class TestForcedReplayNeverDoubleExecutes:
         reader: FirestoreGraphReader,
         idempotency_store: FirestoreIdempotencyStore,
     ) -> None:
-        """"Kill a run mid-flight, restart" (spec §19.1), literally —
+        """ "Kill a run mid-flight, restart" (spec §19.1), literally —
         mirrors `test_graph_write_tool.py`'s identically-named test."""
         writer_spy = _CountingWriter(writer)
         key = "due-3:pay_dues:2026-08"

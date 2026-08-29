@@ -192,9 +192,7 @@ class TestReasoningLayerForNewCandidates:
         assert reasoning_findings[0].subject_candidate_id == "candidate-a"
         assert reasoning_findings[0].other_id == "candidate-b"
 
-    def test_no_candidates_skips_the_reasoning_call_entirely(
-        self, reader: FirestoreGraphReader
-    ) -> None:
+    def test_no_candidates_skips_the_reasoning_call_entirely(self, reader: FirestoreGraphReader) -> None:
         radar = ConflictRadar(
             gemini_client=_never_called_client(), prepass=DeterministicConflictPrepass(reader)
         )

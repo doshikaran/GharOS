@@ -269,9 +269,7 @@ def resolve(
     _validate_inputs(surviving_branch_ids, eliminated_branch_ids, valuation_profiles)
 
     regret = _regret_by_branch(surviving_branch_ids, valuation_profiles)
-    candidate_branch_ids = tuple(
-        branch_id for branch_id in surviving_branch_ids if regret[branch_id]
-    )
+    candidate_branch_ids = tuple(branch_id for branch_id in surviving_branch_ids if regret[branch_id])
     if not candidate_branch_ids:
         raise NoCostSignalError()
 

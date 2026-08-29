@@ -268,8 +268,10 @@ class TestToolRegistryIsT0Only:
 def _references_gated_tool_machinery(module: types.ModuleType) -> bool:
     tree = ast.parse(inspect.getsource(module))
     for node in ast.walk(tree):
-        if isinstance(node, ast.ImportFrom) and node.module and (
-            "arbitration" in node.module or "ApprovalGatedTool" in (a.name for a in node.names)
+        if (
+            isinstance(node, ast.ImportFrom)
+            and node.module
+            and ("arbitration" in node.module or "ApprovalGatedTool" in (a.name for a in node.names))
         ):
             return True
     return False

@@ -218,9 +218,7 @@ class TestAnswerFollowupGroundedOnlyInTheBrief:
 
 
 def _calibration(*, ranked_outcomes: tuple[RankedOutcome, ...], sample_size: int) -> CalibrationNarration:
-    note = (
-        f"based on {sample_size} past outcomes tagged 'relocation'" if sample_size else "no past outcomes"
-    )
+    note = f"based on {sample_size} past outcomes tagged 'relocation'" if sample_size else "no past outcomes"
     estimate = CalibrationEstimate(
         tag="relocation",
         sample_size=sample_size,

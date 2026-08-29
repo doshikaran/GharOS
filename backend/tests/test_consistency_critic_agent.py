@@ -112,7 +112,7 @@ class TestGate11CatchesPlantedOverOptimism:
             {
                 "over_optimistic_claims": [
                     'The claim that the school transition will be "completely seamless with zero '
-                    'disruption" directly contradicts the household\'s own hard board-exam-year '
+                    "disruption\" directly contradicts the household's own hard board-exam-year "
                     "schedule constraint on file — a mid-year school change during a board-exam "
                     "year is a real, material disruption risk, not zero."
                 ],
@@ -244,9 +244,7 @@ class TestForbiddenSelfCritique:
         # *legitimately* discusses `path_simulator_agent` in prose (see
         # `_ast_checks.py`'s own rationale for the identical Phase 3
         # "never infers" precedent); only a real import statement counts.
-        assert not imports_any_module_named(
-            consistency_critic_agent_module, substring="path_simulator_agent"
-        )
+        assert not imports_any_module_named(consistency_critic_agent_module, substring="path_simulator_agent")
 
     def test_critique_signature_never_accepts_re_derivation_input(self) -> None:
         params = list(inspect.signature(ConsistencyCriticAgent.critique).parameters)

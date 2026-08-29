@@ -44,7 +44,9 @@ def _two_branch_framing(*, related_node_ids: tuple[str, ...] = ()) -> DecisionFr
         related_node_ids=related_node_ids,
     )
     high_door = candidate_branch(
-        "branch-high-door-suv", "SUV", "High door sill, 55cm — dad's mobility constraint rules this out",
+        "branch-high-door-suv",
+        "SUV",
+        "High door sill, 55cm — dad's mobility constraint rules this out",
         related_node_ids=related_node_ids,
     )
     return DecisionFraming(
@@ -170,9 +172,7 @@ class TestMalformedResponses:
     def test_invalid_stance_raises(self) -> None:
         agent = _agent(
             texts=[
-                json.dumps(
-                    {"stance": "sure", "reasoning": "x", "evidence_refs": [], "hard_eliminations": []}
-                )
+                json.dumps({"stance": "sure", "reasoning": "x", "evidence_refs": [], "hard_eliminations": []})
             ],
             nodes_by_id={},
         )

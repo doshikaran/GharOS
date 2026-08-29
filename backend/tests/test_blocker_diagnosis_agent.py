@@ -184,11 +184,15 @@ def _make_diagnosis(*, blocker_type: BlockerType) -> object:
 def _references_any_tool_machinery(module: types.ModuleType) -> bool:
     tree = ast.parse(inspect.getsource(module))
     for node in ast.walk(tree):
-        if isinstance(node, ast.ImportFrom) and node.module and (
-            "graph_write_tool" in node.module
-            or "graph_read_tool" in node.module
-            or ".registry" in node.module
-            or "arbitration" in node.module
+        if (
+            isinstance(node, ast.ImportFrom)
+            and node.module
+            and (
+                "graph_write_tool" in node.module
+                or "graph_read_tool" in node.module
+                or ".registry" in node.module
+                or "arbitration" in node.module
+            )
         ):
             return True
     return False

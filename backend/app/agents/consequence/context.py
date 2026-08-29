@@ -132,8 +132,7 @@ def assemble_implication_request(
         raise SourceDocumentNotResolvable(
             source_document_id=str(source_document_id),
             reason=(
-                "raw payload is not UTF-8 text (image/PDF-shaped documents "
-                f"are out of A12's scope): {exc}"
+                f"raw payload is not UTF-8 text (image/PDF-shaped documents are out of A12's scope): {exc}"
             ),
         ) from exc
 

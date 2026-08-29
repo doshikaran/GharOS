@@ -79,9 +79,7 @@ class TestStructuralFailureNeverReachesModel:
     def test_wrong_date_fails_without_any_gemini_call(self) -> None:
         agent, fake_models = _agent()
 
-        result = agent.verify(
-            brief=_brief(), report=_report(claimed_slot=datetime(2026, 10, 1, tzinfo=UTC))
-        )
+        result = agent.verify(brief=_brief(), report=_report(claimed_slot=datetime(2026, 10, 1, tzinfo=UTC)))
 
         assert result.verified is False
         assert result.model_tier == "deterministic"
@@ -168,9 +166,7 @@ class TestAdversarialModelCannotFabricateVerification:
         )
         agent, fake_models = _agent(texts=[response])
 
-        result = agent.verify(
-            brief=_brief(), report=_report(target_provider_id=NodeId("provider-different"))
-        )
+        result = agent.verify(brief=_brief(), report=_report(target_provider_id=NodeId("provider-different")))
 
         assert result.verified is False
         assert fake_models.calls == []
@@ -188,12 +184,16 @@ class TestAdversarialModelCannotFabricateVerification:
 def _references_any_tool_or_graph_write_machinery(module: types.ModuleType) -> bool:
     tree = ast.parse(inspect.getsource(module))
     for node in ast.walk(tree):
-        if isinstance(node, ast.ImportFrom) and node.module and (
-            "graph_write_tool" in node.module
-            or "graph_read_tool" in node.module
-            or ".registry" in node.module
-            or "arbitration" in node.module
-            or "booking_write_tool" in node.module
+        if (
+            isinstance(node, ast.ImportFrom)
+            and node.module
+            and (
+                "graph_write_tool" in node.module
+                or "graph_read_tool" in node.module
+                or ".registry" in node.module
+                or "arbitration" in node.module
+                or "booking_write_tool" in node.module
+            )
         ):
             return True
     return False

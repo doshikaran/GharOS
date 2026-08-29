@@ -116,9 +116,7 @@ class TestReliabilityDemotion:
             _candidate(
                 "no-show-provider", name="Glowing Clinic", rating=5.0, distance_km=0.1, is_existing=True
             ),
-            _candidate(
-                "clean-record", name="Ordinary Clinic", rating=4.0, distance_km=2.0, is_existing=True
-            ),
+            _candidate("clean-record", name="Ordinary Clinic", rating=4.0, distance_km=2.0, is_existing=True),
         )
         context = _context(reliability={NodeId("no-show-provider"): no_show_signal})
 

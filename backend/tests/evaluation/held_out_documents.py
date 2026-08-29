@@ -1230,9 +1230,7 @@ def _doc_16() -> HeldOutDocument:
         _person("p16-rohan", "Rohan"),
         _person("p16-aarav", "Aarav", role=PersonRole.CHILD),
     )
-    open_obligations = (
-        _obligation("o16-tuition", "Aarav's math tuition, daily 4:30-5:30 PM", "activity"),
-    )
+    open_obligations = (_obligation("o16-tuition", "Aarav's math tuition, daily 4:30-5:30 PM", "activity"),)
     stated = (
         _obligation(
             "s16-dentist",

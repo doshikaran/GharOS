@@ -50,7 +50,7 @@ class TestNonAffirmativesDoNotMatch:
         assert check_affirmative("kal baat karte hain", language="hi") is None
 
     def test_short_ha_syllable_is_not_a_recognised_token(self) -> None:
-        """"ha" alone is deliberately excluded from the table — too short
+        """ "ha" alone is deliberately excluded from the table — too short
         to safely word-boundary-match without false positives; a real
         household response using it alone should not silently confirm."""
         assert check_affirmative("ha", language="hi") is None
@@ -58,6 +58,6 @@ class TestNonAffirmativesDoNotMatch:
 
 class TestWordBoundaryMatching:
     def test_affirmative_substring_inside_unrelated_word_does_not_match(self) -> None:
-        """"ho" (Marathi yes) must not match merely because it appears as
+        """ "ho" (Marathi yes) must not match merely because it appears as
         a substring inside an unrelated longer word."""
         assert check_affirmative("household chores", language="mr") is None

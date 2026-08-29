@@ -42,9 +42,7 @@ def explainer(store: FirestoreGraphStore) -> JustificationExplainer:
 
 
 class TestJustificationExplainer:
-    def test_root_node_id_matches_input(
-        self, explainer: JustificationExplainer, seeded: SeedResult
-    ) -> None:
+    def test_root_node_id_matches_input(self, explainer: JustificationExplainer, seeded: SeedResult) -> None:
         result = explainer.explain(O2_PRESCRIPTION)
         assert result.root_node_id == str(O2_PRESCRIPTION)
 

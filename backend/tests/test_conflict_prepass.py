@@ -192,9 +192,7 @@ class TestTemporalConflict:
     ) -> None:
         priya = _write_person(writer, node_id="person-priya-nodue", display_name="Priya")
         no_due = _obligation("obligation-no-due", "No due date", due_at=None, effort_estimate_minutes=30)
-        dated = _obligation(
-            "obligation-has-due", "Has a due date", due_at=NOW, effort_estimate_minutes=30
-        )
+        dated = _obligation("obligation-has-due", "Has a due date", due_at=NOW, effort_estimate_minutes=30)
         writer.write_node(no_due)
         writer.write_node(dated)
         _own(writer, "e-own-nodue-a", no_due.id, priya.id)
@@ -354,9 +352,7 @@ class TestCapabilityConflict:
     def test_permission_slip_owner_without_can_sign_detected(
         self, reader: FirestoreGraphReader, writer: FirestoreGraphWriter
     ) -> None:
-        child = _write_person(
-            writer, node_id="person-aarav-cap", display_name="Aarav", can_sign=False
-        )
+        child = _write_person(writer, node_id="person-aarav-cap", display_name="Aarav", can_sign=False)
         slip = _obligation(
             "obligation-cap-slip",
             "Sign & return: field trip consent",
@@ -382,9 +378,7 @@ class TestCapabilityConflict:
     def test_permission_slip_owner_with_can_sign_no_conflict(
         self, reader: FirestoreGraphReader, writer: FirestoreGraphWriter
     ) -> None:
-        parent = _write_person(
-            writer, node_id="person-priya-cap-ok", display_name="Priya", can_sign=True
-        )
+        parent = _write_person(writer, node_id="person-priya-cap-ok", display_name="Priya", can_sign=True)
         slip = _obligation(
             "obligation-cap-slip-ok",
             "Sign & return: field trip consent",
@@ -414,9 +408,7 @@ class TestCapabilityConflict:
             can_sign=False,
             has_bank_access=False,
         )
-        errand = _obligation(
-            "obligation-cap-unmapped", "Buy milk", due_at=NOW, effort_estimate_minutes=10
-        )
+        errand = _obligation("obligation-cap-unmapped", "Buy milk", due_at=NOW, effort_estimate_minutes=10)
         writer.write_node(errand)
         _own(writer, "e-own-cap-unmapped", errand.id, person.id)
 
@@ -479,9 +471,7 @@ class TestLoadConflict:
         self, reader: FirestoreGraphReader, writer: FirestoreGraphWriter
     ) -> None:
         priya = _write_person(writer, node_id="person-priya-load-ok", display_name="Priya")
-        light = _obligation(
-            "obligation-load-light", "A short errand", due_at=NOW, effort_estimate_minutes=10
-        )
+        light = _obligation("obligation-load-light", "A short errand", due_at=NOW, effort_estimate_minutes=10)
         writer.write_node(light)
         _own(writer, "e-own-load-light", light.id, priya.id)
 
@@ -494,9 +484,7 @@ class TestConflictPrepassResultAggregation:
     def test_all_candidates_concatenates_in_stable_order(
         self, reader: FirestoreGraphReader, writer: FirestoreGraphWriter
     ) -> None:
-        priya = _write_person(
-            writer, node_id="person-priya-agg", display_name="Priya", can_sign=False
-        )
+        priya = _write_person(writer, node_id="person-priya-agg", display_name="Priya", can_sign=False)
         meeting = _obligation(
             "obligation-agg-meeting",
             "Meeting",
@@ -528,8 +516,8 @@ class TestConflictPrepassResultAggregation:
         )
 
         all_candidates = result.all_candidates()
-        expected_total = len(result.temporal) + len(result.resource) + len(result.capability) + len(
-            result.load
+        expected_total = (
+            len(result.temporal) + len(result.resource) + len(result.capability) + len(result.load)
         )
         assert len(all_candidates) == expected_total
         assert len(result.temporal) == 1

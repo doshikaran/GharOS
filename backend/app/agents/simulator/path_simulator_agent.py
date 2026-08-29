@@ -186,9 +186,7 @@ class PathSimulatorAgent:
             self._graph_reader, candidate_ids=request.candidate_anchor_ids
         )
         blast_nodes = self._graph_reader.blast_radius_multi(real_anchor_ids, request.blast_radius_depth)
-        blast_node_ids = tuple(
-            NodeId(str(node.id)) for node in blast_nodes if hasattr(node, "id")
-        )
+        blast_node_ids = tuple(NodeId(str(node.id)) for node in blast_nodes if hasattr(node, "id"))
         graph_summaries = context.summarize_anchor_nodes(blast_nodes)
         graph_context_block = (
             "\n".join(f"- {summary}" for summary in graph_summaries)
@@ -283,7 +281,8 @@ class PathSimulatorAgent:
         node_result = tool.invoke_idempotent(node_key, operation="write_node", node=branch)
         if not node_result.ok or node_result.value is None:
             raise ToolFailure(
-                tool_name="graph_writer", reason=node_result.error or "branch projection write failed",
+                tool_name="graph_writer",
+                reason=node_result.error or "branch projection write failed",
                 retryable=True,
             )
         written_id = NodeId(str(node_result.value))
@@ -301,7 +300,8 @@ class PathSimulatorAgent:
         edge_result = tool.invoke_idempotent(edge_key, operation="write_edge", edge=edge)
         if not edge_result.ok:
             raise ToolFailure(
-                tool_name="graph_writer", reason=edge_result.error or "contains edge write failed",
+                tool_name="graph_writer",
+                reason=edge_result.error or "contains edge write failed",
                 retryable=True,
             )
         return written_id

@@ -76,9 +76,7 @@ class TestContentAddressedDedup:
         ref_2 = store.store(payload, content_type="text/plain")
         assert ref_1 == ref_2
 
-    def test_storing_identical_payload_twice_does_not_duplicate_on_disk(
-        self, tmp_path: Path
-    ) -> None:
+    def test_storing_identical_payload_twice_does_not_duplicate_on_disk(self, tmp_path: Path) -> None:
         storage_dir = tmp_path / "raw_payloads"
         store = LocalFilesystemPayloadStore(storage_dir=storage_dir)
         payload = b"duplicate me"

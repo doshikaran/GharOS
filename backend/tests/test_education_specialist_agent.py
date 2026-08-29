@@ -77,9 +77,7 @@ class TestNeverEliminates:
     def test_eliminated_branch_ids_always_empty(self) -> None:
         agent = _agent(
             texts=[
-                json.dumps(
-                    {"stance": "supports", "reasoning": "No conflict on file.", "evidence_refs": []}
-                )
+                json.dumps({"stance": "supports", "reasoning": "No conflict on file.", "evidence_refs": []})
             ],
             nodes_by_id={},
         )

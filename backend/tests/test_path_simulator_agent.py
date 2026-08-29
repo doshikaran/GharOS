@@ -317,8 +317,9 @@ class TestGenuineIndependence:
         assert "care" not in projection_b.projected_impacts
         assert "school" in projection_b.projected_impacts
         assert "school" not in projection_a.projected_impacts
-        assert projection_a.projected_impacts["graph_blast_radius"] != (
-            projection_b.projected_impacts["graph_blast_radius"]
+        assert (
+            projection_a.projected_impacts["graph_blast_radius"]
+            != (projection_b.projected_impacts["graph_blast_radius"])
         )
         # Two real, independently-seeded reads — never one call answering for both.
         assert reader.blast_radius_multi_calls == [(anchors_a, 2), (anchors_b, 2)]

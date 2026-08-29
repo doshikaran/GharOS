@@ -348,9 +348,7 @@ class TestForwardModeFullPipeline:
             ),
             # 9: A39 calibration.narrate("relocation")
             json.dumps(
-                {
-                    "narrative": "Past relocations in this household have historically run over schedule."
-                }
+                {"narrative": "Past relocations in this household have historically run over schedule."}
             ),
             # 10: A40 synthesize()
             json.dumps(
@@ -360,8 +358,7 @@ class TestForwardModeFullPipeline:
                         "move_to_bangalore": "Risks a mid-year school transfer during the board-exam year.",
                     },
                     "trade_offs": [
-                        "Continuity of elder care in Mumbai versus proximity to Raj's new role in "
-                        "Bangalore."
+                        "Continuity of elder care in Mumbai versus proximity to Raj's new role in Bangalore."
                     ],
                     "open_questions": ["Would the school accept a mid-year transfer at all?"],
                 }

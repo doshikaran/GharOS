@@ -70,7 +70,7 @@ def _hard_constraints(nodes: tuple[object, ...]) -> tuple[Constraint, ...]:
 
 def _hard_constraints_block(hard_constraints: tuple[Constraint, ...]) -> str:
     return "\n".join(
-        f"- Constraint(kind={c.kind.value}, \"{c.original_text}\", structured={c.structured})"
+        f'- Constraint(kind={c.kind.value}, "{c.original_text}", structured={c.structured})'
         for c in hard_constraints
     )
 

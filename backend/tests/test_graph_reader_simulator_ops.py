@@ -100,9 +100,7 @@ class TestOutcomeVariance:
         writer.write_edge(
             _completes_into("e-o7-reloc-b", NodeId("obligation-pay-maya-salary"), relocation_b.id)
         )
-        writer.write_edge(
-            _completes_into("e-o6-staff-c", NodeId("obligation-weekly-groceries"), staff_c.id)
-        )
+        writer.write_edge(_completes_into("e-o6-staff-c", NodeId("obligation-weekly-groceries"), staff_c.id))
 
         # relocation: no seeded outcome carries this tag (the household has
         # never relocated — ADR-017's own seed docstring) so only the two

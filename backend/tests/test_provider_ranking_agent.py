@@ -55,9 +55,7 @@ class TestNarrativeNeverReorders:
         # Adversarial: the model's narrative text even *claims* a different
         # winner — this must have zero effect on `ranked`'s real order,
         # because the code never reads an order/rank field from parsed JSON.
-        response = json.dumps(
-            {"narrative": "Clinic p1 is clearly the best choice here.", "confidence": 0.9}
-        )
+        response = json.dumps({"narrative": "Clinic p1 is clearly the best choice here.", "confidence": 0.9})
         agent = _agent(texts=[response])
 
         result = agent.rank(

@@ -48,9 +48,7 @@ class TestPacingProfileFor:
         assert "loudly" in profile.style_instruction.lower()
 
     def test_unidentified_speaker_role_none_never_crashes(self) -> None:
-        profile = pacing_profile_for(
-            language="en", role=None, noisy_environment=False, language_profile=None
-        )
+        profile = pacing_profile_for(language="en", role=None, noisy_environment=False, language_profile=None)
         assert profile.language_code == "en-US"
 
 

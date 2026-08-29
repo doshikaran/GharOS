@@ -125,16 +125,12 @@ class TestEnrollVoiceprint:
         assert response.status_code == 404
 
     def test_400_for_invalid_base64(self, client: TestClient) -> None:
-        response = client.post(
-            "/voice/persons/person-1/enroll", json={"audio_b64": "not valid base64!!!"}
-        )
+        response = client.post("/voice/persons/person-1/enroll", json={"audio_b64": "not valid base64!!!"})
         assert response.status_code == 400
 
 
 class TestLanguageProfileEndpoints:
-    def test_get_returns_the_current_profile(
-        self, client: TestClient, writer: FirestoreGraphWriter
-    ) -> None:
+    def test_get_returns_the_current_profile(self, client: TestClient, writer: FirestoreGraphWriter) -> None:
         writer.write_node(_person())
         response = client.get("/voice/persons/person-1/language-profile")
         assert response.status_code == 200
@@ -152,9 +148,7 @@ class TestLanguageProfileEndpoints:
     ) -> None:
         writer.write_node(_person())
 
-        response = client.patch(
-            "/voice/persons/person-1/language-profile", json={"primary_language": "en"}
-        )
+        response = client.patch("/voice/persons/person-1/language-profile", json={"primary_language": "en"})
 
         assert response.status_code == 200
         body = response.json()

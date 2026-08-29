@@ -101,7 +101,7 @@ class TestConfidentTagging:
 
 
 class TestGenuineHindiMarathiAmbiguity:
-    """"Aaj nahi" ("not today") is genuinely ambiguous between Hindi and
+    """ "Aaj nahi" ("not today") is genuinely ambiguous between Hindi and
     Marathi — identical vocabulary, no grammatical marker either language
     can be ruled out by. Spec §15.11 A64 failure mode: fall back to the
     speaker's primary_language, flag low confidence."""
@@ -149,9 +149,7 @@ class TestMalformedResponses:
     def test_missing_language_field_raises(self) -> None:
         response = json.dumps(
             {
-                "spans": [
-                    {"text": "hi", "start_char": 0, "end_char": 2, "confidence": 0.9}
-                ],
+                "spans": [{"text": "hi", "start_char": 0, "end_char": 2, "confidence": 0.9}],
                 "overall_confidence": 0.9,
             }
         )

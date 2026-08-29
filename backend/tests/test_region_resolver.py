@@ -43,9 +43,7 @@ def payload_store(tmp_path: Path) -> LocalFilesystemPayloadStore:
     return LocalFilesystemPayloadStore(storage_dir=tmp_path / "raw_payloads")
 
 
-def _write_source_document(
-    writer: FirestoreGraphWriter, *, node_id: str, raw_payload_ref: str
-) -> NodeId:
+def _write_source_document(writer: FirestoreGraphWriter, *, node_id: str, raw_payload_ref: str) -> NodeId:
     doc = SourceDocument(
         id=NodeId(node_id),
         provenance=make_provenance(),
@@ -156,9 +154,7 @@ class TestResolvePageBoundingBoxSourceRef:
         ref = payload_store.store(payload, content_type="image/jpeg")
         _write_source_document(writer, node_id="doc-image-1", raw_payload_ref=ref)
 
-        source_ref = SourceRef(
-            source_document_id=NodeId("doc-image-1"), region="page=1;bbox=10,20,300,400"
-        )
+        source_ref = SourceRef(source_document_id=NodeId("doc-image-1"), region="page=1;bbox=10,20,300,400")
         resolved = resolve_source_ref(source_ref, graph_reader=reader, payload_store=payload_store)
 
         assert resolved.payload == payload

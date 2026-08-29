@@ -189,9 +189,7 @@ class UnblockerAgent:
             errors.ModelResponseMalformed: the model response could not
                 be parsed, or `option_a`/`option_b` were identical.
         """
-        known_options_block = (
-            "\n".join(f"- {opt}" for opt in request.known_options) or "(none surfaced yet)"
-        )
+        known_options_block = "\n".join(f"- {opt}" for opt in request.known_options) or "(none surfaced yet)"
         known_facts_block = "\n".join(f"- {fact}" for fact in request.known_facts) or "(none)"
         prompt = load_prompt("A24_DECISION")
         rendered = prompt.text.format(

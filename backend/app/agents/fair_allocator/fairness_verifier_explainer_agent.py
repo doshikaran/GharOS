@@ -194,9 +194,7 @@ class FairnessVerifierExplainerAgent:
             violation_detail=violation_detail,
         )
 
-    def _explain_share(
-        self, request: ShareExplanationRequest, *, prompt_text: str
-    ) -> PersonShareExplanation:
+    def _explain_share(self, request: ShareExplanationRequest, *, prompt_text: str) -> PersonShareExplanation:
         rendered = prompt_text.format(
             person_id=request.person_id,
             own_bundle_block=_own_bundle_block(request),

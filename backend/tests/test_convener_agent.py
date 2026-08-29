@@ -109,9 +109,7 @@ class TestRealComposition:
 class TestRejectsFabricatedIds:
     def test_unknown_specialist_id_raises(self) -> None:
         agent, _writer = _agent(
-            texts=[
-                json.dumps({"convened_specialist_ids": ["A99"], "convened_delegate_person_ids": []})
-            ]
+            texts=[json.dumps({"convened_specialist_ids": ["A99"], "convened_delegate_person_ids": []})]
         )
         request = ConvenerRequest(question="q", trigger="t", household_members=_MEMBERS)
 
