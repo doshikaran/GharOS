@@ -31,7 +31,7 @@ describe("DisputeCard", () => {
     expect(screen.getByText(formatCurrency(dispute.figureB.amount, dispute.figureB.currency))).toBeInTheDocument();
   });
 
-  it("renders both figures with the same DOM structure — neither side gets special markup", () => {
+  it("renders both figures with the same DOM structure, neither side gets special markup", () => {
     render(<DisputeCard dispute={dispute} />);
     const figureCards = screen.getAllByTestId("conflicting-figure");
     expect(figureCards).toHaveLength(2);

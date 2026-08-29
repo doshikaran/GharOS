@@ -37,7 +37,7 @@ export const LANDING_TRANSCRIPT_ENTRIES: readonly TranscriptEntry[] = [
 /** The read-back register: digit-grouped amount, repeated in words. */
 export const LANDING_CONFIRMATION_PROMPT: ConfirmationPromptEvent = {
   type: "confirmation_prompt",
-  text: "₹3,500 — three thousand five hundred. Queued for approval — money never moves on voice alone.",
+  text: "₹3,500, three thousand five hundred. Queued for approval, money never moves on voice alone.",
   requiresAffirmative: true,
   turnId: "landing-turn-1",
 } as const;

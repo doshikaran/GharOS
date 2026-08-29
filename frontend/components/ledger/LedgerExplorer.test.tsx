@@ -15,7 +15,7 @@ const snapshot: GraphSnapshot = {
     {
       id: "ledger-maintenance-debit",
       type: "LEDGER_EVENT",
-      label: "debit — INR 2500",
+      label: "debit, INR 2500",
       derivation: "extracted",
       confidence: 0.9,
       source_document_id: "doc-society-notice",
@@ -125,17 +125,17 @@ describe("LedgerExplorer", () => {
     render(<LedgerExplorer baseUrl="http://api.example" />);
 
     await screen.findByText("SUNRISE SOCIETY MAINT");
-    expect(screen.queryByText("Mandate cancellation — approval gate")).not.toBeInTheDocument();
+    expect(screen.queryByText("Mandate cancellation, approval gate")).not.toBeInTheDocument();
 
     fireEvent.click(screen.getByRole("button", { name: "Propose cancelling this mandate" }));
 
-    expect(await screen.findByText("Mandate cancellation — approval gate")).toBeInTheDocument();
+    expect(await screen.findByText("Mandate cancellation, approval gate")).toBeInTheDocument();
     expect(screen.getByText(/Cancel the recurring mandate for Sunrise Society maintenance/)).toBeInTheDocument();
     expect(screen.getByText(/Cancellation proposed/)).toBeInTheDocument();
 
     fireEvent.click(screen.getByRole("button", { name: "Approve" }));
     const dialog = screen.getByRole("dialog");
-    expect(dialog).toHaveTextContent("Confirm approval — this executes now");
+    expect(dialog).toHaveTextContent("Confirm approval, this executes now");
     fireEvent.click(within(dialog).getByRole("button", { name: "Confirm and execute" }));
 
     expect(screen.queryByRole("dialog")).not.toBeInTheDocument();

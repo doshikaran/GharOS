@@ -130,7 +130,7 @@ export function ApprovalsBoard({ initialItems, now, extraItems }: ApprovalsBoard
       <section aria-label="Escalation surface">
         <h2 className={styles.groupHeading}>Escalation surface</h2>
         <p className={styles.groupIntro}>
-          What GharOS declines to decide for you, and why — the raw evidence and its own reasoning for not
+          What GharOS declines to decide for you, and why, the raw evidence and its own reasoning for not
           resolving this, never a synthesized recommendation and never a silent default (spec §7.7, §18.1).
         </p>
         <EscalationSurface
@@ -144,7 +144,7 @@ export function ApprovalsBoard({ initialItems, now, extraItems }: ApprovalsBoard
       <Dialog
         open={confirmingItem !== null}
         onClose={handleCancelApproval}
-        title="Confirm approval — this executes now"
+        title="Confirm approval, this executes now"
       >
         {confirmingItem && (
           <div className={styles.confirmBody}>
@@ -152,7 +152,7 @@ export function ApprovalsBoard({ initialItems, now, extraItems }: ApprovalsBoard
             <RiskTierBadge tier={confirmingItem.riskTier} />
             <EvidenceBundleView bundle={confirmingItem.evidenceBundle} />
             <p className={styles.confirmWarning} role="alert">
-              Approving now executes this action immediately — there is no further confirmation after this
+              Approving now executes this action immediately, there is no further confirmation after this
               one.
             </p>
             <div className={styles.confirmActions}>

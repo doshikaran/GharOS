@@ -52,19 +52,19 @@ export function EscalationCard({ item, now, discussed = false, onToggleDiscussed
       <div className={styles.body}>
         <div className={styles.reasons}>
           {isCouncilBrief && (
-            <Badge variant="royal">Council brief — humans decide</Badge>
+            <Badge variant="royal">Council brief, humans decide</Badge>
           )}
-          {expired && <Badge variant="warning">Escalated — approval window expired</Badge>}
+          {expired && <Badge variant="warning">Escalated, approval window expired</Badge>}
         </div>
 
         <RiskTierBadge tier={item.riskTier} />
 
         <p className={styles.explainer}>
           {isCouncilBrief
-            ? "This category is irreversible, high-stakes, and emotionally loaded for the household. GharOS never auto-executes it and the Council never resolves it — the brief below lays out the reasoning and evidence for a human decision, not a synthesized recommendation."
+            ? "This category is irreversible, high-stakes, and emotionally loaded for the household. GharOS never auto-executes it and the Council never resolves it, the brief below lays out the reasoning and evidence for a human decision, not a synthesized recommendation."
             : `This request's approval window closed at ${formatDateTime(
                 item.expiresAt,
-              )} with no decision from a human. It has not been approved, and it has not been rejected — it needs a decision now.`}
+              )} with no decision from a human. It has not been approved, and it has not been rejected, it needs a decision now.`}
         </p>
 
         <EvidenceBundleView bundle={item.evidenceBundle} />
@@ -76,7 +76,7 @@ export function EscalationCard({ item, now, discussed = false, onToggleDiscussed
             label="Discussed with the household"
           />
           <p className={styles.discussedNote}>
-            This only tracks whether the household has talked this through — it does not approve, reject, or
+            This only tracks whether the household has talked this through, it does not approve, reject, or
             execute anything.
           </p>
         </div>

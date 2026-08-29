@@ -30,7 +30,7 @@ export function DelegateScores({ delegateScorings }: DelegateScoresProps) {
 
             <table className={styles.table}>
               <caption className={styles.caption}>
-                {personLabel(scoring.personId)}&apos;s own cost per option — lower is more preferred, only ever
+                {personLabel(scoring.personId)}&apos;s own cost per option, lower is more preferred, only ever
                 compared against their own other rows, never against another person&apos;s numbers.
               </caption>
               <thead>
@@ -45,7 +45,7 @@ export function DelegateScores({ delegateScorings }: DelegateScoresProps) {
                     <td>{branchLabel(branchId)}</td>
                     <td>
                       {cost.toFixed(1)}
-                      {branchId === topPickBranchId && <span className={styles.topPickTag}> — own top pick</span>}
+                      {branchId === topPickBranchId && <span className={styles.topPickTag}>, own top pick</span>}
                     </td>
                   </tr>
                 ))}

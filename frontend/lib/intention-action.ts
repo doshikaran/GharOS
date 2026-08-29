@@ -102,7 +102,7 @@ export interface BlockerTypeMeta {
 export const BLOCKER_TYPE_META: Readonly<Record<BlockerType, BlockerTypeMeta>> = {
   information: {
     label: "Information blocker",
-    shortDescription: "A needed fact is missing — a number, account, policy, or last-service date.",
+    shortDescription: "A needed fact is missing, a number, account, policy, or last-service date.",
   },
   decision: {
     label: "Decision blocker",
@@ -122,7 +122,7 @@ export const BLOCKER_TYPE_META: Readonly<Record<BlockerType, BlockerTypeMeta>> =
   },
   aversion: {
     label: "Aversion blocker",
-    shortDescription: "The person systematically avoids this modality — e.g. never makes calls.",
+    shortDescription: "The person systematically avoids this modality, e.g. never makes calls.",
   },
 };
 
@@ -340,7 +340,7 @@ export interface FrictionPattern {
 }
 
 const PATTERN_DESCRIPTION_PREFIX = "Friction pattern";
-const DESCRIPTION_RE = /^Friction pattern \(([a-z_]+)\) — /;
+const DESCRIPTION_RE = /^Friction pattern \(([a-z_]+)\), /;
 
 const BASE_CONFIDENCE = 0.5;
 const CONFIDENCE_PER_SUPPORT = 0.1;
@@ -358,7 +358,7 @@ function buildPatternDescription(args: {
   readonly personDisplayName: string;
   readonly detail: string;
 }): string {
-  return `${PATTERN_DESCRIPTION_PREFIX} (${args.blockerType}) — ${args.personDisplayName}: ${args.detail}`;
+  return `${PATTERN_DESCRIPTION_PREFIX} (${args.blockerType}), ${args.personDisplayName}: ${args.detail}`;
 }
 
 /** Mirrors `friction_profile.extract_blocker_type_from_pattern` exactly —
@@ -479,7 +479,7 @@ export function getStaleObligationDetection(): StaleObligationDetection {
     obligationId: TASK_DENTAL_CHECKUP_ID,
     title: "Book Aarav's dental check-up",
     reason:
-      "Open for 124 days with no status change, no linked action, and no scheduled window — the household's own median obligation completes within 9 days of creation.",
+      "Open for 124 days with no status change, no linked action, and no scheduled window, the household's own median obligation completes within 9 days of creation.",
     daysStale: 124,
     thresholdDays: 21,
     detectedAt: SEED_NOW,
@@ -499,7 +499,7 @@ function dentalDiagnosisAttempt1(): BlockerDiagnosis {
     personId: PRIYA_ID,
     blockerType: "information",
     diagnosisText:
-      "This is blocked because the clinic's phone number and Aarav's last visit date aren't on hand — Priya has said twice she 'needs to look that up.'",
+      "This is blocked because the clinic's phone number and Aarav's last visit date aren't on hand, Priya has said twice she 'needs to look that up.'",
     evidence: [
       "Priya's message, 9 May: \"I need to find that dentist's number again\"",
       "No last-visit date recorded anywhere in the household's records",
@@ -521,7 +521,7 @@ function dentalDiagnosisAttempt2(): BlockerDiagnosis {
     personId: PRIYA_ID,
     blockerType: "first_step_ambiguity",
     diagnosisText:
-      "Priya now has the clinic's number and Aarav's last visit date — she still hasn't called. She says she \"just hasn't figured out how to start.\" The blocker is not missing information, it's not knowing the actual first action.",
+      "Priya now has the clinic's number and Aarav's last visit date, she still hasn't called. She says she \"just hasn't figured out how to start.\" The blocker is not missing information, it's not knowing the actual first action.",
     evidence: [
       "Attempt 1 fetched the number and last-visit date on 2 May; the task still did not happen",
       "Priya's message, 12 Jun: \"I have the number now, I just haven't gotten to it\"",
@@ -543,9 +543,9 @@ function dentalDiagnosisAttempt3(): BlockerDiagnosis {
     personId: PRIYA_ID,
     blockerType: "aversion",
     diagnosisText:
-      "This is blocked because Priya avoids phone calls, not because the number was missing or the first step was unclear — the same aversion pattern is already on file for her (seen 3 times before this). Two prior diagnoses treated the symptom, not the cause.",
+      "This is blocked because Priya avoids phone calls, not because the number was missing or the first step was unclear, the same aversion pattern is already on file for her (seen 3 times before this). Two prior diagnoses treated the symptom, not the cause.",
     evidence: [
-      "Friction profile: Priya — aversion (phone calls), seen 3 times",
+      "Friction profile: Priya, aversion (phone calls), seen 3 times",
       "Attempt 1 fetched the number and date directly; the task still did not happen",
       "Attempt 2 named a single concrete first step (\"call and ask for a Saturday slot\"); the task still did not happen",
     ],
@@ -582,7 +582,7 @@ export function getDentalCheckupAttempts(): readonly UnblockingAttempt[] {
     {
       attemptNumber: 3,
       diagnosis: dentalDiagnosisAttempt3(),
-      actionTaken: "Not attempted — A26 escalated after two failed unblocking attempts before a third was tried.",
+      actionTaken: "Not attempted, A26 escalated after two failed unblocking attempts before a third was tried.",
       outcome: "failed",
       attemptedAt: "2026-08-20T16:05:00Z",
     },
@@ -608,7 +608,7 @@ export function getDentalCheckupSlippageAnalysis(): SlippageAnalysisResult {
     reDiagnosis: {
       likelyBlockerType: "aversion",
       reasoning:
-        "Two prior unblocking attempts (fetching the missing information, then naming a single concrete first step) both removed a plausible-sounding blocker and the task still did not happen — the pattern matches Priya's documented call aversion far better than either prior diagnosis.",
+        "Two prior unblocking attempts (fetching the missing information, then naming a single concrete first step) both removed a plausible-sounding blocker and the task still did not happen, the pattern matches Priya's documented call aversion far better than either prior diagnosis.",
       confidence: 0.81,
       changedFromPrior: true,
     },
@@ -616,14 +616,14 @@ export function getDentalCheckupSlippageAnalysis(): SlippageAnalysisResult {
       {
         kind: "drop",
         description:
-          "Drop it for now — Aarav's last check-up was 7 months ago; most guidance allows up to a year between routine visits, so this is not urgent.",
+          "Drop it for now, Aarav's last check-up was 7 months ago; most guidance allows up to a year between routine visits, so this is not urgent.",
         candidatePersonId: null,
         estimatedCost: null,
       },
       {
         kind: "delegate",
         description:
-          "Delegate the call to Dadi — she has no documented aversion to phone calls and is home during clinic hours.",
+          "Delegate the call to Dadi, she has no documented aversion to phone calls and is home during clinic hours.",
         candidatePersonId: DADI_ID,
         estimatedCost: null,
       },
@@ -636,7 +636,7 @@ export function getDentalCheckupSlippageAnalysis(): SlippageAnalysisResult {
       },
     ],
     messageText:
-      "This has slipped 3 times over about 4 months. The real blocker looks like Priya's phone-call aversion, not the earlier information or first-step diagnoses — drop it, delegate it to Dadi, or pay a local agent to book it directly.",
+      "This has slipped 3 times over about 4 months. The real blocker looks like Priya's phone-call aversion, not the earlier information or first-step diagnoses, drop it, delegate it to Dadi, or pay a local agent to book it directly.",
     confidence: 0.81,
     modelTier: "pro",
     promptVersion: "slippage-analyst-v1",
@@ -655,9 +655,9 @@ export function getDentalCheckupModalitySwitch(): ModalitySwitchResult {
     fromModality: "call",
     toModality: "message",
     preDraftedText:
-      "Hi Bright Smiles Dental — I'd like to book a check-up for my son Aarav (last seen 12 Feb 2026). Do you have anything on a Saturday morning in the next two weeks? Happy to confirm by message. — Priya",
+      "Hi Bright Smiles Dental, I'd like to book a check-up for my son Aarav (last seen 12 Feb 2026). Do you have anything on a Saturday morning in the next two weeks? Happy to confirm by message., Priya",
     reasoning:
-      "Priya's own friction profile shows a repeated call aversion, never a call-content or scheduling problem — switching to a written message removes the actual blocker instead of re-preparing the same call a third time.",
+      "Priya's own friction profile shows a repeated call aversion, never a call-content or scheduling problem, switching to a written message removes the actual blocker instead of re-preparing the same call a third time.",
     confidence: 0.83,
     modelTier: "pro",
     promptVersion: "unblocker-modality-switch-v2",
@@ -706,7 +706,7 @@ export function getEyeCheckupDiagnosis(): BlockerDiagnosis {
     personId: PRIYA_ID,
     blockerType: "information",
     diagnosisText:
-      "This is blocked because Dadi's last eye-exam date and the optician's phone number aren't on hand — Priya has said she \"needs to look it up\" twice now.",
+      "This is blocked because Dadi's last eye-exam date and the optician's phone number aren't on hand, Priya has said she \"needs to look it up\" twice now.",
     evidence: [
       'Priya\'s message, 15 Aug: "I need to find that eye doctor\'s number again"',
       "No last-visit date recorded anywhere in the household's records",
@@ -732,7 +732,7 @@ export function getEyeCheckupInformationFetch(): InformationFetchResult {
     missingFactDescription: "Dadi's last eye-exam date and Clearview Optics' phone number",
     fetched: true,
     factText:
-      "Last eye exam: 14 March 2026 at Clearview Optics, Andheri — phone +91-80000-45678 (found in Dadi's medical documents).",
+      "Last eye exam: 14 March 2026 at Clearview Optics, Andheri, phone +91-80000-45678 (found in Dadi's medical documents).",
     confidence: 0.88,
     modelTier: "flash",
     promptVersion: "unblocker-information-fetch-v1",
@@ -751,7 +751,7 @@ export function getFieldTripDiagnosis(): BlockerDiagnosis {
     personId: PRIYA_ID,
     blockerType: "decision",
     diagnosisText:
-      "This is blocked because Priya hasn't decided whether to pay online or send cash with Aarav — the ₹450 fee itself was never in question, only the payment method.",
+      "This is blocked because Priya hasn't decided whether to pay online or send cash with Aarav, the ₹450 fee itself was never in question, only the payment method.",
     evidence: [
       'School WhatsApp thread: "pay online via the parent portal, or send exact cash with your child by Friday"',
       "No portal payment recorded and no cash handed over, 6 days after the notice",
@@ -770,12 +770,12 @@ export function getFieldTripDiagnosis(): BlockerDiagnosis {
 export function getFieldTripDecisionNarrowing(): DecisionNarrowingResult {
   return {
     obligationId: TASK_FIELD_TRIP_PAYMENT_ID,
-    optionA: "Pay ₹450 online via the school portal today — confirmation is instant.",
-    optionB: "Send exact ₹450 cash with Aarav on Friday morning — no portal login needed.",
+    optionA: "Pay ₹450 online via the school portal today, confirmation is instant.",
+    optionB: "Send exact ₹450 cash with Aarav on Friday morning, no portal login needed.",
     framingText:
       "Both close this out before Friday's deadline; the real choice is whether Priya deals with the portal now or hands Aarav exact change Friday morning.",
     reasoning:
-      "The school's own notice names exactly these two payment channels and no others — narrowing to them is not a guess, it's the full option set restated as a binary.",
+      "The school's own notice names exactly these two payment channels and no others, narrowing to them is not a guess, it's the full option set restated as a binary.",
     confidence: 0.8,
     modelTier: "pro",
     promptVersion: "unblocker-decision-narrowing-v1",
@@ -799,7 +799,7 @@ export function getDadiPhysioDiagnosis(): BlockerDiagnosis {
     personId: DADI_ID,
     blockerType: "window",
     diagnosisText:
-      "This is blocked because every proposed time lands inside one of Dadi's own real commitments — never because nobody is willing to take her.",
+      "This is blocked because every proposed time lands inside one of Dadi's own real commitments, never because nobody is willing to take her.",
     evidence: [
       "Dadi's nap window (constraint-dadi-nap, daily 14:00-16:00, soft) has ruled out two prior proposed afternoon slots",
       "Dadi's cardiology follow-up (Tuesdays 09:00-11:00, hard) ruled out one proposed morning slot",
@@ -876,7 +876,7 @@ const DADI_PHYSIO_COUNTERPARTY_NARRATION: readonly {
     counterpartyAvailability: "available",
     historicalLikelihood: "unlikely",
     reasoning:
-      "Sunrise Physiotherapy is open then, but this slot falls inside Dadi's own real nap window — proposed twice before and never actually honoured.",
+      "Sunrise Physiotherapy is open then, but this slot falls inside Dadi's own real nap window, proposed twice before and never actually honoured.",
   },
   {
     counterpartyAvailability: null,
@@ -887,7 +887,7 @@ const DADI_PHYSIO_COUNTERPARTY_NARRATION: readonly {
     counterpartyAvailability: "unavailable",
     historicalLikelihood: "insufficient_data",
     reasoning:
-      "Illustrative — evaluated only against a legacy, pre-ADR-015 schedule entry to demonstrate the honest 'cannot determine' verdict; Sunrise Physiotherapy is also closed at this hour.",
+      "Illustrative, evaluated only against a legacy, pre-ADR-015 schedule entry to demonstrate the honest 'cannot determine' verdict; Sunrise Physiotherapy is also closed at this hour.",
   },
   {
     counterpartyAvailability: "available",
@@ -967,7 +967,7 @@ export function getInitialFrictionPatterns(): readonly FrictionPattern[] {
       personId: PRIYA_ID,
       blockerType: "aversion",
       description:
-        "Friction pattern (aversion) — Priya: avoids calling unfamiliar clinics and businesses; confirmed across the pharmacy renewal, the society insurer, and the school-fee office calls (obligation obligation-renew-prescription)",
+        "Friction pattern (aversion), Priya: avoids calling unfamiliar clinics and businesses; confirmed across the pharmacy renewal, the society insurer, and the school-fee office calls (obligation obligation-renew-prescription)",
       supportCount: 3,
       confidence: patternConfidence(3),
       createdAt: "2026-07-30T10:00:00Z",
@@ -977,7 +977,7 @@ export function getInitialFrictionPatterns(): readonly FrictionPattern[] {
       personId: MAYA_ID,
       blockerType: "window",
       description:
-        "Friction pattern (window) — Maya: daytime errands increasingly collide with sleep since starting night shifts; two of her last three attempted daytime tasks slipped past their window (obligation obligation-visit-pharmacy)",
+        "Friction pattern (window), Maya: daytime errands increasingly collide with sleep since starting night shifts; two of her last three attempted daytime tasks slipped past their window (obligation obligation-visit-pharmacy)",
       supportCount: 2,
       confidence: patternConfidence(2),
       createdAt: "2026-08-10T08:00:00Z",

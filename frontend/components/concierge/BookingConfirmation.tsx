@@ -31,13 +31,13 @@ export function BookingConfirmation({ outcome, providerName, title }: BookingCon
         title={
           <span className={styles.titleRow}>
             <span>{title}</span>
-            <Badge variant="danger">Could not verify — not recorded</Badge>
+            <Badge variant="danger">Could not verify, not recorded</Badge>
           </span>
         }
       >
         <p className={styles.notRecordedNote} role="status">
           Nothing was written to the household&apos;s graph for this call. A booking is only ever recorded once
-          it is independently verified — this one was not.
+          it is independently verified, this one was not.
         </p>
         {outcome.verification.discrepancies.length > 0 && (
           <>
@@ -93,7 +93,7 @@ export function BookingConfirmation({ outcome, providerName, title }: BookingCon
 
       {booking.attributionTags.length === 0 ? (
         <p className={styles.noReliabilitySignal}>
-          No reliability signal recorded yet — the appointment hasn&apos;t happened. This provider&apos;s history
+          No reliability signal recorded yet, the appointment hasn&apos;t happened. This provider&apos;s history
           updates for real once it does.
         </p>
       ) : (

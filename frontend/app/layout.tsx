@@ -42,7 +42,7 @@ const instrumentSerif = Instrument_Serif({
 export const metadata: Metadata = {
   title: "GharOS",
   description:
-    "GharOS — an autonomous household operating system: a ledger and archive that happens to think.",
+    "GharOS, an autonomous household operating system: a ledger and archive that happens to think.",
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {

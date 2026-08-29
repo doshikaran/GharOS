@@ -19,7 +19,7 @@ export function BackwardModeView({ analysis }: BackwardModeViewProps) {
   return (
     <div className={styles.view} aria-label="Backward mode">
       <p className={styles.informationalNote} role="note">
-        Informational only. GharOS does not automatically act on anything below — no task is created or changed
+        Informational only. GharOS does not automatically act on anything below, no task is created or changed
         in Intention → Action from this view (ADR-017).
       </p>
 

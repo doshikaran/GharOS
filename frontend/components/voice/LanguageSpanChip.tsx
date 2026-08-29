@@ -29,7 +29,7 @@ export function LanguageSpanChip({ span }: LanguageSpanChipProps) {
       <span className={styles.tag}>
         {languageDisplayLabel(span.language)}
         {lowConfidence && (
-          <span className={styles.lowConfidenceMark} aria-label="low confidence — may need to be repeated">
+          <span className={styles.lowConfidenceMark} aria-label="low confidence, may need to be repeated">
             {" "}
             ⚠
           </span>

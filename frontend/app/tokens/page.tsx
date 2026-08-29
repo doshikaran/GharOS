@@ -4,7 +4,7 @@ import { DerivationBadge } from "@/components/design-system/DerivationBadge";
 import styles from "./tokens-page.module.css";
 
 export const metadata: Metadata = {
-  title: "GharOS — Design tokens",
+  title: "GharOS, Design tokens",
 };
 
 interface TokenEntry {
@@ -114,7 +114,7 @@ export default function TokensPage() {
           <h1 className={styles.heading}>GharOS design tokens</h1>
           <p className={styles.subheading}>
             Every token in <code>styles/tokens.css</code>, organised by category, both themes.
-            This is the review surface for the whole design system (PHASES.md Gate 0) — toggle
+            This is the review surface for the whole design system (PHASES.md Gate 0), toggle
             theme below and confirm every swatch still reads correctly.
           </p>
         </div>
@@ -123,7 +123,7 @@ export default function TokensPage() {
 
       <ColorSection
         title="Surfaces"
-        note="Base / raised / overlay — the paper stacked on paper of the ledger."
+        note="Base / raised / overlay, the paper stacked on paper of the ledger."
         tokens={SURFACE_TOKENS}
       />
 
@@ -140,19 +140,19 @@ export default function TokensPage() {
       />
 
       <ColorSection
-        title="Accent — brass"
+        title="Accent, brass"
         note="Champagne (the token name predates the 2026-08-29 private-bank pass): darkened for text on stone in light mode, full strength in dark mode. -muted is a fill/tint token only."
         tokens={ACCENT_TOKENS}
       />
 
       <ColorSection
         title="State"
-        note="Success / warning / danger / info — all verified >=4.5:1 on --surface-base."
+        note="Success / warning / danger / info, all verified >=4.5:1 on --surface-base."
         tokens={STATE_TOKENS}
       />
 
       <section className={styles.section}>
-        <h2 className={styles.sectionTitle}>Derivation — load-bearing, not decorative</h2>
+        <h2 className={styles.sectionTitle}>Derivation, load-bearing, not decorative</h2>
         <p className={styles.sectionNote}>
           Marks extracted / inferred / ambiguous graph data everywhere it appears. Colour is
           reinforced by a border-style convention (solid / dashed / dotted) that will match the
@@ -168,7 +168,7 @@ export default function TokensPage() {
 
       <ColorSection
         title="Edge conflict"
-        note="Reserved exclusively for conflict edges in the graph — never reused as a generic error colour."
+        note="Reserved exclusively for conflict edges in the graph, never reused as a generic error colour."
         tokens={EDGE_TOKENS}
       />
 
@@ -200,7 +200,7 @@ export default function TokensPage() {
 
       <section className={styles.section}>
         <h2 className={styles.sectionTitle}>Elevation</h2>
-        <p className={styles.sectionNote}>Cool-cast shadows — never pure black in light mode.</p>
+        <p className={styles.sectionNote}>Cool-cast shadows, never pure black in light mode.</p>
         <div className={styles.flexWrapRow}>
           {ELEVATION_TOKENS.map((name) => (
             <div className={styles.elevationRow} key={name}>
@@ -215,7 +215,7 @@ export default function TokensPage() {
         <h2 className={styles.sectionTitle}>Motion</h2>
         <p className={styles.sectionNote}>
           Hover a row to preview its duration. The graph growing is the one place animation
-          carries real meaning (--motion-graph-grow) — everything else stays quick and quiet.
+          carries real meaning (--motion-graph-grow), everything else stays quick and quiet.
         </p>
         {MOTION_DURATION_TOKENS.map((name) => (
           <div className={styles.motionRow} key={name}>

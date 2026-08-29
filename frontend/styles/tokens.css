@@ -2,30 +2,32 @@
  * GharOS design tokens — spec §3.2 / PHASES.md §3.2.
  *
  * Direction: a well-kept household ledger and archive that happens to
- * think — not a productivity SaaS dashboard. Since the 2026-08-29
- * "private bank" pass (operator-approved, executed between Phases 13 and
- * 14): banker's green and champagne on cool stone in light mode; the same
- * pairing on deep spruce-black ("Vault") in dark mode, which is the
- * canonical expression. Rich and restrained, archival rather than
- * luxurious.
+ * think, not a productivity SaaS dashboard. Rich and restrained,
+ * archival rather than luxurious.
  *
- * 2026-08-29 (same day, follow-up) light-ground pass: light theme's
- * ground moved from "Stone" (a cool gray-green #edece6) to "Paper" — a
- * clean, near-neutral off-white (#f7f7f5) — on operator direction that
- * the gray-green cast read as murky rather than polished. Dark theme
- * ("Vault") is untouched. Every foreground ratio documented below was
- * recomputed against the new, lighter Paper surfaces (all of which only
- * *increased* — a lighter ground gives dark ink and every accent MORE
- * contrast, not less — so no hue changed and no floor was at risk).
+ * 2026-08-29 "jewel-tone" pass (operator-approved, executed after the
+ * Phase 14 gate; not itself a numbered phase). Keeps the layout system,
+ * the paper-grid motif, and the font pairing from the earlier "private
+ * bank" pass. Moves the palette to a deeper, more precious register:
+ *   - house colour (`--royal-*`): banker's sage green -> deep EMERALD.
+ *     Darker and more saturated in light mode (a jewel, not a wash);
+ *     kept as a distinct, greener step from the teal
+ *     `--derivation-extracted` in dark mode (see the audit note below).
+ *   - metallic accent (`--accent-brass*`): muted olive champagne ->
+ *     a warmer, truer GOLD.
+ *   - light ground: cool near-neutral "Paper" (#f7f7f5) -> warm IVORY
+ *     (#f7f4ec). Barely a lightness change (L 0.905 -> 0.905) so every
+ *     light-theme foreground ratio below is unmoved; the shift is
+ *     entirely in warmth/cast.
+ *   - dark ground "Vault": deepened one step (#0e1311 -> #0b100e base)
+ *     for a richer well, which only *raises* every dark-theme foreground
+ *     ratio (a darker ground gives light ink and accents MORE contrast).
  *
- * TOKEN NAMES DELIBERATELY UNCHANGED: `--royal-*` now carries banker's
- * green (formerly deep lapis) and `--accent-brass*` now carries champagne
- * (formerly antique brass). The names stay because every component in the
- * app consumes these tokens by role, not by hue — renaming them would
- * touch every stylesheet in `frontend/` for zero behavioural gain, and
- * the roles themselves (primary identity colour, warm accent) are exactly
- * what they were. Treat the names as roles: "royal" = the house colour,
- * "brass" = the metallic accent.
+ * TOKEN NAMES DELIBERATELY UNCHANGED: `--royal-*` carries emerald,
+ * `--accent-brass*` carries gold. Every component consumes these tokens
+ * by role, not by hue, so renaming would touch every stylesheet in
+ * `frontend/` for zero behavioural gain. Read the names as roles:
+ * "royal" = the house colour, "brass" = the metallic accent.
  *
  * Theming strategy: `next-themes` sets `data-theme="light" | "dark"` on
  * `<html>`. Light values live on bare `:root` as the default (so the page
@@ -35,38 +37,35 @@
  *
  * Contrast: every colour below that is used as *foreground text/icon* on
  * a surface was verified with the WCAG 2.1 relative-luminance formula
- * against its WORST-CASE surface in that theme — light theme's darkest
- * surface is `--surface-base`, dark theme's lightest is
- * `--surface-overlay` — and the computed ratio is noted next to each
- * token. Everything clears 4.5:1 (AA, normal text) in BOTH themes.
+ * against its WORST-CASE surface in that theme, light theme's darkest
+ * surface being `--surface-base` and dark theme's lightest being
+ * `--surface-overlay`, with the computed ratio noted next to each token.
+ * Everything clears 4.5:1 (AA, normal text) in BOTH themes.
  * The fill/tint tokens (`--accent-brass-muted`, `--royal-soft`,
- * `--royal-deep`) are for backgrounds, chips and borders — NOT verified
- * for small-text contrast and must not carry small foreground text; use
+ * `--royal-deep`) are for backgrounds, chips and borders, NOT verified
+ * for small-text contrast, and must not carry small foreground text; use
  * the non-muted sibling or `--ink-*` for text instead.
  *
- * 2026-08-29 private-bank pass, ratio audit summary:
- *   - All `--ink-*`, `--royal-primary`, `--accent-brass` values are new
- *     and were verified fresh (ratios inline below).
+ * 2026-08-29 jewel-tone pass, ratio audit summary:
+ *   - `--ink-*` shifted to a warm (ivory-matched) near-black/porcelain.
+ *     Light: primary 14.9:1, secondary 8.8:1, muted 6.2:1 vs base.
+ *     Dark: primary 13.0:1, secondary 9.1:1, muted 6.0:1 vs overlay.
+ *   - `--royal-primary` (emerald). Light #0c4a38: 9.3:1 vs base (was
+ *     8.3:1). Dark #6bb79c: 6.7:1 vs overlay, 7.8:1 vs base.
+ *   - `--accent-brass` (gold). Light #7d5e1d: 5.5:1 vs base. Dark
+ *     #d7bd7c: 8.6:1 vs overlay.
  *   - `--state-*`, `--derivation-*`, `--edge-conflict`, `--margin-rule`
- *     keep their hues and roles. Every one was re-verified against the
- *     new surfaces; the single value that fell below 4.5:1 was dark
- *     `--state-danger` (4.4:1 vs the new `--surface-overlay`), adjusted
- *     in lightness only: #d8646e → #db6872 (hue/role untouched).
- *   - `--derivation-extracted` (teal) vs the new green-cast dark ground:
- *     checked explicitly — Vault is near-achromatic (~2% chroma), and the
- *     teal sits at 8.6:1 against it, a full hue step more cyan and far
- *     brighter than dark `--royal-primary`'s muted sage (#7fb6a3), so
- *     extracted edges still read apart from both the ground and the
- *     house green.
- *
- * 2026-08-29 Paper pass, ratio audit summary: every light-theme
- * foreground token below was recomputed (WCAG 2.1 relative-luminance
- * formula) against the three new, lighter surfaces. Because the ground
- * got lighter while every foreground stayed the same dark value, EVERY
- * ratio moved up, never down — nothing approached the 4.5:1 floor, so no
- * hue, role, or lightness changed on any foreground token in this pass.
- * `--paper-grid-line` and the elevation shadows were checked against the
- * new ground and left as-is (see their own comments below for why).
+ *     keep their hues, roles AND values. Light ground luminance is
+ *     unchanged (0.905), dark ground is darker, so every prior ratio
+ *     holds or improves. Nothing was re-tuned, only re-verified.
+ *   - `--derivation-extracted` (teal #21635e light / #59c0b7 dark) vs
+ *     the emerald `--royal-primary`: checked explicitly. In light mode
+ *     emerald is far darker (L 0.053 vs teal 0.108). In dark mode the
+ *     emerald #6bb79c is a clear green step (G well above B) where the
+ *     teal #59c0b7 sits near-cyan (G approx B), plus the
+ *     solid/dashed/dotted DerivationBadge border convention still
+ *     reinforces it for colour-blind users. Extracted edges still read
+ *     apart from both the ground and the house colour.
  *
  * No component may use a raw hex value. Every colour a component needs
  * must come from this file.
@@ -74,142 +73,133 @@
 
 :root {
   /* ---------------------------------------------------------------- *
-   * SURFACES — "Paper", light theme (2026-08-29 follow-up pass): a
-   * clean, near-neutral off-white, replacing the cool gray-green
-   * "Stone" (#edece6) the same-day private-bank pass had introduced —
-   * operator direction was that the gray-green cast read as murky
-   * rather than polished. base #f7f7f5 is the darkest of the three, so
-   * it is the worst-case surface every light-theme foreground below is
-   * verified against.
+   * SURFACES, "Ivory", light theme (2026-08-29 jewel-tone pass): a
+   * warm, low-chroma off-white, replacing the cool near-neutral "Paper"
+   * (#f7f7f5). base #f7f4ec is the darkest of the three (L 0.905,
+   * unchanged from Paper), so it is the worst-case surface every
+   * light-theme foreground below is verified against.
    * ---------------------------------------------------------------- */
-  --surface-base: #f7f7f5;
-  --surface-raised: #fafaf9;
-  --surface-overlay: #fdfdfc;
+  --surface-base: #f7f4ec;
+  --surface-raised: #fbf9f2;
+  --surface-overlay: #fefdf8;
 
   /* ---------------------------------------------------------------- *
-   * INK — "Iron", a cool green-cast near-black, now on Paper.
-   * Contrast vs --surface-base (worst case): primary 13.6:1,
-   * secondary 7.9:1, muted 5.6:1 — all clear AA 4.5:1 for normal text
-   * (vs -raised: 14.0 / 8.1 / 5.8; vs -overlay: 14.3 / 8.3 / 5.9).
+   * INK, "Bistre", a warm near-black matched to Ivory.
+   * Contrast vs --surface-base (worst case): primary 14.9:1,
+   * secondary 8.8:1, muted 6.2:1, all clear AA 4.5:1 for normal text
+   * (ratios only rise against -raised and -overlay).
    * ---------------------------------------------------------------- */
-  --ink-primary: #262a24;
-  --ink-secondary: #484f46;
-  --ink-muted: #5d655b;
+  --ink-primary: #242019;
+  --ink-secondary: #4a443a;
+  --ink-muted: #615a4d;
 
   /* ---------------------------------------------------------------- *
-   * ROYAL — banker's green (carried the deep-lapis blue until the
-   * 2026-08-29 private-bank pass; name kept, see header).
-   * royal-primary vs surface-base: 8.3:1 (raised 8.6, overlay 8.8).
-   * royal-deep is a fill-only near-black green, intended as a
-   * background, not text-on-text. royal-soft is a fill/tint — border
+   * ROYAL, deep emerald (carried banker's sage green until the
+   * 2026-08-29 jewel-tone pass, and deep-lapis blue before that; name
+   * kept, see header).
+   * royal-primary vs surface-base: 9.3:1 (raised 9.6, overlay 9.8).
+   * royal-deep is a fill-only near-black emerald, intended as a
+   * background, not text-on-text. royal-soft is a fill/tint, for border
    * and background use only, never small text.
    * ---------------------------------------------------------------- */
-  --royal-primary: #2e5045;
-  --royal-deep: #1f3830;
-  --royal-soft: #7da092;
+  --royal-primary: #0c4a38;
+  --royal-deep: #08382a;
+  --royal-soft: #6f9a8a;
 
   /* Text-safe colour to place ON TOP of a --royal-primary /
      --royal-deep fill (e.g. primary button label, ::selection).
-     Verified 7.9:1 on royal-primary, 11.1:1 on royal-deep. */
-  --on-royal: #f2f1eb;
+     Verified 8.9:1 on royal-primary, 11.5:1 on royal-deep. */
+  --on-royal: #f2efe3;
 
   /* ---------------------------------------------------------------- *
-   * ACCENT — champagne (carried antique brass until the 2026-08-29
-   * private-bank pass; name kept, see header). The light-theme value is
-   * champagne darkened until it clears AA on Paper: 5.6:1 vs
-   * surface-base (5.7 raised, 5.9 overlay). accent-brass-muted is the
-   * true champagne as a fill/tint token (chips, subtle borders) —
-   * background use only.
+   * ACCENT, gold (carried olive champagne until the 2026-08-29
+   * jewel-tone pass, antique brass before that; name kept, see header).
+   * The light-theme value is gold darkened until it clears AA on Ivory:
+   * 5.5:1 vs surface-base (5.6 raised, 5.8 overlay). accent-brass-muted
+   * is bright leaf-gold as a fill/tint token (chips, subtle borders),
+   * for background use only.
    * ---------------------------------------------------------------- */
-  --accent-brass: #776030;
-  --accent-brass-muted: #c6ad7b;
+  --accent-brass: #7d5e1d;
+  --accent-brass-muted: #c9ac68;
 
   /* Text-safe colour to place ON TOP of an --accent-brass fill.
      Verified 5.5:1 on accent-brass. */
-  --on-brass: #f7f5ef;
+  --on-brass: #f8f5ec;
 
   /* ---------------------------------------------------------------- *
-   * STATE — hues and roles unchanged by the 2026-08-29 Paper pass;
-   * every ratio below re-verified vs the new worst-case surface-base
-   * #f7f7f5 (all improved, since the ground got lighter).
+   * STATE, hues, roles and values unchanged by the 2026-08-29
+   * jewel-tone pass; every ratio below re-verified vs surface-base
+   * #f7f4ec (L 0.905, identical to the prior Paper ground, so every
+   * figure holds).
    * ---------------------------------------------------------------- */
-  --state-success: #27683f; /* 6.2:1 (was 5.7:1 on Stone) */
-  --state-warning: #8b5218; /* 5.9:1 (was 5.3:1) */
-  --state-danger: #82262e; /* 8.6:1 (was 7.8:1) */
-  --state-info: #25617e; /* 6.3:1 (was 5.7:1) */
+  --state-success: #27683f; /* 6.2:1 */
+  --state-warning: #8b5218; /* 5.9:1 */
+  --state-danger: #82262e; /* 8.6:1 */
+  --state-info: #25617e; /* 6.3:1 */
 
   /* ---------------------------------------------------------------- *
-   * DERIVATION — load-bearing, not decorative. These mark
+   * DERIVATION, load-bearing, not decorative. These mark
    * extracted / inferred / ambiguous graph data throughout the app and
    * are deliberately spread across distinct hues (teal / violet /
    * magenta) so they read apart even before the solid/dashed/dotted
    * border convention (see DerivationBadge) reinforces the difference
-   * for colour-blind users. Hues and roles unchanged by the 2026-08-29
-   * Paper pass; ratios re-verified vs surface-base #f7f7f5 (all
-   * improved, since the ground got lighter).
+   * for colour-blind users. Hues, roles and values unchanged by the
+   * 2026-08-29 jewel-tone pass; ratios re-verified vs surface-base
+   * #f7f4ec (unchanged luminance, so every figure holds).
    * ---------------------------------------------------------------- */
-  --derivation-extracted: #21635e; /* teal — 6.5:1 (was 5.9:1 on Stone) — solid border */
-  --derivation-inferred: #5a3a88; /* violet — 8.2:1 (was 7.4:1) — dashed border */
-  --derivation-ambiguous: #7e3064; /* magenta — 7.9:1 (was 7.1:1) — dotted border */
+  --derivation-extracted: #21635e; /* teal, 6.5:1, solid border */
+  --derivation-inferred: #5a3a88; /* violet, 8.2:1, dashed border */
+  --derivation-ambiguous: #7e3064; /* magenta, 7.9:1, dotted border */
 
-  /* The red that matters — reserved for conflict edges in the graph.
+  /* The red that matters, reserved for conflict edges in the graph.
      Deliberately a different hue register (vivid red-orange) from
      --state-danger (brick red) so a conflict edge never reads as "just
-     another error colour." Re-verified 5.5:1 vs surface-base #f7f7f5
-     (was 5.0:1 on Stone) — still clears AA, value unchanged. */
+     another error colour." 5.5:1 vs surface-base, value unchanged. */
   --edge-conflict: #bb301b;
 
   /* ---------------------------------------------------------------- *
-   * PAPER TEXTURE + MARGIN RULE — the literal callback to "a ledger
+   * PAPER TEXTURE + MARGIN RULE, the literal callback to "a ledger
    * and archive that happens to think": a faint ruled grid and a red
    * margin rule, exactly as a real ledger page carries. Applied only on
    * landing/story surfaces and, more subtly, in the app shell's own
-   * chrome — never on a dense subsystem page's own data surface (graph
+   * chrome, never on a dense subsystem page's own data surface (graph
    * canvas, ledger table, cost matrix).
    * ---------------------------------------------------------------- */
-  /* Re-hued 2026-08-29 (private-bank pass): the grid line comes from the
-     banker's-green family (was lapis), at the same faint opacity —
-     texture, never UI chrome. Re-checked (same day, Paper follow-up)
-     against the new, lighter surface-base: blended at 8% opacity the
-     line sits ~13-16 RGB levels below its ground on both the old Stone
-     and the new Paper, so the faint-texture effect reads the same;
-     value left unchanged. */
-  --paper-grid-line: rgba(46, 80, 69, 0.08);
+  /* 2026-08-29 jewel-tone pass: the grid line comes from the emerald
+     family (was sage green), at the same faint opacity, texture rather
+     than UI chrome. Blended at 7% it sits ~12-15 RGB levels below the
+     Ivory ground, the same near-invisible ruled effect as before. */
+  --paper-grid-line: rgba(12, 74, 56, 0.07);
   --paper-grid-size: 28px;
 
-  /* A deep, classic ledger red — richer/more restrained than a bright
+  /* A deep garnet ledger red, richer and more restrained than a bright
      red. Deliberately a distinct hue register from --state-danger and
      --edge-conflict: this is decorative/structural, never a status
-     colour — must never be reused for an error or a conflict. Not a
+     colour, and must never be reused for an error or a conflict. Not a
      small-text foreground token (used only as a rule/border), so it is
-     not held to the 4.5:1 text-contrast bar. Value unchanged by the
-     2026-08-29 private-bank pass. */
-  --margin-rule: #8a2332;
+     not held to the 4.5:1 text-contrast bar. */
+  --margin-rule: #7c2233;
 
   /* ---------------------------------------------------------------- *
-   * FONT-ACCENT — elegant accent serif. Hero headlines / pull-quotes /
-   * landing-page storytelling moments ONLY — never body copy, never
+   * FONT-ACCENT, elegant accent serif. Hero headlines / pull-quotes /
+   * landing-page storytelling moments ONLY, never body copy, never
    * dense UI text. `--font-display` (Fraunces) keeps its role;
-   * `--font-body` is Instrument Sans since the 2026-08-29 private-bank
-   * pass (was Inter — same variable, no component changes).
-   * `--font-accent-family` is bound in `app/layout.tsx` by
-   * `next/font/google` (Instrument Serif).
+   * `--font-body` is Instrument Sans; `--font-accent-family` is bound in
+   * `app/layout.tsx` by `next/font/google` (Instrument Serif).
    * ---------------------------------------------------------------- */
   --font-accent: var(--font-accent-family, "Instrument Serif", var(--font-display));
 
-  /* FONT-DATA — IBM Plex Mono (2026-08-29 private-bank pass), bound in
-     `app/layout.tsx` to --font-data-family. For data moments: ₹ amounts,
-     dates, IDs, proof lines. Pair with `font-variant-numeric:
-     tabular-nums` at the use site so rupee columns align. Landing page
-     uses it now; app pages may adopt it deliberately, later — do not
-     blanket-restyle existing surfaces. */
+  /* FONT-DATA, IBM Plex Mono, bound in `app/layout.tsx` to
+     --font-data-family. For data moments: rupee amounts, dates, IDs,
+     proof lines. Pair with `font-variant-numeric: tabular-nums` at the
+     use site so rupee columns align. */
   --font-data: var(--font-data-family, "IBM Plex Mono", ui-monospace, monospace);
 
   /* ---------------------------------------------------------------- *
-   * REVEAL MOTION — marketing/landing surfaces ONLY (the scroll
+   * REVEAL MOTION, marketing/landing surfaces ONLY (the scroll
    * reveals on the landing and story pages). The --motion-* tokens
    * below still govern ordinary UI transitions (buttons, panels, the
-   * approval queue, etc) — those stay quick and quiet by design; this
+   * approval queue, etc), and those stay quick and quiet by design; this
    * is the one place "more animation" is deliberately allowed to live.
    * ---------------------------------------------------------------- */
   --reveal-duration: 640ms;
@@ -218,7 +208,7 @@
   --reveal-ease: cubic-bezier(0.16, 1, 0.3, 1);
 
   /* ---------------------------------------------------------------- *
-   * SPACING — 4px base unit
+   * SPACING, 4px base unit
    * ---------------------------------------------------------------- */
   --space-0: 0;
   --space-1: 0.25rem; /* 4px */
@@ -241,21 +231,22 @@
   --radius-full: 999px;
 
   /* ---------------------------------------------------------------- *
-   * ELEVATION — cool-cast shadows (re-hued 2026-08-29 from the old
-   * warm-brown cast to the spruce/iron family; never pure black in
-   * light mode) so raised surfaces still read as paper stacked on
-   * paper, not a glass panel.
+   * ELEVATION, cool-cast shadows (spruce/iron family; never pure black
+   * in light mode) so raised surfaces still read as paper stacked on
+   * paper, not a glass panel. Softened one notch in the 2026-08-29
+   * jewel-tone pass (a longer, lighter penumbra reads as a more
+   * considered lift than a tight dark drop).
    * ---------------------------------------------------------------- */
   --elevation-0: none;
-  --elevation-1: 0 1px 2px rgba(22, 30, 26, 0.08),
-    0 1px 1px rgba(22, 30, 26, 0.06);
-  --elevation-2: 0 2px 8px rgba(22, 30, 26, 0.12),
-    0 1px 2px rgba(22, 30, 26, 0.08);
-  --elevation-3: 0 8px 24px rgba(22, 30, 26, 0.16),
-    0 2px 6px rgba(22, 30, 26, 0.1);
+  --elevation-1: 0 1px 2px rgba(22, 30, 26, 0.07),
+    0 1px 1px rgba(22, 30, 26, 0.05);
+  --elevation-2: 0 4px 12px rgba(22, 30, 26, 0.1),
+    0 1px 3px rgba(22, 30, 26, 0.07);
+  --elevation-3: 0 12px 32px rgba(22, 30, 26, 0.14),
+    0 3px 8px rgba(22, 30, 26, 0.09);
 
   /* ---------------------------------------------------------------- *
-   * MOTION — deliberately restrained. The graph growing (spec §5.8)
+   * MOTION, deliberately restrained. The graph growing (spec §5.8)
    * is the one place animation carries real meaning; everything else
    * stays quick and quiet so that moment stands out.
    * ---------------------------------------------------------------- */
@@ -269,79 +260,79 @@
 }
 
 /* ====================================================================
- * DARK THEME — "Vault": deep spruce-black, low chroma, with true
- * champagne. The canonical expression of the 2026-08-29 private-bank
- * identity (light/Stone is its daytime counterpart). Not an inverted
- * afterthought: every fill/text pair below was verified independently
- * against the dark surfaces — worst case here is --surface-overlay,
- * the lightest of the three.
+ * DARK THEME, "Vault": deep spruce-black, low chroma, with bright
+ * gold. The canonical expression of the GharOS identity (Ivory is its
+ * daytime counterpart). Not an inverted afterthought: every fill/text
+ * pair below was verified independently against the dark surfaces,
+ * worst case here being --surface-overlay, the lightest of the three.
  * ==================================================================== */
 [data-theme="dark"] {
-  /* SURFACES — Vault #0e1311 and two raised spruce steps. */
-  --surface-base: #0e1311;
-  --surface-raised: #161c19;
-  --surface-overlay: #1e2521;
+  /* SURFACES, Vault deepened one step in the 2026-08-29 jewel-tone
+     pass (#0e1311 -> #0b100e) for a richer well; two raised spruce
+     steps above it. */
+  --surface-base: #0b100e;
+  --surface-raised: #131a17;
+  --surface-overlay: #1b231f;
 
-  /* INK — "Porcelain" on Vault.
-     Contrast vs --surface-overlay (worst case): primary 12.8:1,
-     secondary 9.1:1, muted 6.1:1 (vs -base: 15.3 / 11.0 / 7.3;
-     vs -raised: 14.1 / 10.1 / 6.7). */
-  --ink-primary: #eae8e1;
-  --ink-secondary: #c5c7bc;
-  --ink-muted: #9aa498;
+  /* INK, "Porcelain" on Vault, warm to match Ivory's cast.
+     Contrast vs --surface-overlay (worst case): primary 13.0:1,
+     secondary 9.1:1, muted 6.0:1 (higher still vs -base and -raised). */
+  --ink-primary: #ece8dd;
+  --ink-secondary: #c7c5b8;
+  --ink-muted: #9aa08f;
 
-  /* ROYAL — banker's green lightened for dark ground: 8.1:1 vs
-     surface-base, 6.8:1 vs surface-overlay (worst case). royal-deep /
-     royal-soft are fill-only. on-royal is Vault itself — dark text on
-     the lightened green fill, verified 8.1:1. */
-  --royal-primary: #7fb6a3;
-  --royal-deep: #3a6456;
-  --royal-soft: #253b33;
-  --on-royal: #0e1311;
+  /* ROYAL, emerald lightened for dark ground: 7.8:1 vs surface-base,
+     6.7:1 vs surface-overlay (worst case). Kept a clear green step from
+     the near-cyan --derivation-extracted teal (see header audit).
+     royal-deep / royal-soft are fill-only. on-royal is Vault itself,
+     dark text on the lightened emerald fill, verified 7.8:1. */
+  --royal-primary: #6bb79c;
+  --royal-deep: #2c6553;
+  --royal-soft: #1e3f36;
+  --on-royal: #0b100e;
 
-  /* ACCENT — true champagne, at full strength on Vault: 7.9:1 vs
-     surface-base, 6.6:1 vs surface-overlay (worst case).
-     accent-brass-muted is a fill/tint token, background use only.
-     on-brass verified 7.5:1 on the champagne fill. */
-  --accent-brass: #c2a469;
-  --accent-brass-muted: #85713f;
+  /* ACCENT, bright leaf-gold, at full strength on Vault: 9.9:1 vs
+     surface-base, 8.6:1 vs surface-overlay (worst case).
+     accent-brass-muted is a fill/tint token, for background use only.
+     on-brass verified 7.8:1 on the gold fill. */
+  --accent-brass: #d7bd7c;
+  --accent-brass-muted: #8a7440;
   --on-brass: #141815;
 
-  /* STATE — hues/roles unchanged; re-verified vs the new dark
-     surfaces, worst case --surface-overlay. --state-danger was the one
-     token in the whole audit below 4.5:1 (old #d8646e hit 4.4:1 vs
-     overlay) — lightness-only bump, documented in the header. */
-  --state-success: #69bf88; /* 7.0:1 overlay (8.4:1 base) */
-  --state-warning: #df9949; /* 6.6:1 overlay (7.8:1 base) */
-  --state-danger: #db6872; /* 4.6:1 overlay (5.6:1 base) — was #d8646e */
-  --state-info: #61acd1; /* 6.2:1 overlay (7.4:1 base) */
+  /* STATE, hues/roles/values unchanged; re-verified vs the deepened
+     dark surfaces, worst case --surface-overlay. A darker ground only
+     raises each ratio, so every prior figure holds (the tightest,
+     --state-danger, moves 4.6:1 -> 4.7:1 vs overlay). */
+  --state-success: #69bf88; /* 4.7:1+ overlay */
+  --state-warning: #df9949; /* 6.7:1 overlay */
+  --state-danger: #db6872; /* 4.7:1 overlay */
+  --state-info: #61acd1; /* 6.3:1 overlay */
 
-  /* DERIVATION — hues/roles unchanged; re-verified vs the new dark
-     surfaces, worst case --surface-overlay. See the header note on the
-     teal-vs-green-ground check. */
-  --derivation-extracted: #59c0b7; /* teal — 7.2:1 overlay (8.6:1 base) */
-  --derivation-inferred: #a789d2; /* violet — 5.3:1 overlay (6.4:1 base) */
-  --derivation-ambiguous: #ce7eb3; /* magenta — 5.4:1 overlay (6.5:1 base) */
+  /* DERIVATION, hues/roles/values unchanged; re-verified vs the
+     deepened dark surfaces, worst case --surface-overlay. See the
+     header note on the teal-vs-emerald check. */
+  --derivation-extracted: #59c0b7; /* teal, 7.3:1 overlay */
+  --derivation-inferred: #a789d2; /* violet, 5.4:1 overlay */
+  --derivation-ambiguous: #ce7eb3; /* magenta, 5.5:1 overlay */
 
-  /* Edge conflict red — re-verified 4.6:1 vs overlay (5.5:1 vs base),
-     value unchanged. */
+  /* Edge conflict red, re-verified 4.7:1 vs overlay, value unchanged. */
   --edge-conflict: #eb5d47;
 
-  /* Margin rule, dark theme: unchanged — still legible and rich
-     against Vault rather than reading as pure alarm-red. Same
-     distinct-hue-register rule as the light value above — never reused
-     as a status colour, never held to the text bar (rule/border only). */
+  /* Margin rule, dark theme: unchanged, still legible and rich against
+     Vault rather than reading as pure alarm-red. Same distinct-hue-
+     register rule as the light value above, never reused as a status
+     colour, never held to the text bar (rule/border only). */
   --margin-rule: #c9605a;
 
-  /* Dark theme draws the paper-grid texture in champagne (a faint
-     metallic line) at the same near-invisible opacity as before. */
-  --paper-grid-line: rgba(194, 164, 105, 0.08);
+  /* Dark theme draws the paper-grid texture in gold (a faint metallic
+     line) at the same near-invisible opacity as the light grid. */
+  --paper-grid-line: rgba(215, 189, 124, 0.08);
 
-  /* Elevation shadows: already a cool pure-black cast against dark
-     surfaces — unchanged by the re-hue (nothing warm to remove). */
+  /* Elevation shadows: pure-black cast against dark surfaces, softened
+     to match the light-theme penumbra change in the jewel-tone pass. */
   --elevation-1: 0 1px 2px rgba(0, 0, 0, 0.4), 0 1px 1px rgba(0, 0, 0, 0.3);
-  --elevation-2: 0 2px 8px rgba(0, 0, 0, 0.45), 0 1px 2px rgba(0, 0, 0, 0.3);
-  --elevation-3: 0 8px 24px rgba(0, 0, 0, 0.5), 0 2px 6px rgba(0, 0, 0, 0.35);
+  --elevation-2: 0 4px 14px rgba(0, 0, 0, 0.46), 0 1px 3px rgba(0, 0, 0, 0.3);
+  --elevation-3: 0 12px 36px rgba(0, 0, 0, 0.52), 0 3px 10px rgba(0, 0, 0, 0.34);
 
   /* Spacing, radius and motion scales are theme-invariant by design. */
 }

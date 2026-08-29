@@ -32,8 +32,8 @@ describe("CouncilExplorer", () => {
   it("renders specialist positions naming genuinely different subgraphs, not generic prose", () => {
     render(<CouncilExplorer />);
     const positionsSection = screen.getByRole("list", { name: "Specialist positions" });
-    expect(within(positionsSection).getByText(/Finance — Ledger subgraph/)).toBeInTheDocument();
-    expect(within(positionsSection).getByText(/Care — Constraint subgraph/)).toBeInTheDocument();
+    expect(within(positionsSection).getByText(/Finance: Ledger subgraph/)).toBeInTheDocument();
+    expect(within(positionsSection).getByText(/Care: Constraint subgraph/)).toBeInTheDocument();
     expect(within(positionsSection).getByText(/₹34,500/)).toBeInTheDocument();
     expect(within(positionsSection).getByText(/constraint-dadi-mobility/)).toBeInTheDocument();
   });
@@ -81,7 +81,7 @@ describe("CouncilExplorer", () => {
     }
   });
 
-  it("never implies the household must accept the arbiter's resolution — no concrete verdict-issuing phrase appears", () => {
+  it("never implies the household must accept the arbiter's resolution, no concrete verdict-issuing phrase appears", () => {
     render(<CouncilExplorer />);
     const text = document.body.textContent?.toLowerCase() ?? "";
     // Concrete instruction-to-comply phrases, not the bare words this

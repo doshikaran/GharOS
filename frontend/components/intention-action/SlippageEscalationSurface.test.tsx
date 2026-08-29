@@ -35,7 +35,7 @@ describe("SlippageEscalationSurface", () => {
     expect(screen.getByText(/the first diagnosis may have been wrong/)).toBeInTheDocument();
   });
 
-  it("renders all three real escalation options with real, decidable context — never a resolve button", () => {
+  it("renders all three real escalation options with real, decidable context, never a resolve button", () => {
     render(
       <SlippageEscalationSurface
         obligationTitle="x"

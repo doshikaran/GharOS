@@ -102,7 +102,7 @@ export function FairAllocatorExplorer({ baseUrl }: FairAllocatorExplorerProps) {
         <h2 className={styles.sectionHeading}>Cost matrix</h2>
         <p className={styles.sectionIntro}>
           Every current household member and every current obligation, with each person&apos;s real, live stated
-          cost where one exists. A dash means that person has never been asked — never a hidden zero.
+          cost where one exists. A dash means that person has never been asked, never a hidden zero.
         </p>
         <CostMatrix matrix={matrix} confirmed={matrixConfirmed} onConfirm={() => setMatrixConfirmed(true)} />
       </section>
@@ -110,11 +110,11 @@ export function FairAllocatorExplorer({ baseUrl }: FairAllocatorExplorerProps) {
       <section aria-label="This cycle's scope">
         <h2 className={styles.sectionHeading}>This cycle&apos;s allocation</h2>
         <p className={styles.sectionIntro}>
-          The school pickup and Maya&apos;s salary payment go to Priya directly — she is the household&apos;s only
+          The school pickup and Maya&apos;s salary payment go to Priya directly, she is the household&apos;s only
           driver and its only bank-account holder. The extended maintenance payment goes to Dadi directly for the
           same reason. None of the three has a second capability-eligible, priced person, so there is no contest to
-          solve. The three remaining flexible errands — renewing Dadi&apos;s prescription, the pharmacy pickup, and
-          the weekly grocery run — are the ones Priya and Maya actually share day to day, so that is where the fair
+          solve. The three remaining flexible errands, renewing Dadi&apos;s prescription, the pharmacy pickup, and
+          the weekly grocery run, are the ones Priya and Maya actually share day to day, so that is where the fair
           allocator runs below.
         </p>
 
@@ -133,7 +133,7 @@ export function FairAllocatorExplorer({ baseUrl }: FairAllocatorExplorerProps) {
 
         {!matrixConfirmed ? (
           <p className={styles.gatedNote} role="status">
-            Confirm the cost matrix above before this cycle&apos;s allocation is shown — a human must see and confirm
+            Confirm the cost matrix above before this cycle&apos;s allocation is shown, a human must see and confirm
             the matrix before the fairness solver runs on it.
           </p>
         ) : (

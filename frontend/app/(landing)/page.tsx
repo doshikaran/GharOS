@@ -12,7 +12,7 @@ import {
 import styles from "./landing-page.module.css";
 
 export const metadata: Metadata = {
-  title: "GharOS — The household remembers, even when you don't",
+  title: "GharOS: The household remembers, even when you don't",
   description:
     "GharOS reads the messages, receipts and voice notes a household actually produces, remembers what they imply, and never moves money without a person saying yes.",
 };
@@ -36,7 +36,7 @@ export const metadata: Metadata = {
 const ARRIVES_ITEMS: ReadonlyArray<{ title: string; body: string }> = [
   {
     title: "WhatsApp exports",
-    body: "Society notices, school threads, vendor confirmations — the group chats where household truth actually lives.",
+    body: "Society notices, school threads, vendor confirmations, the group chats where household truth actually lives.",
   },
   {
     title: "Receipts and SMS",
@@ -44,7 +44,7 @@ const ARRIVES_ITEMS: ReadonlyArray<{ title: string; body: string }> = [
   },
   {
     title: "Voice in four languages",
-    body: "English, Hindi, Marathi and Spanish — often inside the same sentence.",
+    body: "English, Hindi, Marathi and Spanish, often inside the same sentence.",
   },
 ];
 
@@ -69,12 +69,12 @@ export default function Landing() {
           The household remembers, even when you don&rsquo;t.
         </h1>
         <p className={`${styles.heroSub} ${styles.loadStep2}`}>
-          GharOS reads the messages, receipts and voice notes your household already produces — and
+          GharOS reads the messages, receipts and voice notes your household already produces, and
           asks before anything real happens.
         </p>
         <div className={`${styles.heroCta} ${styles.loadStep3}`}>
           {/* A link styled as the brass button (not design-system Button,
-              which renders a real <button> — nesting that inside a Link is
+              which renders a real <button>, nesting that inside a Link is
               invalid interactive-inside-interactive markup). */}
           <Link href="/graph" className={styles.ctaButton}>
             Get started
@@ -135,7 +135,7 @@ export default function Landing() {
                 <span className={styles.obligationDue}>due 5 Sep 2026</span>
               </div>
               <p className={styles.stepBody}>
-                Not stated as a task anywhere — implied by the message, and recorded with the evidence
+                Not stated as a task anywhere, implied by the message, and recorded with the evidence
                 that implies it:
               </p>
               <ul className={styles.evidenceQuotes}>
@@ -158,7 +158,7 @@ export default function Landing() {
           <ScrollReveal as="li" index={4} className={styles.step}>
             <h3 className={styles.stepTitle}>Approved by a person</h3>
             {/* The one place on this page the ledger's red margin rule may
-                appear — inside the ledger card, quoting the product. */}
+                appear, inside the ledger card, quoting the product. */}
             <div className={styles.ledgerCard}>
               <div className={styles.ledgerRow}>
                 <span className={styles.ledgerDate}>05 Sep 2026</span>

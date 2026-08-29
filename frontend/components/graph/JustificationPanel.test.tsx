@@ -115,7 +115,7 @@ describe("JustificationPanel", () => {
       />,
     );
 
-    await waitFor(() => expect(screen.getByText(/email — 0-40/)).toBeInTheDocument());
+    await waitFor(() => expect(screen.getByText(/email, 0-40/)).toBeInTheDocument());
   });
 
   it("shows a real error rather than a blank panel on a failed fetch", async () => {

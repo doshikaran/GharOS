@@ -50,7 +50,7 @@ export function DiagnosisCorrectionForm({ diagnosis, people, onSubmit, submitted
       <Card className={styles.card} title="Correction recorded">
         <div className={styles.confirmationBody} role="status">
           <Badge variant="success">
-            Recorded — {BLOCKER_TYPE_META[submittedCorrection.correctedBlockerType].label}
+            Recorded, {BLOCKER_TYPE_META[submittedCorrection.correctedBlockerType].label}
           </Badge>
           <p className={styles.confirmationNote}>
             {correctorName} corrected this diagnosis from{" "}
@@ -59,7 +59,7 @@ export function DiagnosisCorrectionForm({ diagnosis, people, onSubmit, submitted
             {submittedCorrection.correctionNote}&rdquo;
           </p>
           <p className={styles.caveat}>
-            Recorded locally for this session only — there is no live write endpoint yet to persist this correction
+            Recorded locally for this session only, there is no live write endpoint yet to persist this correction
             back to the household graph. The friction profile below reflects it for this session.
           </p>
         </div>
@@ -86,7 +86,7 @@ export function DiagnosisCorrectionForm({ diagnosis, people, onSubmit, submitted
     <Card className={styles.card} title="Disagree with this diagnosis?">
       <form className={styles.form} onSubmit={handleSubmit}>
         <p className={styles.intro}>
-          Pick the blocker type this actually is, and explain why — the correction is recorded against this
+          Pick the blocker type this actually is, and explain why, the correction is recorded against this
           person&apos;s friction profile, the same real evidence a future diagnosis will weigh.
         </p>
 

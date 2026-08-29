@@ -59,37 +59,37 @@ export interface RiskTierPolicy {
 export const RISK_TIER_POLICY: Record<RiskTier, RiskTierPolicy> = {
   R0: {
     tier: "R0",
-    label: "R0 — Silent",
+    label: "R0: Silent",
     definition: "Reversible, internal, no external effect.",
     policy: "Executes immediately; logged. No approval requested.",
     examples: ["Graph write", "Calendar entry", "Information prep"],
   },
   R1: {
     tier: "R1",
-    label: "R1 — Notify",
+    label: "R1: Notify",
     definition: "Reversible, low-impact, visible.",
     policy: "Executes immediately; household notified. No approval requested.",
     examples: ["Draft message", "Propose menu substitution", "Shopping list"],
   },
   R2: {
     tier: "R2",
-    label: "R2 — Approve",
+    label: "R2: Approve",
     definition: "External communication, non-financial.",
     policy: "Requires approval before executing.",
     examples: ["Send message outside household", "Submit a form", "Place a call"],
   },
   R3: {
     tier: "R3",
-    label: "R3 — Explicit approve",
+    label: "R3: Explicit approve",
     definition: "Any movement of money.",
     policy: "Requires approval, with the full evidence bundle shown, before executing.",
     examples: ["Pay dues", "Pay salary", "Cancel mandate", "File dispute"],
   },
   R4: {
     tier: "R4",
-    label: "R4 — Escalate only",
+    label: "R4: Escalate only",
     definition: "Irreversible, high-stakes, emotionally loaded.",
-    policy: "Never auto-executes. The Council never resolves this tier — it produces a brief; a human decides.",
+    policy: "Never auto-executes. The Council never resolves this tier, it produces a brief; a human decides.",
     examples: [
       "Relocation",
       "Property purchase",
@@ -286,7 +286,7 @@ const APPROVAL_QUEUE_FIXTURE: readonly ApprovalQueueItem[] = [
       proposedAction:
         "Send a message to the Sunrise Apartments Society WhatsApp group disputing the ₹2,400 'special maintenance' line item as undocumented.",
       reasoning:
-        "Two years of prior society notices on file each reference an AGM resolution number for any special levy; this one does not, which is unusual enough to flag — but publicly disputing it is a lower-confidence path than raising it privately first.",
+        "Two years of prior society notices on file each reference an AGM resolution number for any special levy; this one does not, which is unusual enough to flag, but publicly disputing it is a lower-confidence path than raising it privately first.",
       evidenceConsulted: [
         "Society notice (doc-society-notice) lists a ₹2,400 'special maintenance' line with no linked AGM resolution number",
         "24 months of prior notices on file: every previous special levy cites a resolution number",
@@ -333,20 +333,20 @@ const APPROVAL_QUEUE_FIXTURE: readonly ApprovalQueueItem[] = [
     riskTier: "R0",
     confidence: 0.9,
     consequenceIfWrong:
-      "A wrong internal log entry only needs a graph correction — no money moved and nobody was contacted.",
+      "A wrong internal log entry only needs a graph correction, no money moved and nobody was contacted.",
     status: "approved",
     expiresAt: "2026-08-21T14:15:00Z",
     evidenceBundle: {
       proposedAction: "Log the electrician's completed ceiling-fan repair and mark the obligation done.",
       reasoning:
-        "This is a graph write with no external effect — it executes immediately and is logged, per R0 policy. Shown here only so the full risk-tier spectrum is visible; no human approval was requested or required.",
+        "This is a graph write with no external effect, it executes immediately and is logged, per R0 policy. Shown here only so the full risk-tier spectrum is visible; no human approval was requested or required.",
       evidenceConsulted: [
         "Vendor confirmation SMS: 'Fan repaired, ₹350 collected' received 14:02 IST",
         "Matches open obligation obligation-fix-ceiling-fan, due the same day",
       ],
       confidence: 0.9,
       consequenceIfWrong:
-        "A wrong internal log entry only needs a graph correction — no money moved and nobody was contacted.",
+        "A wrong internal log entry only needs a graph correction, no money moved and nobody was contacted.",
     },
   },
 
@@ -368,7 +368,7 @@ const APPROVAL_QUEUE_FIXTURE: readonly ApprovalQueueItem[] = [
       reasoning:
         "Constraint constraint-nut-free is a hard constraint ('no nuts in the house, ever'), and Wednesday's Freshmart receipt line for a mixed-nuts snack pack contradicts it. Drafting a substitution note is reversible and low-impact, so it executes with notification rather than waiting on approval, per R1 policy.",
       evidenceConsulted: [
-        "Constraint constraint-nut-free: hard severity, 'Aarav is severely allergic to nuts — no nuts in the house, ever' (Priya, school WhatsApp thread)",
+        "Constraint constraint-nut-free: hard severity, 'Aarav is severely allergic to nuts, no nuts in the house, ever' (Priya, school WhatsApp thread)",
         "Purchase item item-mixed-nuts contradicts constraint-nut-free at 0.90 confidence",
         "Cook's contact channel accepts text notes; substitution is fully reversible before tomorrow's snack time",
       ],
@@ -394,7 +394,7 @@ const APPROVAL_QUEUE_FIXTURE: readonly ApprovalQueueItem[] = [
       proposedAction:
         "Whether to accept Sunrise Apartments Society's redevelopment buyback offer and relocate before the vacate deadline.",
       reasoning:
-        "This is irreversible, high-stakes, and emotionally loaded for every household member — exactly the category the Council does not resolve. It produces a brief, laid out here, for the household to decide.",
+        "This is irreversible, high-stakes, and emotionally loaded for every household member, exactly the category the Council does not resolve. It produces a brief, laid out here, for the household to decide.",
       evidenceConsulted: [
         "Redevelopment notice sets a 90-day vacate deadline with a buyback price 12% under the last two independent valuations on file",
         "Dadi's nap-window constraint and medical-proxy arrangements both depend on the current flat's proximity to Mehta Pharmacy (1.2km away)",
@@ -420,7 +420,7 @@ const APPROVAL_QUEUE_FIXTURE: readonly ApprovalQueueItem[] = [
     evidenceBundle: {
       proposedAction: "Submit Aarav's school PTA volunteer sign-up form for the October fair via the school portal.",
       reasoning:
-        "The school's WhatsApp thread asked for parent volunteers by a fixed deadline, and no conflicting obligation was found for Priya on the fair date — but submitting a form on someone's behalf is R2 (requires approval), and no decision arrived before the window closed.",
+        "The school's WhatsApp thread asked for parent volunteers by a fixed deadline, and no conflicting obligation was found for Priya on the fair date, but submitting a form on someone's behalf is R2 (requires approval), and no decision arrived before the window closed.",
       evidenceConsulted: [
         "School WhatsApp thread message, 21 Aug: requests parent volunteers by 22 Aug 6:00 AM IST",
         "Household calendar: no conflicting obligation for Priya on the fair date",

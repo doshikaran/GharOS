@@ -31,7 +31,7 @@ describe("PersonShareExplanations", () => {
     expect(screen.getByText("Pharmacy pickup")).toBeInTheDocument();
   });
 
-  it("each explanation is distinct — never a generic sentence interchangeable between people", () => {
+  it("each explanation is distinct, never a generic sentence interchangeable between people", () => {
     renderExplanations();
     const { explanations } = getFairnessVerificationResult("before");
     const texts = explanations.map((e) => e.explanationText);

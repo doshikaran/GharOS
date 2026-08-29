@@ -32,7 +32,7 @@ export function ConciergeFallbackSurface({ title, decision }: ConciergeFallbackS
         <p className={styles.reasoning}>{decision.reasoning}</p>
         {decision.retryAfter && (
           <p className={styles.retryLine} role="status">
-            Next attempt authorised at <strong>{formatDateTime(decision.retryAfter)}</strong> — not before.
+            Next attempt authorised at <strong>{formatDateTime(decision.retryAfter)}</strong>, not before.
           </p>
         )}
       </Card>
@@ -49,7 +49,7 @@ export function ConciergeFallbackSurface({ title, decision }: ConciergeFallbackS
 
   const payload = decision.escalationPayload;
   return (
-    <Card className={styles.card} title={<TitleRow title={title} badge={<Badge variant="warning">Escalated — a human decides</Badge>} />}>
+    <Card className={styles.card} title={<TitleRow title={title} badge={<Badge variant="warning">Escalated, a human decides</Badge>} />}>
       <p className={styles.reasoning}>{decision.reasoning}</p>
       {payload && (
         <>
@@ -57,7 +57,7 @@ export function ConciergeFallbackSurface({ title, decision }: ConciergeFallbackS
           <p className={styles.summary}>{payload.summary}</p>
           <EvidenceBundleView bundle={payload.evidenceBundle} />
           <p className={styles.framingNote}>
-            Presenting options for a household member to decide — this surface never resolves the call itself,
+            Presenting options for a household member to decide, this surface never resolves the call itself,
             and never re-tries automatically once it reaches this point.
           </p>
         </>

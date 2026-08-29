@@ -111,7 +111,7 @@ describe("GraphCanvas", () => {
     expect(rafQueue).toHaveLength(1);
   });
 
-  it("draws to the canvas once a frame is flushed — clears, fills the background, and draws the node's filled geometry", () => {
+  it("draws to the canvas once a frame is flushed, clears, fills the background, and draws the node's filled geometry", () => {
     render(
       <GraphCanvas
         nodes={[makeNode("a")]}

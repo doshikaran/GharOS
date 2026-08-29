@@ -40,7 +40,7 @@ describe("ApprovalCard", () => {
 
   it("renders the risk tier with its real policy meaning, not just the code", () => {
     render(<ApprovalCard item={buildItem({ riskTier: "R3" })} now={NOW} />);
-    expect(screen.getByText("R3 — Explicit approve")).toBeInTheDocument();
+    expect(screen.getByText("R3: Explicit approve")).toBeInTheDocument();
     expect(screen.getByText(/Any movement of money/)).toBeInTheDocument();
   });
 
@@ -63,7 +63,7 @@ describe("ApprovalCard", () => {
     expect(screen.queryByRole("button", { name: "Reject" })).not.toBeInTheDocument();
   });
 
-  it("renders an expired pending item as escalated — never as pending, never as approved", () => {
+  it("renders an expired pending item as escalated, never as pending, never as approved", () => {
     const item = buildItem({ status: "pending", expiresAt: "2026-08-20T00:00:00Z" });
     render(<ApprovalCard item={item} now={NOW} />);
     expect(screen.getByText("Escalated")).toBeInTheDocument();

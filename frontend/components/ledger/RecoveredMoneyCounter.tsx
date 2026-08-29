@@ -25,12 +25,12 @@ export function RecoveredMoneyCounter({ summary }: RecoveredMoneyCounterProps) {
     <Card className={styles.card} title="Recovered-money counter">
       <p className={styles.headline} role="status" aria-live="polite">
         Found <strong className={styles.amount}>{formatCurrency(summary.annualLeakageTotal, summary.currency)}/year</strong> of
-        leakage — <strong>{summary.draftsAwaitingApproval}</strong> claim
+        leakage, <strong>{summary.draftsAwaitingApproval}</strong> claim
         {summary.draftsAwaitingApproval === 1 ? "" : "s"} drafted, awaiting approval.
       </p>
       <p className={styles.detail}>
         {summary.leakageCaseCount} recurring commitment{summary.leakageCaseCount === 1 ? "" : "s"} flagged as leakage
-        this pass — computed from each commitment&apos;s real cadence and amount (the full annual amount for a
+        this pass, computed from each commitment&apos;s real cadence and amount (the full annual amount for a
         cancellation, only the unexplained hike for a kept service being challenged on price).
       </p>
     </Card>

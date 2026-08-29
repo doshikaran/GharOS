@@ -69,7 +69,7 @@ describe("fixture cross-consistency", () => {
     }
   });
 
-  it("a branch with zero groundingRefs has a GroundingResult with zero citations — never a dangling ref nor a fabricated one", () => {
+  it("a branch with zero groundingRefs has a GroundingResult with zero citations, never a dangling ref nor a fabricated one", () => {
     const projections = getBranchProjections();
     const groundingResults = getGroundingResults();
     const resultByLabel = new Map(groundingResults.map((r) => [r.branchLabel, r]));
@@ -170,7 +170,7 @@ describe("buildRiskRegister", () => {
   });
 });
 
-describe("CalibrationEstimate — thin history vs real variance", () => {
+describe("CalibrationEstimate, thin history vs real variance", () => {
   it("uses MIN_SAMPLE_SIZE_FOR_CALIBRATION = 3, the same threshold as Phase 9's Slippage Analyst", () => {
     expect(MIN_SAMPLE_SIZE_FOR_CALIBRATION).toBe(3);
   });
@@ -233,7 +233,7 @@ describe("answerFollowup", () => {
     expect(answer).toContain("isn't something the Simulator answers with a single figure");
   });
 
-  it("is deterministic — same brief and question always produce the same answer", () => {
+  it("is deterministic, same brief and question always produce the same answer", () => {
     const brief = getDecisionBrief();
     const first = answerFollowup(brief, "Tell me about the school continuity form");
     const second = answerFollowup(brief, "Tell me about the school continuity form");

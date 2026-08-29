@@ -20,7 +20,7 @@ describe("BookingConfirmation", () => {
     const outcome = getDadiCleaningBookingOutcome();
     expect(outcome.kind).toBe("not_recorded");
     render(<BookingConfirmation outcome={outcome} providerName="Bright Smiles Dental" title="Dadi's cleaning" />);
-    expect(screen.getByText("Could not verify — not recorded")).toBeInTheDocument();
+    expect(screen.getByText("Could not verify, not recorded")).toBeInTheDocument();
     expect(screen.queryByText("Booked & verified")).not.toBeInTheDocument();
     expect(screen.getByText(/no slot was claimed booked/i)).toBeInTheDocument();
   });
@@ -29,7 +29,7 @@ describe("BookingConfirmation", () => {
     const outcome = getAaravFollowupBookingOutcome();
     expect(outcome.kind).toBe("not_recorded");
     render(<BookingConfirmation outcome={outcome} providerName="Sunrise Family Dental" title="Aarav's follow-up" />);
-    expect(screen.getByText("Could not verify — not recorded")).toBeInTheDocument();
+    expect(screen.getByText("Could not verify, not recorded")).toBeInTheDocument();
     expect(screen.getByText(/is not one of the authorised preferred_slots/)).toBeInTheDocument();
   });
 

@@ -58,7 +58,7 @@ export function SessionStateIndicator({ state, interrupted }: SessionStateIndica
       </Badge>
       {interrupted && (
         <span className={styles.interrupted} data-testid="barge-in-indicator">
-          Interrupted — GharOS stopped talking because you started speaking.
+          Interrupted, GharOS stopped talking because you started speaking.
         </span>
       )}
     </div>

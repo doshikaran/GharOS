@@ -86,7 +86,7 @@ describe("parseScheduleConstraint", () => {
 });
 
 describe("personAvailabilityForWindow", () => {
-  it("is AVAILABLE with no schedule constraint on file at all — no evidence of a block, not unknown", () => {
+  it("is AVAILABLE with no schedule constraint on file at all, no evidence of a block, not unknown", () => {
     const verdict = personAvailabilityForWindow([], utcDate("2026-08-24", "10:00"), utcDate("2026-08-24", "10:30"));
     expect(verdict).toBe("available");
   });

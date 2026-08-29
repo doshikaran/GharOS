@@ -149,7 +149,7 @@ export function GraphExplorer({ baseUrl }: GraphExplorerProps) {
           highlightedPath={highlightedPath}
           className={styles.canvas}
         />
-        {/* Screen-reader-accessible mirror of the canvas's node set — canvas
+        {/* Screen-reader-accessible mirror of the canvas's node set, canvas
             content carries no semantics of its own, and this also gives a
             stable, DOM-visible marker of which ids arrived live vs. from
             the baseline snapshot (see GraphExplorer.test.tsx). */}

@@ -47,7 +47,7 @@ export function CallApprovalGate({ approval, approved, onApprove }: CallApproval
       }
     >
       <div className={styles.body}>
-        <p className={styles.gateLabel}>Approval — before any call is placed</p>
+        <p className={styles.gateLabel}>Approval, before any call is placed</p>
         <RiskTierBadge tier={approval.riskTier} />
         <EvidenceBundleView bundle={approval.evidenceBundle} />
 
@@ -59,7 +59,7 @@ export function CallApprovalGate({ approval, approved, onApprove }: CallApproval
           </div>
         ) : (
           <p className={styles.approvedNote} role="status">
-            {justApproved ? "Approved just now — " : "Approved — "}
+            {justApproved ? "Approved just now, " : "Approved, "}
             the call below only happened because this was confirmed first.
           </p>
         )}

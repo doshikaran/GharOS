@@ -147,7 +147,7 @@ export function getAaravToothacheClarification(): ClarificationResult {
     personId: AARAV_ID,
     serviceCategory: "dentist",
     householdRequestText:
-      "Priya: Aarav's tooth has been hurting since Tuesday — can someone get him in to see a dentist?",
+      "Priya: Aarav's tooth has been hurting since Tuesday, can someone get him in to see a dentist?",
     resolvedFromGraph: [
       {
         field: "last_visit_date",
@@ -156,7 +156,7 @@ export function getAaravToothacheClarification(): ClarificationResult {
       },
       {
         field: "insurance_coverage",
-        value: "Apollo Health Shield family floater — dental rider active",
+        value: "Apollo Health Shield family floater, dental rider active",
         source: "PERSON → HAS_INSURANCE edge, person-aarav",
       },
       {
@@ -166,30 +166,30 @@ export function getAaravToothacheClarification(): ClarificationResult {
       },
       {
         field: "prior_provider_history",
-        value: "Bright Smiles Dental — 2 routine visits on file, no complaints",
+        value: "Bright Smiles Dental, 2 routine visits on file, no complaints",
         source: "booked_with history → completes_into Outcome, provider-bright-smiles-dental",
       },
     ],
     questions: [
       {
-        text: "How bad is the pain right now — enough that it should be seen today, or can it wait a day or two?",
+        text: "How bad is the pain right now, enough that it should be seen today, or can it wait a day or two?",
         targetsUnknown: "pain_severity",
         decisionRelevance:
           "Directly sets urgency: elevated urgency prioritises the earliest available slot over rating (spec §13.2 Step 1).",
       },
       {
-        text: "Is there any day this week Aarav can't do at all — a test, a match, anything fixed?",
+        text: "Is there any day this week Aarav can't do at all, a test, a match, anything fixed?",
         targetsUnknown: "date_constraints",
         decisionRelevance:
           "Narrows the authorised date range handed to the Call Planner so the call never proposes a time that's actually unworkable.",
       },
     ],
     assumptions: [
-      "No stated clinic preference — ranking below considers Bright Smiles Dental alongside nearby alternatives rather than assuming continuity is required, since a same-day slot may matter more than loyalty right now.",
+      "No stated clinic preference, ranking below considers Bright Smiles Dental alongside nearby alternatives rather than assuming continuity is required, since a same-day slot may matter more than loyalty right now.",
     ],
     urgency: "elevated",
     urgencyReasoning:
-      "The household's own request states the tooth has been hurting since Tuesday (three days) — spec §13.2 Step 1's \"if pain is reported → urgency escalates\" applies directly from the request text itself, before either clarifying question above is even answered.",
+      "The household's own request states the tooth has been hurting since Tuesday (three days), spec §13.2 Step 1's \"if pain is reported → urgency escalates\" applies directly from the request text itself, before either clarifying question above is even answered.",
     confidence: 0.86,
     modelTier: "pro",
     promptVersion: "requirement-clarifier-v1",
@@ -335,8 +335,8 @@ export function getAaravToothacheRanking(): ProviderRankingResult {
         rank: 1,
         score: 0.88,
         reasons: [
-          "Earliest available slot — today after 4:30pm, which matters because Aarav's reported pain sets this to elevated urgency (spec §13.2 Step 1)",
-          "0.8 km from home — the closest of the three options",
+          "Earliest available slot, today after 4:30pm, which matters because Aarav's reported pain sets this to elevated urgency (spec §13.2 Step 1)",
+          "0.8 km from home, the closest of the three options",
           "Rated 4.5/5",
           "Accepts Apollo Health Shield's dental rider",
         ],
@@ -349,9 +349,9 @@ export function getAaravToothacheRanking(): ProviderRankingResult {
         rank: 2,
         score: 0.71,
         reasons: [
-          "Highest rating of the three (4.7/5) and Aarav's own regular clinic — 2 prior visits on file, no complaints",
+          "Highest rating of the three (4.7/5) and Aarav's own regular clinic, 2 prior visits on file, no complaints",
           "1.2 km from home",
-          "Earliest slot is 3-4 days out — under elevated urgency that's slower than #1, which is exactly why a lower-rated same-day option outranks it here",
+          "Earliest slot is 3-4 days out, under elevated urgency that's slower than #1, which is exactly why a lower-rated same-day option outranks it here",
           "Accepts Apollo Health Shield's dental rider",
         ],
         demotedForReliability: false,
@@ -363,8 +363,8 @@ export function getAaravToothacheRanking(): ProviderRankingResult {
         rank: 3,
         score: 0.42,
         reasons: [
-          "Previously no-showed on a scheduled household appointment (14 Nov 2025) — demoted despite being available sooner than #2",
-          "2.4 km away — the furthest of the three",
+          "Previously no-showed on a scheduled household appointment (14 Nov 2025), demoted despite being available sooner than #2",
+          "2.4 km away, the furthest of the three",
           "Rated 4.2/5",
           "Slot open tomorrow morning",
         ],
@@ -373,7 +373,7 @@ export function getAaravToothacheRanking(): ProviderRankingResult {
       },
     ],
     narrative:
-      "QuickCare Dental Walk-in tops the list because Aarav's reported pain escalates this to urgent — a same-day slot outweighs Bright Smiles Dental's higher rating and existing history, which would otherwise win on a routine visit. Smile Care Junction is available even sooner but is demoted for a documented no-show on file.",
+      "QuickCare Dental Walk-in tops the list because Aarav's reported pain escalates this to urgent, a same-day slot outweighs Bright Smiles Dental's higher rating and existing history, which would otherwise win on a routine visit. Smile Care Junction is available even sooner but is demoted for a documented no-show on file.",
     confidence: 0.83,
     modelTier: "pro",
     promptVersion: "provider-ranking-v1",
@@ -474,7 +474,7 @@ export function disclosureOpening(brief: CallBrief): string {
   const slotClause = preferred
     ? ` I'd like to ask about ${formatDisclosureSlot(preferred)}, if that's available.`
     : "";
-  return `Hello — this is an automated assistant calling on behalf of a household, regarding: ${brief.objective}.${slotClause}`;
+  return `Hello, this is an automated assistant calling on behalf of a household, regarding: ${brief.objective}.${slotClause}`;
 }
 
 function formatDisclosureSlot(iso: string): string {
@@ -560,7 +560,7 @@ export function getAaravToothacheCall(): ConciergeCallRecord {
     },
     {
       speaker: "caller",
-      utterance: "5:15 this evening works well for us — let's get Aarav booked in for that, thank you.",
+      utterance: "5:15 this evening works well for us, let's get Aarav booked in for that, thank you.",
       turnIndex: 2,
     },
   ];
@@ -584,7 +584,7 @@ export function getAaravToothacheVerification(): VerificationResult {
     discrepancies: [],
     requiresHumanCallback: false,
     explanation:
-      "Disclosure was confirmed on turn zero; the call named the authorised provider (QuickCare Dental Walk-in); the claimed slot (28 Aug, 5:15 PM) falls inside the authorised date range and is one of the two preferred slots the household approved — nothing to flag.",
+      "Disclosure was confirmed on turn zero; the call named the authorised provider (QuickCare Dental Walk-in); the claimed slot (28 Aug, 5:15 PM) falls inside the authorised date range and is one of the two preferred slots the household approved, nothing to flag.",
     confidence: 0.97,
     modelTier: "pro",
     promptVersion: "confirmation-verifier-v1",
@@ -622,12 +622,12 @@ export function getDadiCleaningCall(): ConciergeCallRecord {
     {
       speaker: "counterparty",
       utterance:
-        "Hi there — happy to help. Before I book anything, I'll need her date of birth for our senior patient file, is that alright?",
+        "Hi there, happy to help. Before I book anything, I'll need her date of birth for our senior patient file, is that alright?",
       turnIndex: 1,
     },
     {
       speaker: "caller",
-      utterance: "I don't have that information to hand — let me take a message and someone will confirm with you.",
+      utterance: "I don't have that information to hand, let me take a message and someone will confirm with you.",
       turnIndex: 2,
     },
   ];
@@ -636,7 +636,7 @@ export function getDadiCleaningCall(): ConciergeCallRecord {
     brief,
     turns,
     null,
-    "Bright Smiles Dental asked something outside the disclosable facts list ('her date of birth for our senior patient file') — took a message instead of guessing.",
+    "Bright Smiles Dental asked something outside the disclosable facts list ('her date of birth for our senior patient file'), took a message instead of guessing.",
     false,
     true,
   );
@@ -648,10 +648,10 @@ export function getDadiCleaningVerification(): VerificationResult {
     callId: call.callId,
     targetProviderId: BRIGHT_SMILES_PROVIDER_ID,
     verified: false,
-    discrepancies: ["no slot was claimed booked in this outcome report — there is nothing to record"],
+    discrepancies: ["no slot was claimed booked in this outcome report, there is nothing to record"],
     requiresHumanCallback: true,
     explanation:
-      "No slot was confirmed on this call — the front desk's question fell outside what was pre-authorised to disclose, and the agent took a message rather than guess. There is nothing to verify as a booking.",
+      "No slot was confirmed on this call, the front desk's question fell outside what was pre-authorised to disclose, and the agent took a message rather than guess. There is nothing to verify as a booking.",
     confidence: 1.0,
     modelTier: "deterministic",
     promptVersion: "confirmation-verifier-v1",
@@ -665,25 +665,25 @@ export function getDadiCleaningFallback(): FallbackDecision {
   return {
     action: "escalate",
     reasoning:
-      "Single attempt to Bright Smiles Dental ended in a question outside pre-authorised disclosure (Dadi's date of birth) — rather than retry blind, this needs a household member's decision on how much to share.",
+      "Single attempt to Bright Smiles Dental ended in a question outside pre-authorised disclosure (Dadi's date of birth), rather than retry blind, this needs a household member's decision on how much to share.",
     retryAfter: null,
     escalationPayload: {
       actionType: "concierge.call_outcome.escalate",
       summary:
-        "Could not complete Dadi's six-month cleaning booking with Bright Smiles Dental — the front desk asked for her date of birth, which wasn't pre-authorised to share. A message was left; someone should call back directly or approve sharing it.",
+        "Could not complete Dadi's six-month cleaning booking with Bright Smiles Dental, the front desk asked for her date of birth, which wasn't pre-authorised to share. A message was left; someone should call back directly or approve sharing it.",
       riskTier: "R2",
       evidenceBundle: {
         proposedAction: "Escalate Dadi's dental booking attempt to a household member",
         reasoning:
-          "The call reached a real, unanswerable request rather than a technical failure — continuing to guess or retry without a human decision would either fabricate an answer or repeat the same dead end.",
+          "The call reached a real, unanswerable request rather than a technical failure, continuing to guess or retry without a human decision would either fabricate an answer or repeat the same dead end.",
         evidenceConsulted: [
           "Call transcript turn 1: front desk asked for Dadi's date of birth",
-          "CallBrief.mustNotAnswer included 'date of birth' — never disclosed",
-          "No slot was claimed or verified — call_id " + call.callId,
+          "CallBrief.mustNotAnswer included 'date of birth', never disclosed",
+          "No slot was claimed or verified, call_id " + call.callId,
         ],
         confidence: 0.92,
         consequenceIfWrong:
-          "If shared without asking, Dadi's date of birth would be given to a third party without explicit household approval — a real privacy/consent step, not a rubber stamp.",
+          "If shared without asking, Dadi's date of birth would be given to a third party without explicit household approval, a real privacy/consent step, not a rubber stamp.",
       },
       relatedNodeId: "obligation-book-dadi-dentist-cleaning",
     },
@@ -726,7 +726,7 @@ export function getAaravFollowupRetryDecision(): FallbackDecision {
   return {
     action: "retry",
     reasoning:
-      "Sunrise Family Dental's line rang out with no answer — spec's retry ladder tries again shortly before treating this as a failed attempt.",
+      "Sunrise Family Dental's line rang out with no answer, spec's retry ladder tries again shortly before treating this as a failed attempt.",
     retryAfter: "2026-09-01T09:15:00Z",
     escalationPayload: null,
   };
@@ -755,7 +755,7 @@ export function getAaravFollowupCall(): ConciergeCallRecord {
     },
     {
       speaker: "caller",
-      utterance: "Friday at 5 works — let's lock Aarav in for that, thank you.",
+      utterance: "Friday at 5 works, let's lock Aarav in for that, thank you.",
       turnIndex: 2,
     },
   ];
@@ -780,7 +780,7 @@ export function getAaravFollowupVerification(): VerificationResult {
     discrepancies: verdict.discrepancies,
     requiresHumanCallback: verdict.requiresHumanCallback,
     explanation:
-      "The call itself reported success and never flagged an out-of-bounds moment — but the household was explicit that only Wednesday or Thursday at 5pm work this week (swim class conflicts with anything else), and Friday was not one of those two. The call's own bounds check only guards the outer date range, not this specific constraint, which is exactly why this independent check exists.",
+      "The call itself reported success and never flagged an out-of-bounds moment, but the household was explicit that only Wednesday or Thursday at 5pm work this week (swim class conflicts with anything else), and Friday was not one of those two. The call's own bounds check only guards the outer date range, not this specific constraint, which is exactly why this independent check exists.",
     confidence: 1.0,
     modelTier: "deterministic",
     promptVersion: "confirmation-verifier-v1",
@@ -793,12 +793,12 @@ export function getAaravFollowupFallback(): FallbackDecision {
   return {
     action: "escalate",
     reasoning:
-      "Sunrise Family Dental confirmed a slot on the call, but it doesn't match either of the two times the household said are actually workable this week — a live discrepancy, not a call failure, so a person should decide whether Friday actually works or the household wants another attempt with tighter authorised bounds.",
+      "Sunrise Family Dental confirmed a slot on the call, but it doesn't match either of the two times the household said are actually workable this week, a live discrepancy, not a call failure, so a person should decide whether Friday actually works or the household wants another attempt with tighter authorised bounds.",
     retryAfter: null,
     escalationPayload: {
       actionType: "concierge.call_outcome.escalate",
       summary:
-        "Sunrise Family Dental offered Friday 4 Sep at 5pm for Aarav's routine follow-up — the call agent accepted it, but that's not one of the two windows (Wed/Thu 5pm) the household said were the only ones that fit around swim class, and no other time was pre-authorised. Nothing has been booked or recorded.",
+        "Sunrise Family Dental offered Friday 4 Sep at 5pm for Aarav's routine follow-up, the call agent accepted it, but that's not one of the two windows (Wed/Thu 5pm) the household said were the only ones that fit around swim class, and no other time was pre-authorised. Nothing has been booked or recorded.",
       riskTier: "R2",
       evidenceBundle: {
         proposedAction: "Escalate Aarav's routine follow-up booking discrepancy to a household member",
@@ -856,7 +856,7 @@ export function verifyCallOutcome(brief: CallBrief, report: CallOutcomeReport): 
     return {
       verified: false,
       discrepancies: [
-        "disclosure_given is False — the automated-assistant disclosure was never confirmed; this is a hard failure per spec §23 and verification stops here, before any further check runs",
+        "disclosure_given is False, the automated-assistant disclosure was never confirmed; this is a hard failure per spec §23 and verification stops here, before any further check runs",
       ],
       requiresHumanCallback: true,
     };
@@ -872,12 +872,12 @@ export function verifyCallOutcome(brief: CallBrief, report: CallOutcomeReport): 
 
   if (report.outOfBoundsEncountered) {
     discrepancies.push(
-      "out_of_bounds_encountered is True — the call reported an out-of-bounds request, and CallOutcomeReport carries no field proving it was safely declined or resolved, so this is never treated as resolved",
+      "out_of_bounds_encountered is True, the call reported an out-of-bounds request, and CallOutcomeReport carries no field proving it was safely declined or resolved, so this is never treated as resolved",
     );
   }
 
   if (report.claimedSlot === null) {
-    discrepancies.push("no slot was claimed booked in this outcome report — there is nothing to record");
+    discrepancies.push("no slot was claimed booked in this outcome report, there is nothing to record");
     return { verified: false, discrepancies, requiresHumanCallback: true };
   }
 
@@ -1049,7 +1049,7 @@ export function getAaravToothacheApproval(): ConciergeCallApproval {
     evidenceBundle: {
       proposedAction: "Call QuickCare Dental Walk-in (0.8 km away, rated 4.5) to get Aarav seen today for his sore tooth.",
       reasoning:
-        "QuickCare ranked #1 for this urgent request — nearest, same-day availability, and within insurance. Bright Smiles Dental (Aarav's regular clinic) is rated higher but can't be seen for 3-4 days, which doesn't fit a pain complaint.",
+        "QuickCare ranked #1 for this urgent request, nearest, same-day availability, and within insurance. Bright Smiles Dental (Aarav's regular clinic) is rated higher but can't be seen for 3-4 days, which doesn't fit a pain complaint.",
       evidenceConsulted: [
         "A50 clarification: pain reported since Tuesday → elevated urgency",
         "A52 ranking: QuickCare #1 (score 0.88) vs Bright Smiles #2 (0.71) vs Smile Care Junction #3 (0.42, demoted for a no-show)",
@@ -1058,7 +1058,7 @@ export function getAaravToothacheApproval(): ConciergeCallApproval {
       ],
       confidence: 0.86,
       consequenceIfWrong:
-        "If QuickCare turns out unsuitable on arrival, nothing has been paid or confirmed yet — the household can redirect to Bright Smiles Dental or Smile Care Junction instead.",
+        "If QuickCare turns out unsuitable on arrival, nothing has been paid or confirmed yet, the household can redirect to Bright Smiles Dental or Smile Care Junction instead.",
     },
   };
 }

@@ -58,13 +58,13 @@ export function DemoBeatTimeline({ stale, attemptCount, modalitySwitch, windowRe
           <li className={styles.afterStep}>
             <Mail size={18} strokeWidth={2} aria-hidden="true" />
             <span>
-              Unblocked — {modalitySwitch.fromModality} switched to {modalitySwitch.toModality}, message pre-drafted
+              Unblocked, {modalitySwitch.fromModality} switched to {modalitySwitch.toModality}, message pre-drafted
               and sent.
             </span>
           </li>
           <li className={styles.afterStep}>
             <ShieldCheck size={18} strokeWidth={2} aria-hidden="true" />
-            <span>Scheduled — {windowResult.bestWindow ? formatWindow(windowResult.bestWindow) : "no window found"}.</span>
+            <span>Scheduled, {windowResult.bestWindow ? formatWindow(windowResult.bestWindow) : "no window found"}.</span>
           </li>
         </ol>
         <p className={styles.resolutionFigure} data-testid="resolution-seconds">

@@ -4,7 +4,7 @@ import { getAaravToothacheRanking } from "@/lib/concierge";
 import { RankedShortlist } from "./RankedShortlist";
 
 describe("RankedShortlist", () => {
-  it("renders every ranked provider with its own real reasons — #1 and #2 are never the same text", () => {
+  it("renders every ranked provider with its own real reasons, #1 and #2 are never the same text", () => {
     const ranking = getAaravToothacheRanking();
     render(<RankedShortlist ranking={ranking} />);
     const [first, second] = ranking.ranked;

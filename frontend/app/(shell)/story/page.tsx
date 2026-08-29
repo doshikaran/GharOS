@@ -6,9 +6,9 @@ import { ScrollReveal } from "@/components/landing/ScrollReveal";
 import styles from "./home-page.module.css";
 
 export const metadata: Metadata = {
-  title: "GharOS — The full story",
+  title: "GharOS, The full story",
   description:
-    "An autonomous operating system for the one institution nobody runs like one — built on a knowledge graph that shows its work, not a dashboard that hides it.",
+    "An autonomous operating system for the one institution nobody runs like one, built on a knowledge graph that shows its work, not a dashboard that hides it.",
 };
 
 /**
@@ -45,7 +45,7 @@ const PAIN_VIGNETTES: ReadonlyArray<{ title: string; body: string }> = [
 const JOURNEY_CHAPTERS: ReadonlyArray<{ name: string; body: string }> = [
   {
     name: "Perception",
-    body: "Reads what actually arrives: WhatsApp exports, receipts, SMS, forms — never a hypothetical clean inbox.",
+    body: "Reads what actually arrives: WhatsApp exports, receipts, SMS, forms, never a hypothetical clean inbox.",
   },
   {
     name: "Consequence Engine",
@@ -57,7 +57,7 @@ const JOURNEY_CHAPTERS: ReadonlyArray<{ name: string; body: string }> = [
   },
   {
     name: "Household Ledger",
-    body: "Finds the leakage hiding in plain sight — a mandate nobody cancelled, a price that quietly crept up.",
+    body: "Finds the leakage hiding in plain sight, a mandate nobody cancelled, a price that quietly crept up.",
   },
   {
     name: "Fair Allocator",
@@ -69,7 +69,7 @@ const JOURNEY_CHAPTERS: ReadonlyArray<{ name: string; body: string }> = [
   },
   {
     name: "Outbound Concierge",
-    body: "Calls the dentist so you don't have to — and discloses, every time, that it's a system calling.",
+    body: "Calls the dentist so you don't have to, and discloses, every time, that it's a system calling.",
   },
   {
     name: "Household Simulator",
@@ -117,7 +117,7 @@ export default function Home() {
         <h1 className={styles.heroTitle}>The household remembers, even when you don&rsquo;t.</h1>
         <p className={styles.heroSubtitle}>Not a to-do list. A memory.</p>
         <p className={styles.heroBody}>
-          An autonomous operating system for the one institution nobody runs like one — built on a
+          An autonomous operating system for the one institution nobody runs like one, built on a
           knowledge graph that shows its work, not a dashboard that hides it.
         </p>
         <div className={styles.heroActions}>
@@ -134,7 +134,7 @@ export default function Home() {
        * 2. THE PAIN
        * ------------------------------------------------------------ */}
       <section id="the-pain" className={styles.section}>
-        {/* The brief's own "lead line" doubles as this section's heading —
+        {/* The brief's own "lead line" doubles as this section's heading,
             rendered as an <h2> so the page's heading hierarchy stays
             unbroken (h1 hero -> h2 here -> h3 vignette titles), even
             though visually it reads as a pull-quote, not a typical
@@ -160,7 +160,7 @@ export default function Home() {
       <section id="the-insight" className={styles.section}>
         <h2 className={styles.sectionHeadline}>The answer is a path, not a vibe.</h2>
         <p className={styles.sectionBody}>
-          Every fact GharOS holds carries how it knows it — extracted from a real document, inferred
+          Every fact GharOS holds carries how it knows it, extracted from a real document, inferred
           from context, or flagged ambiguous when the evidence genuinely points more than one way. A
           recommendation is never a paragraph asserting itself; it&rsquo;s a subgraph you can walk,
           node by node, back to the message or receipt it came from.

@@ -129,11 +129,11 @@ export interface CouncilBrief {
  * is the concrete, on-screen evidence that no two specialists share tool
  * access, not just an assertion. */
 export const AGENT_DOMAIN_LABEL: Readonly<Record<string, string>> = {
-  A42: "Finance — Ledger subgraph",
-  A43: "Care — Constraint subgraph (medical / mobility)",
-  A44: "Education — Constraint subgraph (education)",
-  A45: "Logistics — Obligation subgraph",
-  A46: "Legal / Compliance — Documentation subgraph",
+  A42: "Finance: Ledger subgraph",
+  A43: "Care: Constraint subgraph (medical / mobility)",
+  A44: "Education: Constraint subgraph (education)",
+  A45: "Logistics: Obligation subgraph",
+  A46: "Legal / Compliance: Documentation subgraph",
 };
 
 export const AGENT_SHORT_LABEL: Readonly<Record<string, string>> = {
@@ -226,7 +226,7 @@ const COUNCIL_COMPOSITION_FIXTURE: CouncilComposition = {
   decisionId: DECISION_ID,
   question: "Replace the household car, or keep paying for repairs on the current one?",
   trigger:
-    "Three maintenance ledger events on the current car in three months (₹8,200 in June, ₹11,400 in July, ₹14,900 in August — a rising trend), plus Priya's stated intention captured in a message: \"this car needs to go, it's bleeding us.\"",
+    "Three maintenance ledger events on the current car in three months (₹8,200 in June, ₹11,400 in July, ₹14,900 in August, a rising trend), plus Priya's stated intention captured in a message: \"this car needs to go, it's bleeding us.\"",
   convenedSpecialistIds: ["A42", "A43", "A45"],
   convenedDelegatePersonIds: [PRIYA_ID, MAYA_ID, DADI_ID],
 } as const;
@@ -236,7 +236,7 @@ const SPECIALIST_POSITIONS_FIXTURE: readonly SpecialistPosition[] = [
     agentId: "A42",
     stance: "neutral",
     reasoning:
-      "Three repair debits this year total ₹34,500 against a car bought for ₹2.1L five years ago. After existing recurring commitments — society maintenance, Maya's salary, weekly groceries — and given Aarav's board-exam-year school fees due in March, the household's real EMI headroom supports a maximum instalment of ₹9,000/month over 60 months. That is a computed affordability band from real ledger history, not a guess at what the household can 'probably' afford.",
+      "Three repair debits this year total ₹34,500 against a car bought for ₹2.1L five years ago. After existing recurring commitments, society maintenance, Maya's salary, weekly groceries, and given Aarav's board-exam-year school fees due in March, the household's real EMI headroom supports a maximum instalment of ₹9,000/month over 60 months. That is a computed affordability band from real ledger history, not a guess at what the household can 'probably' afford.",
     evidenceRefs: [
       "ledger-car-repair-jun",
       "ledger-car-repair-jul",
@@ -250,7 +250,7 @@ const SPECIALIST_POSITIONS_FIXTURE: readonly SpecialistPosition[] = [
     agentId: "A43",
     stance: "opposes",
     reasoning:
-      "Dadi's mobility constraint sets a minimum door-sill height and a maximum seat-to-ground height compatible with a standing transfer, not a seated slide-in — she cannot get into a low-slung cabin unassisted. The compact hatchback on the household's shortlist has a 36cm door-sill height and low bucket seats; it fails both thresholds. This is a hard constraint: the hatchback is removed from consideration, not scored down against the other options.",
+      "Dadi's mobility constraint sets a minimum door-sill height and a maximum seat-to-ground height compatible with a standing transfer, not a seated slide-in, she cannot get into a low-slung cabin unassisted. The compact hatchback on the household's shortlist has a 36cm door-sill height and low bucket seats; it fails both thresholds. This is a hard constraint: the hatchback is removed from consideration, not scored down against the other options.",
     evidenceRefs: ["constraint-dadi-mobility"],
     eliminatedBranchIds: [BRANCH_IDS.hatchback],
   },
@@ -258,7 +258,7 @@ const SPECIALIST_POSITIONS_FIXTURE: readonly SpecialistPosition[] = [
     agentId: "A45",
     stance: "supports",
     reasoning:
-      "The car carries Aarav's school pickup five days a week, Dadi's dialysis transport twice a week, and the monthly grocery run — real recurring obligations, not hypothetical trips. Boot space needs to hold a folded wheelchair alongside the weekly grocery haul, and Sunrise Society's allotted parking bay is a fixed 4.3m — both surviving options fit; the compact SUV's higher ground clearance also copes better with the society's speed-bump-heavy internal road, which the current car has scraped against twice this year.",
+      "The car carries Aarav's school pickup five days a week, Dadi's dialysis transport twice a week, and the monthly grocery run, real recurring obligations, not hypothetical trips. Boot space needs to hold a folded wheelchair alongside the weekly grocery haul, and Sunrise Society's allotted parking bay is a fixed 4.3m, both surviving options fit; the compact SUV's higher ground clearance also copes better with the society's speed-bump-heavy internal road, which the current car has scraped against twice this year.",
     evidenceRefs: ["obligation-pickup-aarav", "obligation-dadi-dialysis-schedule", "obligation-weekly-groceries"],
     eliminatedBranchIds: [],
   },
@@ -300,7 +300,7 @@ const DELEGATE_SCORINGS_FIXTURE: readonly DelegateScoring[] = [
 const ADVERSARY_ATTACK_FIXTURE: AdversaryAttack = {
   targetBranchId: BRANCH_IDS.suv,
   critique:
-    "This household has underestimated maintenance cost before — the same optimism gap that triggered this very council. The compact SUV's authorised service network in this city is thin: only two centres, both over 12km away, versus five for the sedan. A thin service network is exactly the kind of gap that turned three routine repairs into ₹34,500 on the outgoing car; nothing in the affordability band above prices in a repeat of that pattern on a new vehicle.",
+    "This household has underestimated maintenance cost before, the same optimism gap that triggered this very council. The compact SUV's authorised service network in this city is thin: only two centres, both over 12km away, versus five for the sedan. A thin service network is exactly the kind of gap that turned three routine repairs into ₹34,500 on the outgoing car; nothing in the affordability band above prices in a repeat of that pattern on a new vehicle.",
   citedOutcomeIds: ["outcome-car-amc-underestimate-2022", "outcome-relocation-2019-vacate"],
 } as const;
 
@@ -359,9 +359,9 @@ const COUNCIL_RESOLUTION_FIXTURE: CouncilResolution = {
 
 const RISK_REGISTER_FIXTURE: readonly string[] = [
   "Compact SUV's authorised service network is thin outside two centres, both over 12km away.",
-  "Household's own history shows major-purchase maintenance underestimated by a wide margin before — budget a contingency, not just the sticker EMI.",
+  "Household's own history shows major-purchase maintenance underestimated by a wide margin before, budget a contingency, not just the sticker EMI.",
   "The sedan's rear door aperture is close to Dadi's minimum mobility threshold; it survived scoring but should be re-verified in person before any purchase, not assumed safe from the brief alone.",
-  "Finance's affordability band assumes today's EMI capacity holds through Aarav's board-exam-year fee increase in March — not yet confirmed against the actual fee notice.",
+  "Finance's affordability band assumes today's EMI capacity holds through Aarav's board-exam-year fee increase in March, not yet confirmed against the actual fee notice.",
 ] as const;
 
 const COUNCIL_BRIEF_FIXTURE: CouncilBrief = {
@@ -410,7 +410,7 @@ export function buildTradeOffStatement(brief: CouncilBrief): string {
   const { resolution, delegateScorings } = brief;
   const winnerLabel = branchLabel(resolution.winningBranchId);
   const sentences: string[] = [
-    `${winnerLabel} is the household's minimax-regret pick among the surviving, hard-constraint-filtered options — the option that keeps the single worst regret any one delegate feels as small as possible, never the option with the highest combined score.`,
+    `${winnerLabel} is the household's minimax-regret pick among the surviving, hard-constraint-filtered options, the option that keeps the single worst regret any one delegate feels as small as possible, never the option with the highest combined score.`,
   ];
 
   const costlyId = resolution.mostCostlyTo;
@@ -418,10 +418,10 @@ export function buildTradeOffStatement(brief: CouncilBrief): string {
   if (costlyId && costlyScoring) {
     const regret = resolution.regretByPerson[costlyId];
     sentences.push(
-      `It costs ${personLabel(costlyId)} most: a regret of ${formatRegret(regret)} against their own best surviving option. In their own words — "${costlyScoring.reasoning}"`,
+      `It costs ${personLabel(costlyId)} most: a regret of ${formatRegret(regret)} against their own best surviving option. In their own words, "${costlyScoring.reasoning}"`,
     );
   } else {
-    sentences.push("No single delegate carries the largest regret here — every convened delegate's regret for this option is equal.");
+    sentences.push("No single delegate carries the largest regret here, every convened delegate's regret for this option is equal.");
   }
 
   const favorableId = resolution.mostFavorableTo;
@@ -429,13 +429,13 @@ export function buildTradeOffStatement(brief: CouncilBrief): string {
   if (favorableId && favorableScoring) {
     const regret = resolution.regretByPerson[favorableId];
     sentences.push(
-      `It favours ${personLabel(favorableId)} most: a regret of ${formatRegret(regret)} against their own best surviving option. In their own words — "${favorableScoring.reasoning}"`,
+      `It favours ${personLabel(favorableId)} most: a regret of ${formatRegret(regret)} against their own best surviving option. In their own words, "${favorableScoring.reasoning}"`,
     );
   }
 
   if (resolution.concedingPersonIds.length > 0) {
     sentences.push(
-      `${resolution.concedingPersonIds.map(personLabel).join(", ")} ${resolution.concedingPersonIds.length === 1 ? "is" : "are"} recorded as conceding on this decision — a real, permanent entry on the household's concession ledger, not a one-off complaint.`,
+      `${resolution.concedingPersonIds.map(personLabel).join(", ")} ${resolution.concedingPersonIds.length === 1 ? "is" : "are"} recorded as conceding on this decision, a real, permanent entry on the household's concession ledger, not a one-off complaint.`,
     );
   }
 

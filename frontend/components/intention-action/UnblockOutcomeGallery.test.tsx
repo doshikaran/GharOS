@@ -91,7 +91,7 @@ describe("UnblockOutcomeGallery", () => {
       />,
     );
     expect(screen.getByText("Dadi: Available")).toBeInTheDocument();
-    expect(screen.getByText("Dadi: Soft — avoid if possible")).toBeInTheDocument();
+    expect(screen.getByText("Dadi: Soft, avoid if possible")).toBeInTheDocument();
     expect(screen.getByText("Recommended")).toBeInTheDocument();
   });
 

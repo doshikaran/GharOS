@@ -38,7 +38,7 @@ export function TranscriptView({ entries, elderMode = false }: TranscriptViewPro
       <div className={styles.log} role="log" aria-live="polite" aria-label="Live voice transcript">
         {entries.length === 0 && (
           <p className={styles.empty}>
-            No speech yet — press and hold the mic button, or focus it and press Space/Enter, to talk to GharOS.
+            No speech yet, press and hold the mic button, or focus it and press Space/Enter, to talk to GharOS.
           </p>
         )}
         {entries.map((entry) => (

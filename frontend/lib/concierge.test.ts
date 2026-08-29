@@ -59,7 +59,7 @@ describe("getAaravToothacheClarification", () => {
 });
 
 describe("getAaravToothacheRanking", () => {
-  it("gives #1 and #2 genuinely different, specific reasons — never interchangeable", () => {
+  it("gives #1 and #2 genuinely different, specific reasons, never interchangeable", () => {
     const ranking = getAaravToothacheRanking();
     const [first, second] = ranking.ranked;
     expect(first.reasons.join(" ")).not.toBe(second.reasons.join(" "));
@@ -100,7 +100,7 @@ describe("disclosureOpening", () => {
   it("is always the first thing the transcript says, never conditional on anything the counterparty does", () => {
     const brief = getAaravToothacheCallBrief();
     const opening = disclosureOpening(brief);
-    expect(opening).toMatch(/^Hello — this is an automated assistant calling on behalf of a household/);
+    expect(opening).toMatch(/^Hello, this is an automated assistant calling on behalf of a household/);
     expect(opening).toContain(brief.objective);
   });
 
@@ -111,8 +111,8 @@ describe("disclosureOpening", () => {
   });
 });
 
-describe("getAaravToothacheCall — the hero flow: adapts, then succeeds", () => {
-  it("turn zero is exactly the disclosure line — unmissable, structurally first", () => {
+describe("getAaravToothacheCall, the hero flow: adapts, then succeeds", () => {
+  it("turn zero is exactly the disclosure line, unmissable, structurally first", () => {
     const call = getAaravToothacheCall();
     expect(call.conversation.turns[0]?.turnIndex).toBe(0);
     expect(call.conversation.turns[0]?.speaker).toBe("caller");
@@ -142,7 +142,7 @@ describe("getAaravToothacheCall — the hero flow: adapts, then succeeds", () =>
   });
 });
 
-describe("verifyCallOutcome — a real port of the backend's structural check", () => {
+describe("verifyCallOutcome, a real port of the backend's structural check", () => {
   const brief: CallBrief = getAaravToothacheCallBrief();
 
   it("verifies a clean, in-bounds, preferred-slot outcome", () => {
@@ -160,7 +160,7 @@ describe("verifyCallOutcome — a real port of the backend's structural check", 
     expect(verdict.discrepancies[0]).toMatch(/disclosure_given is False/);
   });
 
-  it("fails when no slot was claimed — nothing to record, never fabricated", () => {
+  it("fails when no slot was claimed, nothing to record, never fabricated", () => {
     const report: CallOutcomeReport = { ...getAaravToothacheCall().outcomeReport, claimedSlot: null };
     const verdict = verifyCallOutcome(brief, report);
     expect(verdict.verified).toBe(false);
@@ -174,7 +174,7 @@ describe("verifyCallOutcome — a real port of the backend's structural check", 
     expect(verdict.discrepancies.some((d) => d.includes("falls outside the authorised date_range"))).toBe(true);
   });
 
-  it("catches a claimed slot that is in-bounds but not preferred, when fallback is disallowed — the real scenario-C mismatch", () => {
+  it("catches a claimed slot that is in-bounds but not preferred, when fallback is disallowed, the real scenario-C mismatch", () => {
     const call = getAaravFollowupCall();
     const verdict = verifyCallOutcome(call.brief, call.outcomeReport);
     expect(verdict.verified).toBe(false);
@@ -189,7 +189,7 @@ describe("verifyCallOutcome — a real port of the backend's structural check", 
   });
 });
 
-describe("buildBookingOutcome — the structural 'no write without verification' guard, ported to the frontend", () => {
+describe("buildBookingOutcome, the structural 'no write without verification' guard, ported to the frontend", () => {
   it("produces a confirmed booking only for a real, positive verification with a real slot", () => {
     const call = getAaravToothacheCall();
     const outcome = buildBookingOutcome({
@@ -222,7 +222,7 @@ describe("buildBookingOutcome — the structural 'no write without verification'
     expect(outcome.kind).toBe("not_recorded");
   });
 
-  it("never confirms when verified is true but claimedSlot is null — a contradiction the guard refuses to paper over", () => {
+  it("never confirms when verified is true but claimedSlot is null, a contradiction the guard refuses to paper over", () => {
     const call = getAaravToothacheCall();
     const trueVerificationNoSlot: VerificationResult = { ...getAaravToothacheVerification(), verified: true };
     const noSlotReport: CallOutcomeReport = { ...call.outcomeReport, claimedSlot: null };
@@ -245,14 +245,14 @@ describe("buildBookingOutcome — the structural 'no write without verification'
   });
 });
 
-describe("Scenario B — Dadi's cleaning escalates on an out-of-scope question", () => {
+describe("Scenario B, Dadi's cleaning escalates on an out-of-scope question", () => {
   it("the call ends with requiresHumanCallback true and no claimed slot", () => {
     const call = getDadiCleaningCall();
     expect(call.conversation.requiresHumanCallback).toBe(true);
     expect(call.conversation.claimedSlot).toBeNull();
   });
 
-  it("verification fails structurally, deterministically — no model call needed", () => {
+  it("verification fails structurally, deterministically, no model call needed", () => {
     const verification = getDadiCleaningVerification();
     expect(verification.verified).toBe(false);
     expect(verification.modelTier).toBe("deterministic");
@@ -267,7 +267,7 @@ describe("Scenario B — Dadi's cleaning escalates on an out-of-scope question",
   });
 });
 
-describe("Scenario C — retry, then a real, caught mismatch", () => {
+describe("Scenario C, retry, then a real, caught mismatch", () => {
   it("the retry decision carries a real retryAfter time and no escalation payload", () => {
     const retry = getAaravFollowupRetryDecision();
     expect(retry.action).toBe("retry");
@@ -275,7 +275,7 @@ describe("Scenario C — retry, then a real, caught mismatch", () => {
     expect(retry.escalationPayload).toBeNull();
   });
 
-  it("the call itself reports success — the mismatch is caught only by independent verification", () => {
+  it("the call itself reports success, the mismatch is caught only by independent verification", () => {
     const call = getAaravFollowupCall();
     expect(call.conversation.outOfBoundsEncountered).toBe(false);
     expect(call.conversation.requiresHumanCallback).toBe(false);
@@ -291,7 +291,7 @@ describe("Scenario C — retry, then a real, caught mismatch", () => {
   });
 });
 
-describe("getAaravToothacheApproval — the R2 gate that fires before any call", () => {
+describe("getAaravToothacheApproval, the R2 gate that fires before any call", () => {
   it("carries a full, real evidence bundle referencing the actual ranking", () => {
     const approval = getAaravToothacheApproval();
     expect(approval.riskTier).toBe("R2");
@@ -300,7 +300,7 @@ describe("getAaravToothacheApproval — the R2 gate that fires before any call",
   });
 });
 
-describe("revealedTurnCount — pure progressive-reveal timing", () => {
+describe("revealedTurnCount, pure progressive-reveal timing", () => {
   it("reveals nothing before time zero, and nothing for zero turns", () => {
     expect(revealedTurnCount(5, -1)).toBe(0);
     expect(revealedTurnCount(0, 1000)).toBe(0);

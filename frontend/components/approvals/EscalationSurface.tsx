@@ -37,9 +37,9 @@ export function EscalationSurface({ items, discussedIds, onToggleDiscussed, now 
     <div className={styles.surface}>
       {councilBriefs.length > 0 && (
         <section aria-label="Council briefs">
-          <h3 className={styles.sectionHeading}>Council briefs — awaiting a household decision</h3>
+          <h3 className={styles.sectionHeading}>Council briefs, awaiting a household decision</h3>
           <p className={styles.sectionIntro}>
-            These are never auto-executed. The Council does not resolve them — each card below is the brief
+            These are never auto-executed. The Council does not resolve them, each card below is the brief
             it produced; a household member decides.
           </p>
           <div className={styles.cardList}>
@@ -58,9 +58,9 @@ export function EscalationSurface({ items, discussedIds, onToggleDiscussed, now 
 
       {expiredRequests.length > 0 && (
         <section aria-label="Expired approvals">
-          <h3 className={styles.sectionHeading}>Escalated — approval window expired</h3>
+          <h3 className={styles.sectionHeading}>Escalated, approval window expired</h3>
           <p className={styles.sectionIntro}>
-            No decision arrived before the window closed. Expiry escalated these — it did not approve them.
+            No decision arrived before the window closed. Expiry escalated these, it did not approve them.
           </p>
           <div className={styles.cardList}>
             {expiredRequests.map((item) => (

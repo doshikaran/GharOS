@@ -4,7 +4,7 @@ import { getApiBaseUrl } from "@/lib/api-base-url";
 import styles from "./intention-action-page.module.css";
 
 export const metadata: Metadata = {
-  title: "GharOS — Intention→Action",
+  title: "GharOS, Intention→Action",
 };
 
 export default function IntentionActionPage() {
@@ -13,10 +13,10 @@ export default function IntentionActionPage() {
       <div className={styles.header}>
         <h1 className={styles.heading}>Intention → Action</h1>
         <p className={styles.subheading}>
-          Forgetting explains only ~10-14% of unfulfilled intentions — the rest is friction. Every blocked task
+          Forgetting explains only ~10-14% of unfulfilled intentions, the rest is friction. Every blocked task
           below is diagnosed to one of six specific blocker types, with its diagnosis stated so it can be
-          corrected, unblocked in a way that matches the real cause, and — when it slips repeatedly — escalated
-          with real options for a human to decide (PHASES.md Phase 9, spec §9 — the Intention→Action Converter).
+          corrected, unblocked in a way that matches the real cause, and, when it slips repeatedly, escalated
+          with real options for a human to decide (PHASES.md Phase 9, spec §9, the Intention→Action Converter).
         </p>
       </div>
       <IntentionActionExplorer baseUrl={getApiBaseUrl()} />

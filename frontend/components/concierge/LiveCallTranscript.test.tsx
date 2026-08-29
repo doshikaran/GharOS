@@ -32,7 +32,7 @@ describe("LiveCallTranscript", () => {
     render(
       <LiveCallTranscript turns={call.conversation.turns} outcomeReport={call.outcomeReport} counterpartyName="QuickCare Dental Walk-in" />,
     );
-    expect(screen.getByText("Disclosure — every call, no exceptions")).toBeInTheDocument();
+    expect(screen.getByText("Disclosure, every call, no exceptions")).toBeInTheDocument();
   });
 
   it("shows a distinct escalation badge on the turn where the agent escalates, never glossed over", () => {

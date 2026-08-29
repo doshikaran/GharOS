@@ -20,7 +20,7 @@ export function TradeOffStatement({ brief }: TradeOffStatementProps) {
   return (
     <section className={styles.panel} aria-label="Explicit trade-off">
       <div className={styles.badgeRow}>
-        <Badge variant="royal">Deterministic mechanism — minimax regret</Badge>
+        <Badge variant="royal">Deterministic mechanism, minimax regret</Badge>
         <Badge variant="brass">Brief, not a verdict</Badge>
       </div>
 
@@ -28,7 +28,7 @@ export function TradeOffStatement({ brief }: TradeOffStatementProps) {
       <p className={styles.statement}>{statement}</p>
 
       <p className={styles.humansDecideNote}>
-        This is the Council&apos;s brief, not a decision — the household still weighs it and decides. Nothing on
+        This is the Council&apos;s brief, not a decision, the household still weighs it and decides. Nothing on
         this page executes anything, moves money, or places a call.
       </p>
     </section>

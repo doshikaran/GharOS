@@ -42,7 +42,7 @@ describe("getLeakageCases / computeRecoveredMoneySummary", () => {
     expect(getLeakageCases()).not.toBe(getLeakageCases());
   });
 
-  it("has exactly three leakage-verdict cases, each with a drafted claim — spec's 'three claims drafted'", () => {
+  it("has exactly three leakage-verdict cases, each with a drafted claim, spec's 'three claims drafted'", () => {
     const cases = getLeakageCases();
     const leakage = cases.filter((c) => c.finding.verdict === "leakage");
     expect(leakage).toHaveLength(3);
@@ -128,7 +128,7 @@ describe("getDisputePresentations", () => {
     }
   });
 
-  it("presents both figures with independent, real evidence — never a favoured side", () => {
+  it("presents both figures with independent, real evidence, never a favoured side", () => {
     for (const dispute of getDisputePresentations()) {
       expect(dispute.figureA.evidenceText.length).toBeGreaterThan(0);
       expect(dispute.figureB.evidenceText.length).toBeGreaterThan(0);

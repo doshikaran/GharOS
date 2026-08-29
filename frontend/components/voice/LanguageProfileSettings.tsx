@@ -124,7 +124,7 @@ export function LanguageProfileSettings({ baseUrl }: LanguageProfileSettingsProp
         >
           {VOICE_HOUSEHOLD_PERSONS.map((person) => (
             <option key={person.personId} value={person.personId}>
-              {person.displayName} — {person.relationshipToHousehold}
+              {person.displayName}, {person.relationshipToHousehold}
             </option>
           ))}
         </select>
@@ -212,7 +212,7 @@ export function LanguageProfileSettings({ baseUrl }: LanguageProfileSettingsProp
                   onChange={() => setDraft({ ...draft, literacyMode: mode })}
                 />
                 <span>
-                  <strong>{LITERACY_MODE_LABEL[mode]}</strong> — {LITERACY_MODE_DESCRIPTION[mode]}
+                  <strong>{LITERACY_MODE_LABEL[mode]}</strong>, {LITERACY_MODE_DESCRIPTION[mode]}
                 </span>
               </label>
             ))}
@@ -221,7 +221,7 @@ export function LanguageProfileSettings({ baseUrl }: LanguageProfileSettingsProp
           <div className={styles.readOnlyField}>
             <span className={styles.label}>Code-mixing profile (learned, not editable)</span>
             <p className={styles.readOnlyValue}>
-              {codeMixingProfile ?? "Not yet observed — this fills in automatically as this person keeps talking to GharOS."}
+              {codeMixingProfile ?? "Not yet observed, this fills in automatically as this person keeps talking to GharOS."}
             </p>
           </div>
 

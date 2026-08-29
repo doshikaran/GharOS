@@ -25,7 +25,7 @@ export function ClarificationDisplay({ result, personName }: ClarificationDispla
 
   return (
     <div className={styles.wrapper}>
-      <Card className={styles.card} title="Already known from the household graph — never asked about">
+      <Card className={styles.card} title="Already known from the household graph, never asked about">
         <ul className={styles.factList}>
           {result.resolvedFromGraph.map((fact) => (
             <li key={fact.field} className={styles.factRow}>
@@ -42,7 +42,7 @@ export function ClarificationDisplay({ result, personName }: ClarificationDispla
         title={
           <span className={styles.questionsTitleRow}>
             <span>
-              What genuinely can&apos;t be answered from the graph — {result.questions.length} question
+              What genuinely can&apos;t be answered from the graph, {result.questions.length} question
               {result.questions.length === 1 ? "" : "s"} asked
             </span>
             <Badge variant={atCeiling ? "brass" : "neutral"}>
@@ -63,7 +63,7 @@ export function ClarificationDisplay({ result, personName }: ClarificationDispla
         {result.assumptions.length > 0 && (
           <div className={styles.assumptionsBlock}>
             <h4 className={styles.assumptionsHeading}>
-              Genuinely unknown too, but past the {MAX_CLARIFYING_QUESTIONS}-question ceiling — assumed instead
+              Genuinely unknown too, but past the {MAX_CLARIFYING_QUESTIONS}-question ceiling, assumed instead
               of asked
             </h4>
             <ul className={styles.assumptionsList}>

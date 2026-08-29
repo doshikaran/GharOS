@@ -228,7 +228,7 @@ export const LITERACY_MODE_LABEL: Readonly<Record<LiteracyMode, string>> = {
 };
 
 export const LITERACY_MODE_DESCRIPTION: Readonly<Record<LiteracyMode, string>> = {
-  voice_only: "Never expected to read a visual surface — every confirmation and response for this person must be spoken.",
+  voice_only: "Never expected to read a visual surface, every confirmation and response for this person must be spoken.",
   text_capable: "Comfortable reading the visual surface; voice is a convenience, not a requirement.",
   both: "Uses voice and the visual surface interchangeably.",
 };

@@ -51,7 +51,7 @@ export function RenegotiationDemo({ taskTitle, personName }: RenegotiationDemoPr
         </div>
         {!triggered && (
           <Button variant="brass" className={styles.triggerButton} onClick={() => setTriggered(true)}>
-            Inject this trigger — re-run the allocation
+            Inject this trigger, re-run the allocation
           </Button>
         )}
       </Card>
@@ -62,7 +62,7 @@ export function RenegotiationDemo({ taskTitle, personName }: RenegotiationDemoPr
             <Badge variant="warning">Before → After</Badge>
             <p className={styles.beforeAfterCopy}>
               The allocation below is a genuinely new solve over the same three tasks, using Maya&apos;s revised
-              costs — not the earlier result shown again.
+              costs, not the earlier result shown again.
             </p>
           </div>
 

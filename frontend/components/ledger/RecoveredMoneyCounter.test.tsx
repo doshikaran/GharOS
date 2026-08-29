@@ -4,7 +4,7 @@ import type { RecoveredMoneySummary } from "@/lib/ledger";
 import { RecoveredMoneyCounter } from "./RecoveredMoneyCounter";
 
 describe("RecoveredMoneyCounter", () => {
-  it("renders the demo metric's exact structure: found ₹X/year of leakage — N claims drafted", () => {
+  it("renders the demo metric's exact structure: found ₹X/year of leakage, N claims drafted", () => {
     const summary: RecoveredMoneySummary = {
       annualLeakageTotal: 33588,
       currency: "INR",

@@ -24,7 +24,7 @@ describe("DiagnosisCorrectionForm", () => {
     fireEvent.change(screen.getByLabelText("Actual blocker type"), { target: { value: "aversion" } });
     fireEvent.change(screen.getByLabelText("Corrected by"), { target: { value: PRIYA_ID } });
     fireEvent.change(screen.getByLabelText("Correction note"), {
-      target: { value: "The number was found instantly — that was never the real hold-up." },
+      target: { value: "The number was found instantly, that was never the real hold-up." },
     });
     fireEvent.click(screen.getByRole("button", { name: "Submit correction" }));
 
@@ -32,7 +32,7 @@ describe("DiagnosisCorrectionForm", () => {
     const correction = onSubmit.mock.calls[0][0] as DiagnosisCorrection;
     expect(correction.correctedBlockerType).toBe("aversion");
     expect(correction.correctedBy).toBe(PRIYA_ID);
-    expect(correction.correctionNote).toBe("The number was found instantly — that was never the real hold-up.");
+    expect(correction.correctionNote).toBe("The number was found instantly, that was never the real hold-up.");
     expect(correction.obligationId).toBe(diagnosis.obligationId);
     expect(correction.originalDiagnosis).toBe(diagnosis);
     expect(correction.correctedAt).toBe(fixedNow().toISOString());

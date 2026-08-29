@@ -13,13 +13,13 @@ describe("ApprovalsBoard", () => {
     expect(screen.getByRole("status")).toHaveTextContent("2 need your decision · 2 escalated · 4 resolved");
   });
 
-  it("never executes an approval on the queue's Approve click alone — it opens a confirm dialog first", () => {
+  it("never executes an approval on the queue's Approve click alone, it opens a confirm dialog first", () => {
     render(<ApprovalsBoard initialItems={getApprovalQueue()} now={NOW} />);
     const approveButtons = screen.getAllByRole("button", { name: "Approve" });
     fireEvent.click(approveButtons[0]);
 
     const dialog = screen.getByRole("dialog");
-    expect(dialog).toHaveTextContent("Confirm approval — this executes now");
+    expect(dialog).toHaveTextContent("Confirm approval, this executes now");
     // Still pending — nothing executed yet.
     expect(screen.getByRole("status")).toHaveTextContent("2 need your decision");
   });
@@ -42,7 +42,7 @@ describe("ApprovalsBoard", () => {
     expect(screen.getByRole("status")).toHaveTextContent("1 need your decision · 2 escalated · 5 resolved");
   });
 
-  it("treats closing the dialog (Cancel) as no consent — the item stays pending", () => {
+  it("treats closing the dialog (Cancel) as no consent, the item stays pending", () => {
     render(<ApprovalsBoard initialItems={getApprovalQueue()} now={NOW} />);
     fireEvent.click(screen.getAllByRole("button", { name: "Approve" })[0]);
     fireEvent.click(within(screen.getByRole("dialog")).getByRole("button", { name: "Cancel" }));
@@ -60,7 +60,7 @@ describe("ApprovalsBoard", () => {
     expect(screen.getByRole("status")).toHaveTextContent("2 need your decision · 2 escalated · 4 resolved");
   });
 
-  it("rejects immediately on click — no confirm dialog required for the safe direction", () => {
+  it("rejects immediately on click, no confirm dialog required for the safe direction", () => {
     render(<ApprovalsBoard initialItems={getApprovalQueue()} now={NOW} />);
     fireEvent.click(screen.getAllByRole("button", { name: "Reject" })[0]);
 
@@ -113,7 +113,7 @@ describe("ApprovalsBoard", () => {
     render(<ApprovalsBoard initialItems={[]} now={NOW} extraItems={[mandateCancelItem]} />);
     fireEvent.click(screen.getByRole("button", { name: "Approve" }));
     const dialog = screen.getByRole("dialog");
-    expect(dialog).toHaveTextContent("Confirm approval — this executes now");
+    expect(dialog).toHaveTextContent("Confirm approval, this executes now");
     expect(within(dialog).getByText(/Cancel the recurring mandate for CloudTV Premium/)).toBeInTheDocument();
     fireEvent.click(within(dialog).getByRole("button", { name: "Confirm and execute" }));
     expect(screen.queryByRole("dialog")).not.toBeInTheDocument();

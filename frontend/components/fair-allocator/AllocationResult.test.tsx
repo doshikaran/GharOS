@@ -24,7 +24,7 @@ function renderResult(scenario: "before" | "after") {
 describe("AllocationResult", () => {
   it("states EF1 with the precise term and a plain-language gloss, never 'optimal'", () => {
     renderResult("before");
-    expect(screen.getByText(/Envy-free up to one item \(EF1\) — holds/)).toBeInTheDocument();
+    expect(screen.getByText(/Envy-free up to one item \(EF1\), holds/)).toBeInTheDocument();
     expect(screen.getAllByText(/verify_ef1/).length).toBeGreaterThan(0);
     expect(document.body.textContent?.toLowerCase()).not.toContain("optimal");
     expect(document.body.textContent?.toLowerCase()).not.toMatch(/\bfairest\b/);

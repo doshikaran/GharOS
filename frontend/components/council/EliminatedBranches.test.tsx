@@ -18,7 +18,7 @@ describe("EliminatedBranches", () => {
     expect(struckText?.textContent).toMatch(/hatchback/i);
   });
 
-  it("never renders an eliminated option in a way indistinguishable from a scored, surviving option — it always names the eliminating specialist", () => {
+  it("never renders an eliminated option in a way indistinguishable from a scored, surviving option, it always names the eliminating specialist", () => {
     const brief = getCouncilBrief();
     render(
       <EliminatedBranches

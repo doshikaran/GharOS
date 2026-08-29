@@ -25,7 +25,7 @@ describe("graph simulation at demo scale (500+ nodes)", () => {
     vi.useRealTimers();
   });
 
-  it("stops its own internal timer — ticking only ever happens via an explicit stepSimulation call", () => {
+  it("stops its own internal timer, ticking only ever happens via an explicit stepSimulation call", () => {
     vi.useFakeTimers();
     const { nodes, links } = buildSyntheticGraph(20, 15);
     const sim = createGraphSimulation(nodes, links, { width: 800, height: 600 });
@@ -41,7 +41,7 @@ describe("graph simulation at demo scale (500+ nodes)", () => {
 
   it(
     "measures real wall-clock cost of stepping a 500-node/700-edge simulation " +
-      "to convergence — an honest, repo-runnable performance signal for the demo-scale claim " +
+      "to convergence, an honest, repo-runnable performance signal for the demo-scale claim " +
       "(not an architectural assertion): logs the measured duration for the record.",
     () => {
       const NODE_COUNT = 500;

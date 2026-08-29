@@ -56,7 +56,7 @@ export function ApprovalCard({ item, onApprove, onReject, now }: ApprovalCardPro
         {actionable && (
           <p className={styles.expiry}>
             Approval window closes <strong>{formatDateTime(item.expiresAt)}</strong>. If no decision arrives
-            by then, this escalates automatically — it will never auto-approve.
+            by then, this escalates automatically, it will never auto-approve.
           </p>
         )}
 
@@ -74,7 +74,7 @@ export function ApprovalCard({ item, onApprove, onReject, now }: ApprovalCardPro
         {!actionable && expired && (
           <p className={styles.escalatedNote} role="status">
             This request&apos;s approval window closed at {formatDateTime(item.expiresAt)} with no decision.
-            It has escalated — see the escalation surface below. It is not, and has never been, approved.
+            It has escalated, see the escalation surface below. It is not, and has never been, approved.
           </p>
         )}
 
@@ -102,7 +102,7 @@ function ResolvedNote({ item }: { item: ApprovalQueueItem }) {
   if (autoCleared && item.status === "approved") {
     return (
       <p className={styles.resolvedNote}>
-        Cleared automatically under {RISK_TIER_POLICY[item.riskTier].label} policy — no human approval was
+        Cleared automatically under {RISK_TIER_POLICY[item.riskTier].label} policy, no human approval was
         requested or required. Shown here for visibility into the tiering system.
       </p>
     );

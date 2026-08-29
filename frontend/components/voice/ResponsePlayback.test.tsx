@@ -29,7 +29,7 @@ describe("ResponsePlayback", () => {
     expect(screen.getByText(/hasn't responded yet/)).toBeInTheDocument();
   });
 
-  it("always renders the response text alongside the audio — never audio-only", () => {
+  it("always renders the response text alongside the audio, never audio-only", () => {
     render(<ResponsePlayback response={SAMPLE_RESPONSE} elderMode={false} />);
     expect(screen.getByText(SAMPLE_RESPONSE.text)).toBeInTheDocument();
     const audio = screen.getByTestId("response-audio") as HTMLAudioElement;

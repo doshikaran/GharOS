@@ -69,7 +69,7 @@ describe("FrictionProfileView", () => {
         id: "pattern-x-1",
         personId: DADI_ID,
         blockerType: "dependency" as const,
-        description: "Friction pattern (dependency) — Dadi: x (obligation obligation-x)",
+        description: "Friction pattern (dependency), Dadi: x (obligation obligation-x)",
         supportCount: 1,
         confidence: 0.6,
         createdAt: "2026-08-01T00:00:00Z",

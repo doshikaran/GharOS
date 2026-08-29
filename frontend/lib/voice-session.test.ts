@@ -108,7 +108,7 @@ describe("VoiceSessionClient", () => {
     client.connect();
     const frame = new ArrayBuffer(4);
 
-    client.sendAudioFrame(frame); // still CONNECTING — dropped
+    client.sendAudioFrame(frame); // still CONNECTING, dropped
     expect(fake.sent).toHaveLength(0);
 
     fake.open();

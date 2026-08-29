@@ -123,7 +123,7 @@ describe("FairAllocatorExplorer", () => {
     fireEvent.click(screen.getByRole("button", { name: /Review & confirm this matrix/ }));
     fireEvent.click(screen.getByRole("button", { name: "Confirm this matrix" }));
 
-    expect(screen.getByText(/Envy-free up to one item \(EF1\) — holds/)).toBeInTheDocument();
+    expect(screen.getByText(/Envy-free up to one item \(EF1\), holds/)).toBeInTheDocument();
     expect(screen.getByRole("heading", { name: "Per-person fairness explanations" })).toBeInTheDocument();
     expect(screen.getByRole("heading", { name: "Renegotiation" })).toBeInTheDocument();
     expect(screen.getByText(/just started night shifts/)).toBeInTheDocument();

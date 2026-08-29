@@ -128,7 +128,7 @@ export function JustificationPanel({ baseUrl, rootNodeId, nodesById, onHighlight
                 {state.result.source_documents.map((doc) => (
                   <li key={doc.id}>
                     {doc.channel}
-                    {doc.region ? ` — ${doc.region}` : ""}
+                    {doc.region ? `, ${doc.region}` : ""}
                   </li>
                 ))}
               </ul>

@@ -56,7 +56,7 @@ export function InterrogationPanel({ brief }: InterrogationPanelProps) {
         </Button>
       </form>
       <p className={styles.hint}>
-        Answers only ever surface what is already in this decision&apos;s trade-offs and open questions above —
+        Answers only ever surface what is already in this decision&apos;s trade-offs and open questions above,
         never a new claim, and never a verdict.
       </p>
 

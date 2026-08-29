@@ -113,7 +113,7 @@ export function VoiceprintEnrollment({
       </Button>
       {outcome?.status === "success" && (
         <p role="status" className={styles.success}>
-          Voiceprint recorded — ref <code>{outcome.voiceprintRef}</code>, enrolled {formatDateTime(outcome.enrolledAt)}.
+          Voiceprint recorded, ref <code>{outcome.voiceprintRef}</code>, enrolled {formatDateTime(outcome.enrolledAt)}.
         </p>
       )}
       {outcome?.status === "failure" && (

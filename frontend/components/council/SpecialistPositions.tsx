@@ -38,7 +38,7 @@ export function SpecialistPositions({ positions }: SpecialistPositionsProps) {
 
           {position.eliminatedBranchIds.length > 0 && (
             <p className={styles.eliminationNote} role="note">
-              Hard constraint — eliminates{" "}
+              Hard constraint, eliminates{" "}
               {position.eliminatedBranchIds.map((branchId, index) => (
                 <span key={branchId}>
                   {index > 0 && ", "}

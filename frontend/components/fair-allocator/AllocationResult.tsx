@@ -33,12 +33,12 @@ export function AllocationResult({ result, violations, taskTitle, personName, he
       <Card title="Fairness property verified">
         <div className={styles.ef1Row}>
           <Badge variant={ef1Holds ? "success" : "danger"}>
-            {ef1Holds ? "Envy-free up to one item (EF1) — holds" : "EF1 violation found"}
+            {ef1Holds ? "Envy-free up to one item (EF1), holds" : "EF1 violation found"}
           </Badge>
           <p className={styles.ef1Gloss}>
             In plain terms: for every pair of people, there is at least one task in the first person&apos;s own share
             that, if set aside, would make their remaining share cost them no more than the other person&apos;s whole
-            share would. This is a deterministic, computed check (<code>verify_ef1</code>) — not a model&apos;s
+            share would. This is a deterministic, computed check (<code>verify_ef1</code>), not a model&apos;s
             opinion, and it does not claim there is no cheaper way to split these same tasks across everyone at once;
             it is exactly this one, named property, no more (see <code>docs/FAIRNESS_GUARANTEE.md</code>).
           </p>

@@ -52,7 +52,7 @@ describe("getApprovalQueue fixture", () => {
     expect(items.some((item) => item.status === "expired")).toBe(true);
   });
 
-  it("gives every item a fully populated evidence bundle — nothing truncated or omitted", () => {
+  it("gives every item a fully populated evidence bundle, nothing truncated or omitted", () => {
     for (const item of items) {
       expect(item.evidenceBundle.proposedAction.length).toBeGreaterThan(0);
       expect(item.evidenceBundle.reasoning.length).toBeGreaterThan(0);
@@ -117,7 +117,7 @@ describe("needsApproval / isEscalation / isResolved partition every fixture item
     }
   });
 
-  it("never lets an R4 item need approval — the Council never resolves it (spec §18.2)", () => {
+  it("never lets an R4 item need approval, the Council never resolves it (spec §18.2)", () => {
     for (const item of items.filter((i) => i.riskTier === "R4")) {
       expect(needsApproval(item, now)).toBe(false);
       expect(isEscalation(item, now)).toBe(true);

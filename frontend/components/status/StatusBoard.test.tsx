@@ -70,7 +70,7 @@ describe("StatusBoard", () => {
     expect(screen.getByText(/All 3 checks reached the deployed backend successfully\./)).toBeInTheDocument();
   });
 
-  it("renders the real error detail — never a generic message — on a failed check, and leaves the others visibly distinct", async () => {
+  it("renders the real error detail, never a generic message, on a failed check, and leaves the others visibly distinct", async () => {
     vi.stubGlobal(
       "fetch",
       vi.fn((url: string) => {

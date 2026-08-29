@@ -66,7 +66,7 @@ export function DisputeCard({ dispute }: DisputeCardProps) {
           <ConfidenceMeter confidence={dispute.confidence} />
         </section>
 
-        <Badge variant="warning">Escalated to human resolution — never auto-resolved</Badge>
+        <Badge variant="warning">Escalated to human resolution, never auto-resolved</Badge>
       </div>
     </Card>
   );

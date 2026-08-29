@@ -33,7 +33,7 @@ function stubFetch(response: GraphSnapshot | null) {
 }
 
 async function waitForReady() {
-  await waitFor(() => expect(screen.getByText(/Clarify — graph-first/)).toBeInTheDocument());
+  await waitFor(() => expect(screen.getByText(/Clarify, graph-first/)).toBeInTheDocument());
 }
 
 describe("ConciergeExplorer", () => {
@@ -77,7 +77,7 @@ describe("ConciergeExplorer", () => {
     stubFetch(snapshot);
     render(<ConciergeExplorer baseUrl="http://api.example" />);
     await waitForReady();
-    expect(screen.getAllByText("Could not verify — not recorded").length).toBe(2);
+    expect(screen.getAllByText("Could not verify, not recorded").length).toBe(2);
   });
 
   it("renders the retry decision with a real retryAfter time for the follow-up scenario", async () => {

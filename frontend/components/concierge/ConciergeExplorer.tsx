@@ -134,7 +134,7 @@ export function ConciergeExplorer({ baseUrl }: ConciergeExplorerProps) {
     <div className={styles.explorer}>
       {loadState.status === "error" && (
         <p className={styles.statusWarning} role="alert">
-          Could not reach the live graph ({loadState.message}) — showing this household&apos;s own fixed member
+          Could not reach the live graph ({loadState.message}), showing this household&apos;s own fixed member
           names instead. Every clarification, ranking, call, verification, and fallback decision below is fixture
           data regardless (no HTTP endpoint exists for A50-A56 this phase).
         </p>
@@ -142,33 +142,33 @@ export function ConciergeExplorer({ baseUrl }: ConciergeExplorerProps) {
 
       <p className={styles.scopeNote} role="note">
         Every call below is a real, live, multi-turn text conversation the household&apos;s calling agent has with
-        a real sandbox counterparty persona — never synthesized audio. See ADR-016: audio (text-to-speech and
+        a real sandbox counterparty persona, never synthesized audio. See ADR-016: audio (text-to-speech and
         speech recognition) is real infrastructure, deliberately deferred to Phase 13, not built or implied here.
       </p>
 
       <section aria-label="Clarification">
-        <h2 className={styles.sectionHeading}>Clarify — graph-first, ask only the unknowable</h2>
+        <h2 className={styles.sectionHeading}>Clarify, graph-first, ask only the unknowable</h2>
         <p className={styles.sectionIntro}>
-          {personName(AARAV_ID)}&apos;s household asked for a dentist. The graph already answers most of it —
+          {personName(AARAV_ID)}&apos;s household asked for a dentist. The graph already answers most of it,
           only two genuinely unknown things get asked, never twenty.
         </p>
         <ClarificationDisplay result={clarification} personName={personName(AARAV_ID)} />
       </section>
 
       <section aria-label="Ranked shortlist">
-        <h2 className={styles.sectionHeading}>Rank — a transparent shortlist, reasons attached</h2>
+        <h2 className={styles.sectionHeading}>Rank, a transparent shortlist, reasons attached</h2>
         <RankedShortlist ranking={ranking} />
       </section>
 
       <section aria-label="Approval gate">
-        <h2 className={styles.sectionHeading}>Approve — before any call is placed</h2>
+        <h2 className={styles.sectionHeading}>Approve, before any call is placed</h2>
         <CallApprovalGate approval={approval} approved={heroApproved} onApprove={() => setHeroApproved(true)} />
       </section>
 
       {heroApproved && (
         <>
           <section aria-label="Live call transcript">
-            <h2 className={styles.sectionHeading}>The call — adapts when the first slot is gone</h2>
+            <h2 className={styles.sectionHeading}>The call, adapts when the first slot is gone</h2>
             <LiveCallTranscript
               turns={heroCall.conversation.turns}
               outcomeReport={heroCall.outcomeReport}
@@ -177,7 +177,7 @@ export function ConciergeExplorer({ baseUrl }: ConciergeExplorerProps) {
           </section>
 
           <section aria-label="Booking confirmation">
-            <h2 className={styles.sectionHeading}>Verify, then — only then — record</h2>
+            <h2 className={styles.sectionHeading}>Verify, then, only then, record</h2>
             <BookingConfirmation
               outcome={heroBooking}
               providerName={PROVIDER_NAME[QUICKCARE_PROVIDER_ID]!}
@@ -190,14 +190,14 @@ export function ConciergeExplorer({ baseUrl }: ConciergeExplorerProps) {
       <section aria-label="Why the safeguards are real">
         <h2 className={styles.sectionHeading}>Why the safeguards are real, not just documented</h2>
         <p className={styles.sectionIntro}>
-          Two more real, independent calls — not further attempts at the same booking above — each showing a
+          Two more real, independent calls, not further attempts at the same booking above, each showing a
           different safeguard actually firing: an out-of-bounds question the agent refuses to guess at, and a
           discrepancy an independent check catches even after the call itself reported success.
         </p>
 
         <div className={styles.safeguardCard}>
           <h3 className={styles.safeguardHeading}>
-            {personName(DADI_ID)}&apos;s routine cleaning — the front desk asks something out of scope
+            {personName(DADI_ID)}&apos;s routine cleaning, the front desk asks something out of scope
           </h3>
           <LiveCallTranscript
             turns={dadiCall.conversation.turns}
@@ -214,7 +214,7 @@ export function ConciergeExplorer({ baseUrl }: ConciergeExplorerProps) {
 
         <div className={styles.safeguardCard}>
           <h3 className={styles.safeguardHeading}>
-            {personName(AARAV_ID)}&apos;s routine follow-up — retries, connects, then a caught mismatch
+            {personName(AARAV_ID)}&apos;s routine follow-up, retries, connects, then a caught mismatch
           </h3>
           <p className={styles.connectionAttemptLine}>
             <Badge variant="warning">No answer</Badge> {followupAttempt.targetProviderName}, attempted{" "}

@@ -29,7 +29,7 @@ const TILT_SETTLE_PROGRESS = 0.4;
 
 const STATE_CAPTIONS: readonly string[] = [
   "Heard in two languages, tagged per span",
-  "Read back in full — queued, never auto-paid",
+  "Read back in full, queued, never auto-paid",
   "The approval gate, evidence attached",
 ];
 
@@ -141,7 +141,7 @@ export function HeroDevice() {
           <div className={styles.lid}>
             <span className={styles.camera} aria-hidden="true" />
             {/* Decorative product illustration: real components, but no
-                real affordances — inert keeps every control inside the
+                real affordances, inert keeps every control inside the
                 screen out of the tab order and the accessibility tree. */}
             <div className={styles.screen} inert>
               {renderedStates.map((index) => (
@@ -192,8 +192,8 @@ export function HeroDevice() {
 
         <p className={styles.srOnly}>
           A laptop showing GharOS at work: a spoken request in mixed Hindi and English is transcribed
-          with a language tag on every span; the amount is read back in full — ₹3,500, three thousand
-          five hundred — and queued rather than paid, because money never moves on voice alone; and the
+          with a language tag on every span; the amount is read back in full, ₹3,500, three thousand
+          five hundred, and queued rather than paid, because money never moves on voice alone; and the
           payment then waits at the approval gate as an explicit-approval request with its evidence,
           confidence and consequence-if-wrong attached, until a person decides.
         </p>

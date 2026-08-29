@@ -34,7 +34,7 @@ describe("fetchGraphSnapshot", () => {
     });
   });
 
-  it("throws a GraphApiError, not a raw exception, on a network failure — never a fabricated success", async () => {
+  it("throws a GraphApiError, not a raw exception, on a network failure, never a fabricated success", async () => {
     vi.stubGlobal("fetch", vi.fn().mockRejectedValue(new TypeError("Failed to fetch")));
 
     await expect(fetchGraphSnapshot("http://api.example")).rejects.toBeInstanceOf(GraphApiError);

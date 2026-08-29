@@ -35,7 +35,7 @@ describe("DemoBeatTimeline", () => {
       />,
     );
     expect(screen.getByText(/call switched to message/)).toBeInTheDocument();
-    expect(screen.getByText(/Scheduled — Saturday, 29 Aug/)).toBeInTheDocument();
+    expect(screen.getByText(/Scheduled, Saturday, 29 Aug/)).toBeInTheDocument();
   });
 
   it("renders the real resolution-seconds figure", () => {

@@ -275,7 +275,7 @@ export function getComparativePreferences(): readonly ComparativePreference[] {
       taskBId: TASK_RENEW_PRESCRIPTION_ID,
       preferred: "task_b",
       rawAnswerText:
-        "I'd rather call in the prescription than do the big grocery run — carrying all those bags back without a car takes forever.",
+        "I'd rather call in the prescription than do the big grocery run, carrying all those bags back without a car takes forever.",
       reasoning: "Maya ranks the grocery run above both other flexible errands in effort.",
       confidence: 0.88,
     },
@@ -284,7 +284,7 @@ export function getComparativePreferences(): readonly ComparativePreference[] {
       taskAId: TASK_RENEW_PRESCRIPTION_ID,
       taskBId: TASK_VISIT_PHARMACY_ID,
       preferred: "tie",
-      rawAnswerText: "Honestly those two feel about the same to me — quick errands either way.",
+      rawAnswerText: "Honestly those two feel about the same to me, quick errands either way.",
       reasoning: "Maya reports no meaningful difference between the two short errands.",
       confidence: 0.75,
     },
@@ -294,7 +294,7 @@ export function getComparativePreferences(): readonly ComparativePreference[] {
       taskBId: TASK_RENEW_PRESCRIPTION_ID,
       preferred: "task_a",
       rawAnswerText:
-        "I'd rather do the grocery run any day — I already have a routine for it. Calling the pharmacy always turns into sitting on hold forever.",
+        "I'd rather do the grocery run any day, I already have a routine for it. Calling the pharmacy always turns into sitting on hold forever.",
       reasoning: "Priya ranks the grocery run well below the prescription call in cost.",
       confidence: 0.9,
     },
@@ -326,9 +326,9 @@ export function getValuationExtractionResults(scenario: AllocationScenario): rea
     elicitationMethod: "interview",
     reasoning: {
       [TASK_RENEW_PRESCRIPTION_ID]:
-        "Calling the pharmacy to renew the prescription means sitting on hold for a long time most days — priced above the pharmacy visit itself.",
+        "Calling the pharmacy to renew the prescription means sitting on hold for a long time most days, priced above the pharmacy visit itself.",
       [TASK_VISIT_PHARMACY_ID]:
-        "A dedicated trip to collect the prescription is a real errand out of the day, but at least it's quick once there — priced below the phone call.",
+        "A dedicated trip to collect the prescription is a real errand out of the day, but at least it's quick once there, priced below the phone call.",
     },
     confidence: 0.8,
     modelTier: "pro",
@@ -344,7 +344,7 @@ export function getValuationExtractionResults(scenario: AllocationScenario): rea
     elicitationMethod: "interview",
     reasoning: {
       [TASK_PAY_MAINTENANCE_ID]:
-        "Dadi says signing the extended maintenance cheque is a quick, mildly tedious task — about as much effort as a routine errand.",
+        "Dadi says signing the extended maintenance cheque is a quick, mildly tedious task, about as much effort as a routine errand.",
     },
     confidence: 0.8,
     modelTier: "pro",
@@ -360,9 +360,9 @@ export function getValuationExtractionResults(scenario: AllocationScenario): rea
     elicitationMethod: "mixed",
     reasoning: {
       [TASK_RENEW_PRESCRIPTION_ID]: "A short phone call Maya can make from home between other tasks.",
-      [TASK_VISIT_PHARMACY_ID]: "The pharmacy is two minutes' walk — barely an errand.",
+      [TASK_VISIT_PHARMACY_ID]: "The pharmacy is two minutes' walk, barely an errand.",
       [TASK_WEEKLY_GROCERIES_ID]:
-        "The weekly grocery run means carrying everything back without a car — the most physically demanding of the three.",
+        "The weekly grocery run means carrying everything back without a car, the most physically demanding of the three.",
     },
     confidence: 0.85,
     modelTier: "pro",
@@ -378,7 +378,7 @@ export function getValuationExtractionResults(scenario: AllocationScenario): rea
     elicitationMethod: "interview",
     reasoning: {
       [TASK_RENEW_PRESCRIPTION_ID]:
-        "Since starting the night shift Maya is asleep through the hours the pharmacy line is actually staffed — the call now means interrupting sleep to get through.",
+        "Since starting the night shift Maya is asleep through the hours the pharmacy line is actually staffed, the call now means interrupting sleep to get through.",
       [TASK_VISIT_PHARMACY_ID]: "A daytime trip now cuts into the only real sleep window she has before the next shift.",
       [TASK_WEEKLY_GROCERIES_ID]:
         "She already passes the market on the walk home from the night shift, so the grocery run barely adds to her day anymore.",
@@ -455,7 +455,7 @@ export function getFairnessVerificationResult(scenario: AllocationScenario): Fai
             taskIds: [TASK_WEEKLY_GROCERIES_ID],
             totalCostToSelf: PRIYA_LIVE_GROCERIES_COST,
             explanationText:
-              "This cycle, your share is the weekly grocery run — 1.0 by your own stated cost, the cheapest of the three flexible errands to you. Maya's share (renewing Dadi's prescription and the pharmacy pickup) would cost you 13.0 if you took it on instead, so you have no reason to prefer her bundle to your own.",
+              "This cycle, your share is the weekly grocery run, 1.0 by your own stated cost, the cheapest of the three flexible errands to you. Maya's share (renewing Dadi's prescription and the pharmacy pickup) would cost you 13.0 if you took it on instead, so you have no reason to prefer her bundle to your own.",
             confidence: 0.88,
           },
           {
@@ -463,7 +463,7 @@ export function getFairnessVerificationResult(scenario: AllocationScenario): Fai
             taskIds: [TASK_RENEW_PRESCRIPTION_ID, TASK_VISIT_PHARMACY_ID],
             totalCostToSelf: 4.0,
             explanationText:
-              "This cycle, your share is renewing Dadi's prescription and the pharmacy pickup — 2.0 each, 4.0 total by your own stated cost. Priya's single grocery-run task would actually cost you only 3.0 if you'd taken it instead, so there is real envy here — but it is resolved by the envy-free-up-to-one-item guarantee: drop either one of your own two tasks (both cost you 2.0) and your remaining cost (2.0) is no more than what Priya's bundle would have cost you (3.0).",
+              "This cycle, your share is renewing Dadi's prescription and the pharmacy pickup, 2.0 each, 4.0 total by your own stated cost. Priya's single grocery-run task would actually cost you only 3.0 if you'd taken it instead, so there is real envy here, but it is resolved by the envy-free-up-to-one-item guarantee: drop either one of your own two tasks (both cost you 2.0) and your remaining cost (2.0) is no more than what Priya's bundle would have cost you (3.0).",
             confidence: 0.85,
           },
         ]
@@ -473,7 +473,7 @@ export function getFairnessVerificationResult(scenario: AllocationScenario): Fai
             taskIds: [TASK_VISIT_PHARMACY_ID],
             totalCostToSelf: 6.0,
             explanationText:
-              "After this cycle's re-allocation, your share is the pharmacy pickup — 6.0 by your own stated cost, six times what your prior share (the grocery run, 1.0) cost you. You are absorbing this so the household can accommodate Maya's reduced daytime availability since she started night shifts.",
+              "After this cycle's re-allocation, your share is the pharmacy pickup, 6.0 by your own stated cost, six times what your prior share (the grocery run, 1.0) cost you. You are absorbing this so the household can accommodate Maya's reduced daytime availability since she started night shifts.",
             confidence: 0.85,
           },
           {
@@ -481,7 +481,7 @@ export function getFairnessVerificationResult(scenario: AllocationScenario): Fai
             taskIds: [TASK_WEEKLY_GROCERIES_ID, TASK_RENEW_PRESCRIPTION_ID],
             totalCostToSelf: 11.0,
             explanationText:
-              "After this cycle's re-allocation, your share is the grocery run and renewing Dadi's prescription — 2.0 and 9.0, 11.0 total by your own current valuation. Priya's single pharmacy-pickup task would cost you 8.0 if you'd taken it instead, so there is real envy here too — resolved by dropping your own costliest task (the 9.0 prescription-renewal call): your remaining cost (2.0) is no more than what Priya's bundle would have cost you (8.0).",
+              "After this cycle's re-allocation, your share is the grocery run and renewing Dadi's prescription, 2.0 and 9.0, 11.0 total by your own current valuation. Priya's single pharmacy-pickup task would cost you 8.0 if you'd taken it instead, so there is real envy here too, resolved by dropping your own costliest task (the 9.0 prescription-renewal call): your remaining cost (2.0) is no more than what Priya's bundle would have cost you (8.0).",
             confidence: 0.8,
           },
         ];
@@ -519,7 +519,7 @@ export function getConcessionEvidence(): readonly ConcessionEvidence[] {
       priorBundleCost: PRIYA_LIVE_GROCERIES_COST,
       newBundleCost: 6.0,
       reasoning:
-        "Priya's prior bundle (the grocery run) costs her 1.0 by her own current valuation; her new bundle (the pharmacy pickup) costs her 6.0 by that same, unchanged valuation — a real, computed 5.0 increase in her own burden, absorbed so the household could accommodate Maya's reduced daytime availability after starting night shifts.",
+        "Priya's prior bundle (the grocery run) costs her 1.0 by her own current valuation; her new bundle (the pharmacy pickup) costs her 6.0 by that same, unchanged valuation, a real, computed 5.0 increase in her own burden, absorbed so the household could accommodate Maya's reduced daytime availability after starting night shifts.",
     },
   ];
 }
@@ -548,7 +548,7 @@ export function getLoadImbalanceFindings(): readonly LoadImbalanceFinding[] {
       drift: 0.067,
       verdict: "creeping_imbalance",
       reasoning:
-        "Priya's current allocation assigns her about 48% of the household's total task cost, but she has completed roughly 55% of the household's actual observed obligation load over the past 30 days — she has repeatedly covered for Maya's night-shift-constrained availability beyond what this cycle's reallocation already accounted for.",
+        "Priya's current allocation assigns her about 48% of the household's total task cost, but she has completed roughly 55% of the household's actual observed obligation load over the past 30 days, she has repeatedly covered for Maya's night-shift-constrained availability beyond what this cycle's reallocation already accounted for.",
       confidence: 0.82,
       modelTier: "flash",
     },
@@ -559,7 +559,7 @@ export function getLoadImbalanceFindings(): readonly LoadImbalanceFinding[] {
       drift: -0.079,
       verdict: "balanced",
       reasoning:
-        "Maya's observed load is now below her expected share, consistent with the reduced daytime availability this cycle's reallocation already accounted for after she started night shifts — not flagged as a new imbalance.",
+        "Maya's observed load is now below her expected share, consistent with the reduced daytime availability this cycle's reallocation already accounted for after she started night shifts, not flagged as a new imbalance.",
       confidence: 0.74,
       modelTier: "deterministic",
     },
@@ -570,7 +570,7 @@ export function getLoadImbalanceFindings(): readonly LoadImbalanceFinding[] {
       drift: -0.038,
       verdict: "balanced",
       reasoning:
-        "Dadi's small expected share (the one recurring maintenance sign-off she handles) closely matches her observed load — no meaningful drift this window.",
+        "Dadi's small expected share (the one recurring maintenance sign-off she handles) closely matches her observed load, no meaningful drift this window.",
       confidence: 0.88,
       modelTier: "deterministic",
     },

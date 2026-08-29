@@ -17,7 +17,7 @@ describe("AdversaryAttackView", () => {
   it("frames itself as an attack on the leading option, not a sixth position", () => {
     const brief = getCouncilBrief();
     render(<AdversaryAttackView attack={brief.adversaryAttack} />);
-    expect(screen.getByText(/attacking the leading option — not a position/i)).toBeInTheDocument();
+    expect(screen.getByText(/attacking the leading option, not a position/i)).toBeInTheDocument();
   });
 
   it('never renders the word "debate"', () => {

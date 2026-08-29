@@ -148,7 +148,7 @@ export function IntentionActionExplorer({ baseUrl }: IntentionActionExplorerProp
     <div className={styles.explorer}>
       {loadState.status === "error" && (
         <p className={styles.statusWarning} role="alert">
-          Could not reach the live graph ({loadState.message}) — showing this household&apos;s own fixed member
+          Could not reach the live graph ({loadState.message}), showing this household&apos;s own fixed member
           names instead. Every diagnosis, unblock outcome, and escalation below is fixture data regardless (no HTTP
           endpoint exists for A23-A26 this phase).
         </p>
@@ -157,7 +157,7 @@ export function IntentionActionExplorer({ baseUrl }: IntentionActionExplorerProp
       <section aria-label="The six-type taxonomy">
         <h2 className={styles.sectionHeading}>The six-type blocker taxonomy</h2>
         <p className={styles.sectionIntro}>
-          spec §9.3&apos;s core reasoning step — the specific obstacle keeping an intention from becoming action is
+          spec §9.3&apos;s core reasoning step, the specific obstacle keeping an intention from becoming action is
           always exactly one of these six, never a vague &ldquo;it&apos;s complicated.&rdquo;
         </p>
         <BlockerTaxonomyLegend />
@@ -175,10 +175,10 @@ export function IntentionActionExplorer({ baseUrl }: IntentionActionExplorerProp
       </section>
 
       <section aria-label="Diagnosis with a real correction affordance">
-        <h2 className={styles.sectionHeading}>Diagnosis — and a real correction affordance</h2>
+        <h2 className={styles.sectionHeading}>Diagnosis, and a real correction affordance</h2>
         <p className={styles.sectionIntro}>
           Dadi&apos;s eye check-up: diagnosed as an information blocker, and genuinely unblocked as one below. Read
-          it, then correct it if you disagree — the correction updates {personName(eyeCheckupDiagnosis.personId)}
+          it, then correct it if you disagree, the correction updates {personName(eyeCheckupDiagnosis.personId)}
           &apos;s friction profile directly beneath it, in this same session.
         </p>
         <div className={styles.diagnosisAndCorrection}>
@@ -199,14 +199,14 @@ export function IntentionActionExplorer({ baseUrl }: IntentionActionExplorerProp
       <section aria-label="Friction profile">
         <h2 className={styles.sectionHeading}>Friction profile, per person</h2>
         <p className={styles.sectionIntro}>
-          Every real, accumulated blocker pattern on file for each household member — support count grows with real
+          Every real, accumulated blocker pattern on file for each household member, support count grows with real
           evidence, never asserted as certainty from one data point.
         </p>
         <FrictionProfileView patterns={frictionPatterns} people={people} justUpdatedPatternId={justUpdatedPatternId} />
       </section>
 
       <section aria-label="Unblock outcomes">
-        <h2 className={styles.sectionHeading}>What actually happened — the four unblock outcomes</h2>
+        <h2 className={styles.sectionHeading}>What actually happened, the four unblock outcomes</h2>
         <UnblockOutcomeGallery
           informationOutcome={getEyeCheckupInformationFetch()}
           decisionOutcome={getFieldTripDecisionNarrowing()}
@@ -235,7 +235,7 @@ export function IntentionActionExplorer({ baseUrl }: IntentionActionExplorerProp
       </section>
 
       <section aria-label="Re-diagnosis and slippage escalation">
-        <h2 className={styles.sectionHeading}>Aarav&apos;s dental check-up — re-diagnosed, then escalated</h2>
+        <h2 className={styles.sectionHeading}>Aarav&apos;s dental check-up, re-diagnosed, then escalated</h2>
         <DiagnosisDisplay
           diagnosis={dentalCurrentDiagnosis}
           obligationTitle="Book Aarav's dental check-up"

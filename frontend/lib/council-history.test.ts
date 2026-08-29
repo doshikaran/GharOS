@@ -185,7 +185,7 @@ describe("concedersForDecision", () => {
   });
 });
 
-describe("buildDecisionReplay — the full 'why did we buy this car' assembly", () => {
+describe("buildDecisionReplay, the full 'why did we buy this car' assembly", () => {
   it("assembles decision, branches, positions, and conceders together for a real decision id", () => {
     const replay = buildDecisionReplay(SNAPSHOT, "decision-buy-car");
     expect(replay).not.toBeNull();

@@ -21,7 +21,7 @@ describe("EvidenceBundleView", () => {
     expect(screen.getByText(bundle.reasoning)).toBeInTheDocument();
   });
 
-  it("renders every evidence-consulted entry as a real list item — none truncated or hidden", () => {
+  it("renders every evidence-consulted entry as a real list item, none truncated or hidden", () => {
     render(<EvidenceBundleView bundle={bundle} />);
     for (const entry of bundle.evidenceConsulted) {
       expect(screen.getByText(entry)).toBeInTheDocument();

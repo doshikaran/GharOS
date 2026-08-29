@@ -4,7 +4,7 @@ import { BranchGroundingCitations } from "./BranchGroundingCitations";
 import { getGroundingResults } from "@/lib/simulator";
 
 describe("BranchGroundingCitations", () => {
-  it("renders each citation as a real link with title, uri, and a retrieval timestamp — never a bare string", () => {
+  it("renders each citation as a real link with title, uri, and a retrieval timestamp, never a bare string", () => {
     const grounding = getGroundingResults().find((g) => g.citations.length > 0)!;
     render(<BranchGroundingCitations grounding={grounding} />);
 

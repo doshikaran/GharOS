@@ -18,7 +18,7 @@ export interface AdversaryAttackViewProps {
 export function AdversaryAttackView({ attack }: AdversaryAttackViewProps) {
   return (
     <section className={styles.panel} aria-label="Adversary attack">
-      <p className={styles.kicker}>Structurally tasked with attacking the leading option — not a position</p>
+      <p className={styles.kicker}>Structurally tasked with attacking the leading option, not a position</p>
       <p className={styles.target}>Target: {branchLabel(attack.targetBranchId)}</p>
       <p className={styles.critique}>{attack.critique}</p>
 

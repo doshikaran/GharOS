@@ -65,7 +65,7 @@ describe("extractBlockerTypeFromPattern", () => {
   });
 
   it("returns null for a malformed prefix rather than throwing", () => {
-    expect(extractBlockerTypeFromPattern("Friction pattern (not_a_real_type) — Priya: x")).toBeNull();
+    expect(extractBlockerTypeFromPattern("Friction pattern (not_a_real_type), Priya: x")).toBeNull();
     expect(extractBlockerTypeFromPattern("")).toBeNull();
   });
 });
@@ -101,7 +101,7 @@ describe("applyDiagnosisCorrection", () => {
     personId: PRIYA_ID,
     originalDiagnosis: getEyeCheckupDiagnosis(),
     correctedBlockerType: "aversion",
-    correctionNote: "The number was found in ten seconds once someone looked — that was never the real hold-up.",
+    correctionNote: "The number was found in ten seconds once someone looked, that was never the real hold-up.",
     correctedBy: PRIYA_ID,
     correctedAt: "2026-08-26T10:00:00Z",
   };
@@ -128,7 +128,7 @@ describe("applyDiagnosisCorrection", () => {
     const result = applyDiagnosisCorrection(getInitialFrictionPatterns(), baseCorrection, "Priya");
     expect(result.writtenPattern.description).toContain(baseCorrection.correctionNote);
     expect(result.writtenPattern.description).toContain(baseCorrection.obligationId);
-    expect(result.writtenPattern.description).toMatch(/^Friction pattern \(aversion\) — Priya:/);
+    expect(result.writtenPattern.description).toMatch(/^Friction pattern \(aversion\), Priya:/);
   });
 
   it("creates a brand-new support-count-1 pattern when this person has no matching blocker type yet", () => {
@@ -230,7 +230,7 @@ describe("field-trip decision demo narrative", () => {
   });
 });
 
-describe("Dadi physio window-blocker demo narrative — real, computed verdicts", () => {
+describe("Dadi physio window-blocker demo narrative, real, computed verdicts", () => {
   it("diagnoses window", () => {
     expect(getDadiPhysioDiagnosis().blockerType).toBe("window");
   });

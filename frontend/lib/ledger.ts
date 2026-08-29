@@ -222,7 +222,7 @@ const RECONCILIATION_FINDINGS_FIXTURE: readonly ReconciliationFinding[] = [
     commitmentId: "commitment-society-maintenance",
     subjectEventIds: ["ledger-maintenance-debit"],
     explanation:
-      "Sunrise Apartments Society's monthly maintenance rose from ₹2,300 to ₹2,500 over the last year — an 8.7% increase with no linked AGM resolution on file.",
+      "Sunrise Apartments Society's monthly maintenance rose from ₹2,300 to ₹2,500 over the last year, an 8.7% increase with no linked AGM resolution on file.",
     evidence: { old_price: "2300.00", new_price: "2500.00", change_pct: "8.7%" },
     confidence: 0.88,
     requiresDisputeBranch: false,
@@ -233,7 +233,7 @@ const RECONCILIATION_FINDINGS_FIXTURE: readonly ReconciliationFinding[] = [
     commitmentId: "commitment-cloudtv-premium",
     subjectEventIds: ["ledger-cloudtv-debit-jul", "ledger-cloudtv-debit-aug"],
     explanation:
-      "Two consecutive ₹499 debits to the same UPI handle on the 3rd of each month were not linked to any known recurring commitment — recorded as a newly-detected series.",
+      "Two consecutive ₹499 debits to the same UPI handle on the 3rd of each month were not linked to any known recurring commitment, recorded as a newly-detected series.",
     evidence: { counterparty: "CLOUDTV DIGITAL", months_observed: "2" },
     confidence: 0.81,
     requiresDisputeBranch: false,
@@ -244,7 +244,7 @@ const RECONCILIATION_FINDINGS_FIXTURE: readonly ReconciliationFinding[] = [
     commitmentId: null,
     subjectEventIds: ["ledger-freshmart-duplicate-1", "ledger-freshmart-duplicate-2"],
     explanation:
-      "Two ₹1,240 debits to FRESHMART GROCERY landed four minutes apart on 18 August — the second matches no separate purchase-item list of its own.",
+      "Two ₹1,240 debits to FRESHMART GROCERY landed four minutes apart on 18 August, the second matches no separate purchase-item list of its own.",
     evidence: { amount: "1240.00", minutes_apart: "4" },
     confidence: 0.86,
     requiresDisputeBranch: false,
@@ -255,7 +255,7 @@ const RECONCILIATION_FINDINGS_FIXTURE: readonly ReconciliationFinding[] = [
     commitmentId: "commitment-society-maintenance",
     subjectEventIds: ["ledger-maintenance-debit"],
     explanation:
-      "August's UPI SMS confirmation states ₹2,500 debited under reference 400912345678, but the bank statement ledger entry for the same reference shows ₹2,650 — the two channels disagree.",
+      "August's UPI SMS confirmation states ₹2,500 debited under reference 400912345678, but the bank statement ledger entry for the same reference shows ₹2,650, the two channels disagree.",
     evidence: { sms_amount: "2500.00", ledger_amount: "2650.00", reference: "400912345678" },
     confidence: 0.65,
     requiresDisputeBranch: true,
@@ -266,7 +266,7 @@ const RECONCILIATION_FINDINGS_FIXTURE: readonly ReconciliationFinding[] = [
     commitmentId: null,
     subjectEventIds: ["ledger-maya-salary-august"],
     explanation:
-      "The attendance register computes Maya's August net salary at ₹9,000 after the ₹2,000 advance already paid, but the recorded SALARY payment event shows ₹11,000 with no linked advance deduction — a ₹2,000 gap.",
+      "The attendance register computes Maya's August net salary at ₹9,000 after the ₹2,000 advance already paid, but the recorded SALARY payment event shows ₹11,000 with no linked advance deduction, a ₹2,000 gap.",
     evidence: { computed_net: "9000.00", recorded_payment: "11000.00", advance_already_paid: "2000.00" },
     confidence: 0.7,
     requiresDisputeBranch: true,
@@ -277,7 +277,7 @@ const RECONCILIATION_FINDINGS_FIXTURE: readonly ReconciliationFinding[] = [
     commitmentId: null,
     subjectEventIds: ["ledger-maya-salary-july"],
     explanation:
-      "July's recorded SALARY payment of ₹10,500 matches the attendance-register-computed figure exactly — no discrepancy found.",
+      "July's recorded SALARY payment of ₹10,500 matches the attendance-register-computed figure exactly, no discrepancy found.",
     evidence: { computed_net: "10500.00", recorded_payment: "10500.00" },
     confidence: 0.95,
     requiresDisputeBranch: false,
@@ -315,7 +315,7 @@ const LEAKAGE_CASES_FIXTURE: readonly LeakageCase[] = [
       commitmentId: "commitment-cloudtv-premium",
       verdict: "leakage",
       reasoning:
-        "No household member has logged into CloudTV in the entire usage window on file, and the price rose 25% over the past year — an unused, quietly-more-expensive subscription with no stated household priority justifying it.",
+        "No household member has logged into CloudTV in the entire usage window on file, and the price rose 25% over the past year, an unused, quietly-more-expensive subscription with no stated household priority justifying it.",
       daysSinceLastUsed: null,
       priceChangePct: 25.06,
       confidence: 0.84,
@@ -325,11 +325,11 @@ const LEAKAGE_CASES_FIXTURE: readonly LeakageCase[] = [
       targetVendor: "CloudTV Digital Services",
       ask: "Cancel the CloudTV Premium membership effective immediately.",
       messageText:
-        "Hello CloudTV team, please cancel the Premium membership on this account effective immediately — we have not used the service and no longer wish to continue the subscription. Please confirm the cancellation and that no further payments will be collected.",
+        "Hello CloudTV team, please cancel the Premium membership on this account effective immediately, we have not used the service and no longer wish to continue the subscription. Please confirm the cancellation and that no further payments will be collected.",
       draftKind: "cancellation",
       confidence: 0.88,
       reasoning:
-        "No usage signal exists for this service across the entire window on file, and it carries no stated household priority — a straightforward cancellation, not a negotiation.",
+        "No usage signal exists for this service across the entire window on file, and it carries no stated household priority, a straightforward cancellation, not a negotiation.",
     },
   },
   // Leakage #2 — forgotten membership, life change made it obsolete: cancel.
@@ -350,7 +350,7 @@ const LEAKAGE_CASES_FIXTURE: readonly LeakageCase[] = [
       commitmentId: "commitment-fitcircle-gym",
       verdict: "leakage",
       reasoning:
-        "Card-swipe usage records show no visit in 95 days, and Priya's own household notes describe switching to home workouts months ago — this reads as a forgotten membership, not a paused-but-wanted one.",
+        "Card-swipe usage records show no visit in 95 days, and Priya's own household notes describe switching to home workouts months ago, this reads as a forgotten membership, not a paused-but-wanted one.",
       daysSinceLastUsed: 95,
       priceChangePct: null,
       confidence: 0.79,
@@ -382,14 +382,14 @@ const LEAKAGE_CASES_FIXTURE: readonly LeakageCase[] = [
       ],
       lastUsedAt: daysAgoIso(1),
       status: "active",
-      householdPriorities: "Aarav's classes run online three days a week — broadband is essential, but the price jump is worth challenging.",
+      householdPriorities: "Aarav's classes run online three days a week, broadband is essential, but the price jump is worth challenging.",
       now: NOW_ISO,
     },
     finding: {
       commitmentId: "commitment-speedlink-broadband",
       verdict: "leakage",
       reasoning:
-        "SpeedLink's ₹999 to ₹1,499 hike (50%) has no matching plan or speed change, and SpeedLink's own published rate for new customers on the same plan is ₹1,199 — worth challenging even though the service itself is used daily and essential to keep.",
+        "SpeedLink's ₹999 to ₹1,499 hike (50%) has no matching plan or speed change, and SpeedLink's own published rate for new customers on the same plan is ₹1,199, worth challenging even though the service itself is used daily and essential to keep.",
       daysSinceLastUsed: 1,
       priceChangePct: 50.05,
       confidence: 0.83,
@@ -403,7 +403,7 @@ const LEAKAGE_CASES_FIXTURE: readonly LeakageCase[] = [
       draftKind: "price_adjustment_request",
       confidence: 0.8,
       reasoning:
-        "The service is genuinely used daily and essential to keep — the ask targets only the unexplained portion of the increase, not the connection itself.",
+        "The service is genuinely used daily and essential to keep, the ask targets only the unexplained portion of the increase, not the connection itself.",
     },
   },
   // Worth keeping — tied directly to a real care obligation, no draft.
@@ -417,14 +417,14 @@ const LEAKAGE_CASES_FIXTURE: readonly LeakageCase[] = [
       priceHistory: [[daysAgoIso(180), 199.0]],
       lastUsedAt: daysAgoIso(2),
       status: "active",
-      householdPriorities: "Dadi's prescriptions are delivered weekly under this plan — core to her care routine.",
+      householdPriorities: "Dadi's prescriptions are delivered weekly under this plan, core to her care routine.",
       now: NOW_ISO,
     },
     finding: {
       commitmentId: "commitment-mehta-delivery-plan",
       verdict: "worth_keeping",
       reasoning:
-        "Delivery logs show weekly use tied directly to Dadi's blood-pressure prescription refills, and the price hasn't moved in six months — exactly the kind of recurring spend the household's stated priorities describe as non-negotiable.",
+        "Delivery logs show weekly use tied directly to Dadi's blood-pressure prescription refills, and the price hasn't moved in six months, exactly the kind of recurring spend the household's stated priorities describe as non-negotiable.",
       daysSinceLastUsed: 2,
       priceChangePct: null,
       confidence: 0.91,
@@ -450,11 +450,11 @@ const LEAKAGE_CASES_FIXTURE: readonly LeakageCase[] = [
       commitmentId: "commitment-society-event-fund",
       verdict: "ambiguous",
       reasoning:
-        "There is no usage signal for a community contribution like this one — it isn't 'used' the way a subscription is — and no household-priorities note takes a position on optional society spend either way. Flagging for a human read rather than guessing.",
+        "There is no usage signal for a community contribution like this one, it isn't 'used' the way a subscription is, and no household-priorities note takes a position on optional society spend either way. Flagging for a human read rather than guessing.",
       daysSinceLastUsed: null,
       priceChangePct: null,
       confidence: 0.42,
-      evidence: { usage_signal: "not applicable — community contribution", household_position: "none on record" },
+      evidence: { usage_signal: "not applicable, community contribution", household_position: "none on record" },
     },
     recoveryDraft: null,
   },
@@ -574,11 +574,11 @@ const DISPUTE_PRESENTATIONS_FIXTURE: readonly DisputePresentation[] = [
       reportedAt: "2026-08-22T18:00:00Z",
       evidenceEventId: "ledger-maintenance-debit",
       evidenceText:
-        "Bank statement line for reference 400912345678: 'SUNRISE SOCIETY MAINT — INR 2,650.00 — 22 Aug.'",
+        "Bank statement line for reference 400912345678: 'SUNRISE SOCIETY MAINT, INR 2,650.00, 22 Aug.'",
     },
     discrepancyAmount: 150.0,
     context:
-      "Both figures reference the same UPI transaction reference number and the same day's maintenance payment. Neither channel is inherently more reliable — SMS parsing can mis-read a digit, and a bank statement's line aggregation can occasionally merge two nearby debits. Left for a human to resolve against the bank app or a call to the society office.",
+      "Both figures reference the same UPI transaction reference number and the same day's maintenance payment. Neither channel is inherently more reliable, SMS parsing can mis-read a digit, and a bank statement's line aggregation can occasionally merge two nearby debits. Left for a human to resolve against the bank app or a call to the society office.",
     confidence: 0.65,
     escalatedTo: "human_resolution",
   },
@@ -603,7 +603,7 @@ const DISPUTE_PRESENTATIONS_FIXTURE: readonly DisputePresentation[] = [
     },
     discrepancyAmount: 2000.0,
     context:
-      "The computed figure and the recorded payment differ by exactly the amount of Maya's already-paid advance, suggesting the deduction was missed when the payment was made — but the household should confirm with Maya directly before treating this as an overpayment, since the register's own handwriting could also be misread.",
+      "The computed figure and the recorded payment differ by exactly the amount of Maya's already-paid advance, suggesting the deduction was missed when the payment was made, but the household should confirm with Maya directly before treating this as an overpayment, since the register's own handwriting could also be misread.",
     confidence: 0.7,
     escalatedTo: "human_resolution",
   },
@@ -651,7 +651,7 @@ const PAYROLL_RESULTS_FIXTURE: readonly PayrollResult[] = [
     obligationNodeId: "obligation-pay-maya-salary",
     confidence: 0.88,
     reasoning:
-      "The register's marks for August were legible throughout — 22 present, 2 absent, 1 leave day — and the ₹2,000 advance recorded on 12 Aug is the only ADVANCE-kind ledger event this period, so the deterministic solver's net figure is trusted without a human review.",
+      "The register's marks for August were legible throughout, 22 present, 2 absent, 1 leave day, and the ₹2,000 advance recorded on 12 Aug is the only ADVANCE-kind ledger event this period, so the deterministic solver's net figure is trusted without a human review.",
     modelTier: "deterministic",
   },
   // Needs human review — an ambiguous mark, no guessed figure produced.
@@ -667,16 +667,16 @@ const PAYROLL_RESULTS_FIXTURE: readonly PayrollResult[] = [
       {
         day: "18",
         reason:
-          "Mark on the 18th is smudged — could be a present tick or an absent cross. A34's own Pro-tier re-read scored both interpretations within 0.05 of each other, below the confidence floor for either.",
+          "Mark on the 18th is smudged, could be a present tick or an absent cross. A34's own Pro-tier re-read scored both interpretations within 0.05 of each other, below the confidence floor for either.",
       },
     ],
     reviewReason:
-      "One day's mark (18 Jul) could not be confidently interpreted even after a Pro-tier re-read attempt — the household should check the photographed register directly before July's salary is computed.",
+      "One day's mark (18 Jul) could not be confidently interpreted even after a Pro-tier re-read attempt, the household should check the photographed register directly before July's salary is computed.",
     registerImageRef: "doc-attendance-register-2026-07",
     obligationNodeId: null,
     confidence: 0.58,
     reasoning:
-      "Every other day in July's register read cleanly, but the 18th's mark sits right at the ambiguity threshold — rather than guess, this is held for a human to look at the actual photograph.",
+      "Every other day in July's register read cleanly, but the 18th's mark sits right at the ambiguity threshold, rather than guess, this is held for a human to look at the actual photograph.",
     modelTier: "pro",
   },
 ];

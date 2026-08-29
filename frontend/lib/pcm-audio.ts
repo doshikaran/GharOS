@@ -56,7 +56,7 @@ export function downsampleTo16k(input: Float32Array, inputSampleRate: number): F
   if (inputSampleRate === TARGET_SAMPLE_RATE_HZ) return input;
   if (inputSampleRate < TARGET_SAMPLE_RATE_HZ) {
     throw new RangeError(
-      `mic input sample rate ${inputSampleRate}Hz is below the ${TARGET_SAMPLE_RATE_HZ}Hz wire target — cannot upsample`,
+      `mic input sample rate ${inputSampleRate}Hz is below the ${TARGET_SAMPLE_RATE_HZ}Hz wire target, cannot upsample`,
     );
   }
 

@@ -67,7 +67,7 @@ export function SimulatorExplorer() {
           className={`${styles.tab} ${mode === "forward" ? styles.tabActive : ""}`}
           onClick={() => setMode("forward")}
         >
-          Forward — branch comparison
+          Forward, branch comparison
         </button>
         <button
           type="button"
@@ -93,7 +93,7 @@ export function SimulatorExplorer() {
             <h2 className={styles.sectionHeading}>Branch comparison</h2>
             <p className={styles.sectionIntro}>
               Every projected impact below is traceable to either household graph data or a cited external
-              source with a retrieval timestamp — never an unsourced claim (Gate 11). The critic&apos;s pushback
+              source with a retrieval timestamp, never an unsourced claim (Gate 11). The critic&apos;s pushback
               is shown separately from each branch&apos;s own projection, not blended into it.
             </p>
             <BranchComparison
@@ -116,7 +116,7 @@ export function SimulatorExplorer() {
             <h2 className={styles.sectionHeading}>Calibration</h2>
             <p className={styles.sectionIntro}>
               This household&apos;s own variance for past decisions in the same category (
-              <code>{DECISION_CATEGORY_TAG}</code>) — stated honestly, including when the history is too thin to
+              <code>{DECISION_CATEGORY_TAG}</code>), stated honestly, including when the history is too thin to
               support a confidence figure (spec §11.5).
             </p>
             <CalibrationPanel estimate={calibrationEstimate} />
@@ -125,7 +125,7 @@ export function SimulatorExplorer() {
           <section className={styles.section} aria-label="Interrogation mode">
             <h2 className={styles.sectionHeading}>Interrogation mode</h2>
             <p className={styles.sectionIntro}>
-              Ask a follow-up question about this decision. Trade-offs are presented for the household to weigh —
+              Ask a follow-up question about this decision. Trade-offs are presented for the household to weigh,
               never a verdict on an emotionally-loaded family decision.
             </p>
             <InterrogationPanel brief={decisionBrief} />

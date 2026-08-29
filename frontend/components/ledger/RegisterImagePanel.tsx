@@ -55,7 +55,7 @@ export function RegisterImagePanel({ baseUrl, registerImageRef, month }: Registe
       .catch((err: unknown) => {
         if (cancelled) return;
         const reason = err instanceof GraphApiError || err instanceof Error ? err.message : "unknown error";
-        console.error("RegisterImagePanel: falling back to the static placeholder —", reason);
+        console.error("RegisterImagePanel: falling back to the static placeholder, ", reason);
         setState({ status: "error" });
       });
     return () => {
@@ -116,7 +116,7 @@ export function RegisterImagePanel({ baseUrl, registerImageRef, month }: Registe
     <div className={styles.panel}>
       <StaticPlaceholderIllustration />
       <p className={styles.caption} role="status">
-        Static placeholder — the live register photograph for &quot;{registerImageRef}&quot; is not available right
+        Static placeholder, the live register photograph for &quot;{registerImageRef}&quot; is not available right
         now.
       </p>
     </div>

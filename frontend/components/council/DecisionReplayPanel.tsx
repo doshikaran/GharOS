@@ -35,21 +35,21 @@ export function DecisionReplayPanel({ replay }: DecisionReplayPanelProps) {
 
       {decision.trigger && (
         <p className={styles.trigger}>
-          <strong>Trigger — </strong>
+          <strong>Trigger, </strong>
           {decision.trigger}
         </p>
       )}
 
       {decision.resolutionSummary && (
         <p className={styles.resolutionSummary}>
-          <strong>Resolution — </strong>
+          <strong>Resolution, </strong>
           {decision.resolutionSummary}
         </p>
       )}
 
       {decision.rationale && (
         <p className={styles.rationale}>
-          <strong>Rationale — </strong>
+          <strong>Rationale, </strong>
           {decision.rationale}
         </p>
       )}

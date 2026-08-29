@@ -11,7 +11,7 @@ describe("EscalationSurface", () => {
     expect(
       screen.getByText("Whether to accept Sunrise Apartments Society's redevelopment buyback offer and relocate before the vacate deadline."),
     ).toBeInTheDocument();
-    expect(screen.getByText("Council briefs — awaiting a household decision")).toBeInTheDocument();
+    expect(screen.getByText("Council briefs, awaiting a household decision")).toBeInTheDocument();
   });
 
   it("renders the expired item under the expired-approvals section, not the Council-briefs section", () => {
@@ -28,7 +28,7 @@ describe("EscalationSurface", () => {
     expect(screen.queryByRole("button", { name: "Reject" })).not.toBeInTheDocument();
   });
 
-  it("excludes pending R2/R3 and resolved items — only R4 and expired items appear", () => {
+  it("excludes pending R2/R3 and resolved items, only R4 and expired items appear", () => {
     render(<EscalationSurface items={getApprovalQueue()} now={NOW} />);
     expect(
       screen.queryByText("Call Om Electricals to confirm tomorrow's 4:00-5:00 PM slot to fix the geyser before Dadi's bath time."),

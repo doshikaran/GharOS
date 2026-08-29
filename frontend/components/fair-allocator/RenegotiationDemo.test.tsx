@@ -31,7 +31,7 @@ describe("RenegotiationDemo", () => {
     expect(screen.getByText(/gave ground this cycle/)).toBeInTheDocument();
   });
 
-  it("the after-allocation gives Maya the grocery run — a real task-ownership change, not just new numbers", () => {
+  it("the after-allocation gives Maya the grocery run, a real task-ownership change, not just new numbers", () => {
     renderDemo();
     fireEvent.click(screen.getByRole("button", { name: /Inject this trigger/ }));
     expect(screen.getByText(/Total cost to Maya:/)).toBeInTheDocument();

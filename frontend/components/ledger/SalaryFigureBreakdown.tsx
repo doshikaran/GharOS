@@ -56,7 +56,7 @@ export function SalaryFigureBreakdown({ salary }: SalaryFigureBreakdownProps) {
           <strong>{formatCurrency(salary.netSalaryDue, salary.currency)}</strong>
           {salary.flooredAtZero && (
             <Badge variant="warning" className={styles.flooredBadge}>
-              Floored at zero — advances exceeded gross pay
+              Floored at zero, advances exceeded gross pay
             </Badge>
           )}
         </dd>

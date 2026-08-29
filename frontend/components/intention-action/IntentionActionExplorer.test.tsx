@@ -94,8 +94,8 @@ describe("IntentionActionExplorer", () => {
     stubFetch(snapshot);
     render(<IntentionActionExplorer baseUrl="http://api.example" />);
     await waitForReady();
-    expect(screen.getByText("What actually happened — the four unblock outcomes")).toBeInTheDocument();
-    expect(screen.getByText(/Aarav's dental check-up — re-diagnosed, then escalated/)).toBeInTheDocument();
+    expect(screen.getByText("What actually happened, the four unblock outcomes")).toBeInTheDocument();
+    expect(screen.getByText(/Aarav's dental check-up, re-diagnosed, then escalated/)).toBeInTheDocument();
     expect(screen.getByText("Untouched for months, now moving")).toBeInTheDocument();
   });
 
@@ -115,7 +115,7 @@ describe("IntentionActionExplorer", () => {
     // pattern for.
     fireEvent.change(screen.getByLabelText("Actual blocker type"), { target: { value: "aversion" } });
     fireEvent.change(screen.getByLabelText("Correction note"), {
-      target: { value: "The number was found in ten seconds — that was never the real hold-up." },
+      target: { value: "The number was found in ten seconds, that was never the real hold-up." },
     });
     fireEvent.click(screen.getByRole("button", { name: "Submit correction" }));
 
@@ -138,6 +138,6 @@ describe("IntentionActionExplorer", () => {
     // The Thursday candidate (clear of every constraint) is recommended.
     expect(screen.getByText("Recommended")).toBeInTheDocument();
     // The Monday candidate overlaps the real, live nap window.
-    expect(screen.getByText("Dadi: Soft — avoid if possible")).toBeInTheDocument();
+    expect(screen.getByText("Dadi: Soft, avoid if possible")).toBeInTheDocument();
   });
 });

@@ -58,13 +58,13 @@ export function RankedShortlist({ ranking }: RankedShortlistProps) {
                   <span className={styles.score}>score {provider.score.toFixed(2)}</span>
                   {provider.demotedForReliability && (
                     <Badge variant="danger" data-testid={`demoted-${provider.providerId}`}>
-                      Demoted — no-show on file
+                      Demoted, no-show on file
                     </Badge>
                   )}
                 </span>
               }
             >
-              <h4 className={styles.sectionLabel}>Why this rank — this provider&apos;s own reasons</h4>
+              <h4 className={styles.sectionLabel}>Why this rank, this provider&apos;s own reasons</h4>
               <ul className={styles.reasonsList}>
                 {provider.reasons.map((reason) => (
                   <li key={reason}>{reason}</li>

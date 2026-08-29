@@ -57,7 +57,7 @@ export function PayrollResultCard({ result, baseUrl }: PayrollResultCardProps) {
               <SalaryFigureBreakdown salary={result.salary} />
             ) : (
               <p className={styles.noFigure}>
-                No computed salary figure yet — this is held pending human review of the flagged day(s), never a
+                No computed salary figure yet, this is held pending human review of the flagged day(s), never a
                 guessed number.
               </p>
             )}

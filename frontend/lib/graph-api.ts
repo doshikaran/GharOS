@@ -34,7 +34,7 @@ async function fetchJson<T>(url: string): Promise<T> {
   if (!response.ok) {
     const body = await response.text().catch(() => "");
     throw new GraphApiError(
-      `HTTP ${response.status} ${response.statusText} from ${url}${body ? ` — ${body}` : ""}`,
+      `HTTP ${response.status} ${response.statusText} from ${url}${body ? `, ${body}` : ""}`,
       response.status,
       url,
     );

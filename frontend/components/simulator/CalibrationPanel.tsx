@@ -38,7 +38,7 @@ export function CalibrationPanel({ estimate }: CalibrationPanelProps) {
       {estimate.isThinHistory ? (
         <div className={styles.thinHistoryCallout}>
           <p className={styles.thinHistoryHeading}>
-            Only {estimate.sampleSize} prior outcome{estimate.sampleSize === 1 ? "" : "s"} on file — below the
+            Only {estimate.sampleSize} prior outcome{estimate.sampleSize === 1 ? "" : "s"} on file, below the
             minimum of {MIN_SAMPLE_SIZE_FOR_CALIBRATION} needed for a variance estimate
           </p>
           <p className={styles.honestNote}>{estimate.honestNote}</p>

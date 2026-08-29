@@ -3,7 +3,7 @@ import { StatusBoard } from "@/components/status/StatusBoard";
 import styles from "./status-page.module.css";
 
 export const metadata: Metadata = {
-  title: "GharOS — Stack status",
+  title: "GharOS, Stack status",
 };
 
 export default function StatusPage() {
@@ -13,7 +13,7 @@ export default function StatusPage() {
         <h1 className={styles.heading}>Stack status</h1>
         <p className={styles.subheading}>
           Proves the deployed frontend can reach the deployed <code>gharos-api</code> backend
-          (PHASES.md Phase 2, Gate 2) — each card below calls a real endpoint on load and shows
+          (PHASES.md Phase 2, Gate 2), each card below calls a real endpoint on load and shows
           the real response, or the real error if one occurred.
         </p>
       </div>

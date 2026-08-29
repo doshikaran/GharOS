@@ -101,7 +101,7 @@ describe("CostMatrix", () => {
     const input = screen.getByLabelText("Priya's cost for Buy weekly groceries");
     fireEvent.change(input, { target: { value: "4.5" } });
     fireEvent.click(screen.getByRole("button", { name: /Review & confirm this matrix/ }));
-    expect(screen.getByText(/Priya — Buy weekly groceries: 1.0 → 4.5/)).toBeInTheDocument();
+    expect(screen.getByText(/Priya, Buy weekly groceries: 1.0 → 4.5/)).toBeInTheDocument();
     fireEvent.click(screen.getByRole("button", { name: "Confirm this matrix" }));
     expect(onConfirm).toHaveBeenCalledTimes(1);
   });

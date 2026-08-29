@@ -8,9 +8,9 @@ describe("SpecialistPositions", () => {
     const brief = getCouncilBrief();
     render(<SpecialistPositions positions={brief.specialistPositions} />);
 
-    expect(screen.getByText(/Finance — Ledger subgraph/)).toBeInTheDocument();
-    expect(screen.getByText(/Care — Constraint subgraph/)).toBeInTheDocument();
-    expect(screen.getByText(/Logistics — Obligation subgraph/)).toBeInTheDocument();
+    expect(screen.getByText(/Finance: Ledger subgraph/)).toBeInTheDocument();
+    expect(screen.getByText(/Care: Constraint subgraph/)).toBeInTheDocument();
+    expect(screen.getByText(/Logistics: Obligation subgraph/)).toBeInTheDocument();
   });
 
   it("renders Finance and Care with visibly different evidence content, not generic interchangeable prose", () => {

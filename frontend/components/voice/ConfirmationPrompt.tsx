@@ -48,12 +48,12 @@ export function ConfirmationPrompt({ prompt, pendingApprovalCount }: Confirmatio
         <p className={styles.readback}>{prompt.text}</p>
         <p className={styles.instruction}>
           Say a clear <strong>“yes”</strong> to confirm, or <strong>“no”</strong> to cancel. Silence or an unclear
-          reply is <strong>not</strong> treated as approval — you will be asked again, as many times as needed.
+          reply is <strong>not</strong> treated as approval, you will be asked again, as many times as needed.
         </p>
         {looksLikeMoney && (
           <p className={styles.moneyNotice}>
             This involves a payment. Even after you say yes, GharOS will not move any money from your voice
-            confirmation alone —{" "}
+            confirmation alone, {" "}
             <Link href="/approvals" className={styles.approvalsLink}>
               confirm it in your Approvals tab
             </Link>{" "}

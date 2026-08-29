@@ -66,7 +66,7 @@ export function LiveCallTranscript({ turns, outcomeReport, counterpartyName }: L
     <div className={styles.wrapper}>
       <div className={styles.header}>
         <p className={styles.honestyNote} role="note">
-          A real, sandboxed text conversation with {counterpartyName} — a live, turn-taking exchange in transcript
+          A real, sandboxed text conversation with {counterpartyName}, a live, turn-taking exchange in transcript
           form, not synthesized audio (per ADR-016; Phase 13 is where real speech is built).
         </p>
         {!fullyRevealed && (
@@ -87,10 +87,10 @@ export function LiveCallTranscript({ turns, outcomeReport, counterpartyName }: L
           >
             <div className={styles.turnMeta}>
               <span className={styles.speakerLabel}>{turn.speaker === "caller" ? "Household's agent" : counterpartyName}</span>
-              {turn.turnIndex === 0 && <Badge variant="royal">Disclosure — every call, no exceptions</Badge>}
+              {turn.turnIndex === 0 && <Badge variant="royal">Disclosure, every call, no exceptions</Badge>}
               {turn.turnIndex === noteworthyTurnIndex && (
                 <Badge variant={outcomeReport.outOfBoundsEncountered ? "warning" : "danger"} data-testid="noteworthy-badge">
-                  {outcomeReport.outOfBoundsEncountered ? "Out of bounds — declined" : "Escalated to a human"}
+                  {outcomeReport.outOfBoundsEncountered ? "Out of bounds, declined" : "Escalated to a human"}
                 </Badge>
               )}
             </div>

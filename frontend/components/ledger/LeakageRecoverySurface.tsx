@@ -8,7 +8,7 @@ import styles from "./LeakageRecoverySurface.module.css";
 const VERDICT_LABEL: Record<LeakageVerdict, string> = {
   leakage: "Leakage",
   worth_keeping: "Worth keeping",
-  ambiguous: "Ambiguous — flagged for a human",
+  ambiguous: "Ambiguous, flagged for a human",
 };
 
 const VERDICT_VARIANT: Record<LeakageVerdict, BadgeVariant> = {
@@ -42,7 +42,7 @@ export function LeakageCaseCard({ leakageCase }: LeakageCaseCardProps) {
       title={
         <span className={styles.titleRow}>
           <span>
-            {request.label} — {request.counterparty}
+            {request.label}, {request.counterparty}
           </span>
           <Badge variant={VERDICT_VARIANT[finding.verdict]}>{VERDICT_LABEL[finding.verdict]}</Badge>
         </span>
@@ -87,12 +87,12 @@ export function LeakageCaseCard({ leakageCase }: LeakageCaseCardProps) {
 
         {recoveryDraft ? (
           <section aria-label="Drafted claim" className={styles.draftSection}>
-            <h4 className={styles.sectionLabel}>Drafted claim — {recoveryDraft.targetVendor}</h4>
+            <h4 className={styles.sectionLabel}>Drafted claim, {recoveryDraft.targetVendor}</h4>
             <p className={styles.draftAsk}>{recoveryDraft.ask}</p>
             <blockquote className={styles.draftMessage}>{recoveryDraft.messageText}</blockquote>
             <p className={styles.draftReasoning}>{recoveryDraft.reasoning}</p>
             <p className={styles.readOnlyNote} role="note">
-              Read-only — this claim has been drafted only. It is never sent automatically; sending requires a
+              Read-only, this claim has been drafted only. It is never sent automatically; sending requires a
               separate, explicit action outside this system.
             </p>
           </section>

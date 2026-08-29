@@ -63,7 +63,7 @@ describe("getFairAllocationResult", () => {
 });
 
 describe("verify_ef1 (re-derived independently, per person, from the fixture's own costs)", () => {
-  it.each(["before", "after"] as const)("%s: EF1 holds for both ordered pairs — matches getEf1Violations", (scenario) => {
+  it.each(["before", "after"] as const)("%s: EF1 holds for both ordered pairs, matches getEf1Violations", (scenario) => {
     const result = getFairAllocationResult(scenario);
     const costsByPerson = new Map(getValuationExtractionResults(scenario).map((v) => [v.personId, v.costs]));
     // Priya's grocery-run cost is real/live, not part of the fixture's own
@@ -119,7 +119,7 @@ describe("getFairnessVerificationResult", () => {
     },
   );
 
-  it("never uses the word 'optimal' or an unqualified 'fair' — states EF1 precisely, per docs/FAIRNESS_GUARANTEE.md", () => {
+  it("never uses the word 'optimal' or an unqualified 'fair', states EF1 precisely, per docs/FAIRNESS_GUARANTEE.md", () => {
     for (const scenario of ["before", "after"] as const) {
       for (const explanation of getFairnessVerificationResult(scenario).explanations) {
         expect(explanation.explanationText.toLowerCase()).not.toContain("optimal");

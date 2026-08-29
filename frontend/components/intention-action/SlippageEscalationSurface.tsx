@@ -39,7 +39,7 @@ function formatCurrency(amount: number): string {
 export function SlippageEscalationSurface({ obligationTitle, attempts, analysis, delegateName }: SlippageEscalationSurfaceProps) {
   return (
     <div className={styles.wrapper}>
-      <Card className={styles.card} title={`Repeat-failure history — ${obligationTitle}`}>
+      <Card className={styles.card} title={`Repeat-failure history, ${obligationTitle}`}>
         <ol className={styles.attemptList}>
           {attempts.map((attempt) => {
             const meta = BLOCKER_TYPE_META[attempt.diagnosis.blockerType];
@@ -78,13 +78,13 @@ export function SlippageEscalationSurface({ obligationTitle, attempts, analysis,
               <Badge variant={BLOCKER_TYPE_VARIANT[analysis.reDiagnosis.likelyBlockerType]}>
                 {BLOCKER_TYPE_META[analysis.reDiagnosis.likelyBlockerType].label}
               </Badge>
-              {analysis.reDiagnosis.changedFromPrior && " — the first diagnosis may have been wrong."}
+              {analysis.reDiagnosis.changedFromPrior && ", the first diagnosis may have been wrong."}
               <p className={styles.reDiagnosisReasoning}>{analysis.reDiagnosis.reasoning}</p>
               <ConfidenceMeter confidence={analysis.reDiagnosis.confidence} />
             </div>
           )}
 
-          <h4 className={styles.optionsHeading}>Real options — a human decides, never auto-resolved</h4>
+          <h4 className={styles.optionsHeading}>Real options, a human decides, never auto-resolved</h4>
           <div className={styles.optionsGrid}>
             {analysis.escalationOptions.map((option) => (
               <div key={option.kind} className={styles.optionCard} data-testid={`escalation-option-${option.kind}`}>

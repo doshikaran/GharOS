@@ -107,7 +107,7 @@ describe("VoiceSessionPanel", () => {
     const { getClient } = renderPanel();
     getClient().dispatch({
       type: "confirmation_prompt",
-      text: "Pay ₹3,500 to Om Electricals — confirm?",
+      text: "Pay ₹3,500 to Om Electricals, confirm?",
       requiresAffirmative: true,
       turnId: "t2",
     });

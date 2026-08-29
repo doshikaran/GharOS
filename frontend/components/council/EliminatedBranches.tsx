@@ -31,7 +31,7 @@ export function EliminatedBranches({ eliminatedBranchIds, positions }: Eliminate
               <s>{branchLabel(branchId)}</s>
             </p>
             <p className={styles.eliminatedBy}>
-              Eliminated by {eliminatingAgentId ? agentShortLabel(eliminatingAgentId) : "an unrecorded specialist"} —
+              Eliminated by {eliminatingAgentId ? agentShortLabel(eliminatingAgentId) : "an unrecorded specialist"},
               a hard constraint, not a low score.
             </p>
             {eliminatingPosition && <p className={styles.reason}>{eliminatingPosition.reasoning}</p>}

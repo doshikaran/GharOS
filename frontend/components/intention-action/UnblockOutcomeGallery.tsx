@@ -31,7 +31,7 @@ function formatWindow(window: readonly [string, string]): string {
 const VERDICT_LABEL: Record<string, string> = {
   available: "Available",
   hard_blocked: "Hard blocked",
-  soft_avoid: "Soft — avoid if possible",
+  soft_avoid: "Soft, avoid if possible",
   cannot_determine: "Cannot determine",
   unavailable: "Unavailable",
   likely: "Likely",
@@ -62,13 +62,13 @@ export function UnblockOutcomeGallery({
         {informationOutcome.fetched ? (
           <>
             <p className={styles.beforeAfterLabel}>Before</p>
-            <p className={styles.before}>{informationOutcome.missingFactDescription} — unknown.</p>
+            <p className={styles.before}>{informationOutcome.missingFactDescription}, unknown.</p>
             <p className={styles.beforeAfterLabel}>After</p>
             <p className={styles.after}>{informationOutcome.factText}</p>
           </>
         ) : (
           <p className={styles.notFetched}>
-            The graph had no answer for &ldquo;{informationOutcome.missingFactDescription}&rdquo; — nothing was
+            The graph had no answer for &ldquo;{informationOutcome.missingFactDescription}&rdquo;, nothing was
             fabricated; this stays open for a human.
           </p>
         )}
@@ -78,7 +78,7 @@ export function UnblockOutcomeGallery({
       <Card className={styles.outcomeCard} title={<OutcomeTitle icon={DecisionIcon} variant={BLOCKER_TYPE_VARIANT.decision} label="Decision blocker → narrowed to binary" />}>
         <p className={styles.beforeAfterLabel}>Before</p>
         <p className={styles.before}>An open decision with no stated options.</p>
-        <p className={styles.beforeAfterLabel}>After — two real, mutually exclusive options</p>
+        <p className={styles.beforeAfterLabel}>After, two real, mutually exclusive options</p>
         <div className={styles.optionPair}>
           <span className={styles.option} data-testid="decision-option-a">
             {decisionOutcome.optionA}
@@ -142,7 +142,7 @@ function OutcomeTitle({ icon: Icon, variant, label }: { icon: LucideIcon; varian
 function ConfidenceLine({ confidence, modelTier }: { confidence: number; modelTier: string }) {
   return (
     <p className={styles.confidenceLine}>
-      {Math.round(confidence * 100)}% confidence · {modelTier === "deterministic" ? "deterministic — no model call" : `${modelTier}-tier model call`}
+      {Math.round(confidence * 100)}% confidence · {modelTier === "deterministic" ? "deterministic, no model call" : `${modelTier}-tier model call`}
     </p>
   );
 }

@@ -45,7 +45,7 @@ describe("Landing (standalone `/` page, 2026-08-29 private-bank pass)", () => {
     document.documentElement.removeAttribute("data-theme");
   });
 
-  it("renders standalone — no AppShell chrome anywhere on the page", () => {
+  it("renders standalone, no AppShell chrome anywhere on the page", () => {
     render(<Landing />);
     expect(screen.queryByRole("navigation")).toBeNull();
     // Sidebar-only labels from navConfig must not leak onto the landing.
@@ -81,7 +81,7 @@ describe("Landing (standalone `/` page, 2026-08-29 private-bank pass)", () => {
     expect(screen.getByRole("link", { name: /the full story/i })).toHaveAttribute("href", "/story");
   });
 
-  describe("hero device — the three scrubbed states, rendered from the REAL components", () => {
+  describe("hero device, the three scrubbed states, rendered from the REAL components", () => {
     it("state 1: the code-mixed transcript with per-span language tags", () => {
       render(<Landing />);
       // LanguageSpanChip renders each span's own text and language label.
@@ -98,7 +98,7 @@ describe("Landing (standalone `/` page, 2026-08-29 private-bank pass)", () => {
       expect(screen.getByText(LANDING_CONFIRMATION_PROMPT.text)).toBeInTheDocument();
     });
 
-    it("state 3: the real approval card — R3, pending, evidence bundle attached", () => {
+    it("state 3: the real approval card, R3, pending, evidence bundle attached", () => {
       render(<Landing />);
       // The card's own title is the proposed-action summary; unique to the
       // ApprovalCard (EvidenceBundleView never renders it itself).
@@ -107,7 +107,7 @@ describe("Landing (standalone `/` page, 2026-08-29 private-bank pass)", () => {
       expect(screen.getByText("Awaiting decision")).toBeInTheDocument();
       // The R3 policy label appears twice: on the device card and in the
       // worked narrative's own RiskTierBadge.
-      expect(screen.getAllByText("R3 — Explicit approve").length).toBeGreaterThanOrEqual(2);
+      expect(screen.getAllByText("R3: Explicit approve").length).toBeGreaterThanOrEqual(2);
     });
 
     it("starts the scrub on state 1", () => {

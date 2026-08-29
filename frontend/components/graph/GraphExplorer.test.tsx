@@ -108,7 +108,7 @@ const liveNode: GraphNode = {
 
 const RECT = { width: 800, height: 600, top: 0, left: 0, right: 800, bottom: 600, x: 0, y: 0, toJSON: () => ({}) } as DOMRect;
 
-describe("GraphExplorer — live growth via the graph stream", () => {
+describe("GraphExplorer, live growth via the graph stream", () => {
   beforeEach(() => {
     FakeEventSource.instances = [];
     vi.stubGlobal("ResizeObserver", FakeResizeObserver);

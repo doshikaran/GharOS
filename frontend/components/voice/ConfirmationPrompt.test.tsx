@@ -6,7 +6,7 @@ describe("ConfirmationPrompt", () => {
   it("renders the read-back text prominently", () => {
     render(
       <ConfirmationPrompt
-        prompt={{ type: "confirmation_prompt", text: "₹3,500 — three thousand five hundred rupees to Om Electricals. Confirm?", requiresAffirmative: true, turnId: "t1" }}
+        prompt={{ type: "confirmation_prompt", text: "₹3,500, three thousand five hundred rupees to Om Electricals. Confirm?", requiresAffirmative: true, turnId: "t1" }}
         pendingApprovalCount={0}
       />,
     );
@@ -24,7 +24,7 @@ describe("ConfirmationPrompt", () => {
     expect(screen.getByText(/Silence or an unclear reply/)).toBeInTheDocument();
   });
 
-  it("renders no clickable affirm/decline button — the only real confirmation channel is spoken audio", () => {
+  it("renders no clickable affirm/decline button, the only real confirmation channel is spoken audio", () => {
     render(
       <ConfirmationPrompt
         prompt={{ type: "confirmation_prompt", text: "Confirm the appointment?", requiresAffirmative: true, turnId: "t3" }}
@@ -37,7 +37,7 @@ describe("ConfirmationPrompt", () => {
   it("shows the R3 visual-surface pointer, with the live pending count, when the read-back names a rupee amount", () => {
     render(
       <ConfirmationPrompt
-        prompt={{ type: "confirmation_prompt", text: "Pay ₹3,500 to Om Electricals — confirm?", requiresAffirmative: true, turnId: "t4" }}
+        prompt={{ type: "confirmation_prompt", text: "Pay ₹3,500 to Om Electricals, confirm?", requiresAffirmative: true, turnId: "t4" }}
         pendingApprovalCount={2}
       />,
     );
@@ -56,7 +56,7 @@ describe("ConfirmationPrompt", () => {
     expect(screen.queryByText(/will not move any money/)).not.toBeInTheDocument();
   });
 
-  it("is announced assertively — a missed confirmation is the highest-cost failure this surface can have", () => {
+  it("is announced assertively, a missed confirmation is the highest-cost failure this surface can have", () => {
     render(
       <ConfirmationPrompt
         prompt={{ type: "confirmation_prompt", text: "Confirm?", requiresAffirmative: true, turnId: "t6" }}

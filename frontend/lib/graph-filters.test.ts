@@ -97,7 +97,7 @@ describe("applyGraphFilters", () => {
     expect(result.nodes.map((n) => n.id).sort()).toEqual(["pattern-1", "person-aarav"]);
   });
 
-  it("drops any edge touching a filtered-out node — never shows a dangling edge", () => {
+  it("drops any edge touching a filtered-out node, never shows a dangling edge", () => {
     const filters: GraphFilterState = { ...EMPTY_GRAPH_FILTER_STATE, types: ["PERSON"] };
     const result = applyGraphFilters(nodes, edges, filters);
     // e1 (obligation -> priya) must disappear because obligation-1 is filtered out,

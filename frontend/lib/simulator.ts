@@ -223,7 +223,7 @@ const BRANCH_PROJECTIONS_FIXTURE: readonly BranchProjection[] = [
     projectedImpacts: {
       finance: "Locks in the buyback price now, 12% under independent valuation, but avoids any forced-vacancy risk.",
       care: "Dadi's twice-weekly dialysis slot at Mehta Dialysis Centre must transfer to a new centre within the move window.",
-      education: "Aarav's Class 10 board-exam year is mid-term at the relocation date — a school transfer would land during exam registration.",
+      education: "Aarav's Class 10 board-exam year is mid-term at the relocation date, a school transfer would land during exam registration.",
       logistics: "Full packing and move must complete inside the 90-day window, concurrent with Diwali-season vendor availability.",
     },
     groundingRefs: ["cite-rera-buyback-norms", "cite-cbse-midyear-transfer"],
@@ -243,7 +243,7 @@ const BRANCH_PROJECTIONS_FIXTURE: readonly BranchProjection[] = [
       finance: "Preserves the possibility of a valuation closer to the two independent appraisals, but risks the buyback offer being withdrawn entirely.",
       care: "No disruption to Dadi's dialysis schedule while the dispute is unresolved.",
       education: "No disruption to Aarav's board-exam-year school placement.",
-      logistics: "A formal valuation dispute with the society typically runs 60-120 days — may not resolve before the vacate deadline regardless.",
+      logistics: "A formal valuation dispute with the society typically runs 60-120 days, may not resolve before the vacate deadline regardless.",
     },
     groundingRefs: ["cite-rera-buyback-norms", "cite-maharashtra-redevelopment-dispute-timeline"],
     blastRadiusNodeIds: [
@@ -259,7 +259,7 @@ const BRANCH_PROJECTIONS_FIXTURE: readonly BranchProjection[] = [
       finance: "Same buyback price as immediate acceptance, plus a market-rate rent-back fee for the extension period.",
       care: "Dadi's dialysis transfer can be scheduled outside her twice-weekly slot, at a time the new centre confirms in writing.",
       education: "Aarav completes the current school term and sits his board exams before any transfer takes effect.",
-      logistics: "Rent-back terms are not guaranteed — the developer may decline or price the extension high enough to erode the buyback's value.",
+      logistics: "Rent-back terms are not guaranteed, the developer may decline or price the extension high enough to erode the buyback's value.",
     },
     // No grounding refs: this branch's own grounding query returned zero
     // citations (see GROUNDING_RESULTS_FIXTURE below) — an honest empty
@@ -294,7 +294,7 @@ const GROUNDING_RESULTS_FIXTURE: readonly GroundingResult[] = [
     summary:
       "RERA's own guidance treats a buyback more than 10% under independent valuation as a flag worth raising with the society, not a settled figure. CBSE's circular confirms a mid-year transfer is permitted but requires the losing and receiving schools to jointly file a continuity form before board-exam registration closes.",
     freshnessNote:
-      "Retrieved 2 days before this decision frame was assembled. Redevelopment timelines and society notices can change week to week — verify against the society's latest circular before acting on this branch.",
+      "Retrieved 2 days before this decision frame was assembled. Redevelopment timelines and society notices can change week to week, verify against the society's latest circular before acting on this branch.",
   },
   {
     branchLabel: "Reject and contest the valuation",
@@ -311,7 +311,7 @@ const GROUNDING_RESULTS_FIXTURE: readonly GroundingResult[] = [
       },
     ],
     summary:
-      "Dispute timelines documented by the state housing guidance page run 60-120 days on average, with no guarantee of resolution before a fixed vacate deadline — the dispute and the deadline run on independent clocks.",
+      "Dispute timelines documented by the state housing guidance page run 60-120 days on average, with no guarantee of resolution before a fixed vacate deadline, the dispute and the deadline run on independent clocks.",
     freshnessNote:
       "Retrieved 2 days before this decision frame was assembled. Dispute-resolution timelines are historical averages, not a promise about this specific case.",
   },
@@ -325,9 +325,9 @@ const GROUNDING_RESULTS_FIXTURE: readonly GroundingResult[] = [
     branchLabel: "Accept, negotiate a 6-month rent-back",
     citations: [],
     summary:
-      "No external source found for rent-back clause precedent with this developer or society. Google Search grounding returned zero relevant results for this query — stated plainly rather than inventing a citation to fill the gap.",
+      "No external source found for rent-back clause precedent with this developer or society. Google Search grounding returned zero relevant results for this query, stated plainly rather than inventing a citation to fill the gap.",
     freshnessNote:
-      "Lookup attempted 2 days before this decision frame was assembled; it returned nothing to be fresh or stale — there is no source to date.",
+      "Lookup attempted 2 days before this decision frame was assembled; it returned nothing to be fresh or stale, there is no source to date.",
   },
 ] as const;
 
@@ -335,8 +335,8 @@ const BRANCH_CRITIQUES_FIXTURE: readonly BranchCritique[] = [
   {
     branchId: BRANCH_IDS.relocateNow,
     overOptimisticClaims: [
-      "Assumes a comparable dialysis slot will be available immediately at a new centre — Mehta Dialysis Centre's own transfer/waitlist process was never actually checked before this projection was written.",
-      "Assumes the CBSE mid-year continuity form is a formality — it requires both schools' sign-off, and the receiving school has not been contacted.",
+      "Assumes a comparable dialysis slot will be available immediately at a new centre, Mehta Dialysis Centre's own transfer/waitlist process was never actually checked before this projection was written.",
+      "Assumes the CBSE mid-year continuity form is a formality, it requires both schools' sign-off, and the receiving school has not been contacted.",
     ],
     omittedSecondOrderEffects: [
       "A rushed move during Diwali-season vendor scarcity risks paying a premium for movers, which is not reflected in the finance projection above.",
@@ -348,19 +348,19 @@ const BRANCH_CRITIQUES_FIXTURE: readonly BranchCritique[] = [
   {
     branchId: BRANCH_IDS.contestValuation,
     overOptimisticClaims: [
-      "Assumes the developer will hold the current buyback offer open indefinitely while a dispute plays out — nothing in the redevelopment notice guarantees that.",
+      "Assumes the developer will hold the current buyback offer open indefinitely while a dispute plays out, nothing in the redevelopment notice guarantees that.",
     ],
     omittedSecondOrderEffects: [
       "A contested valuation with no signed agreement risks the developer proceeding to forced-vacancy proceedings, which historically settle at less favourable terms than the original offer.",
       "Maintaining obligation-pay-maintenance-v2 through a prolonged dispute keeps the household paying society dues for a flat it may still have to leave on worse terms.",
     ],
     revisedConfidenceNote:
-      "Confidence in 'no disruption to Dadi or Aarav' holds only for as long as the dispute stays open — it is not a stable long-run outcome, and the projection above should not be read as one.",
+      "Confidence in 'no disruption to Dadi or Aarav' holds only for as long as the dispute stays open, it is not a stable long-run outcome, and the projection above should not be read as one.",
   },
   {
     branchId: BRANCH_IDS.rentBackExtension,
     overOptimisticClaims: [
-      "Assumes the developer will agree to a rent-back at all — no external source confirms this developer has offered one before, and the grounding search for this specific query returned nothing.",
+      "Assumes the developer will agree to a rent-back at all, no external source confirms this developer has offered one before, and the grounding search for this specific query returned nothing.",
     ],
     omittedSecondOrderEffects: [
       "If the developer declines the rent-back, the household is back to the immediate-relocation branch's timeline with less runway left before the vacate deadline, not a fresh 90 days.",
@@ -375,7 +375,7 @@ const DECISION_BRIEF_FIXTURE: DecisionBrief = {
   branchSummaries: [
     "Accept and relocate immediately: fastest resolution and locks in the current buyback price, but the dialysis transfer and the board-exam-year school continuity are both unconfirmed, not guaranteed, commitments.",
     "Reject and contest the valuation: protects Dadi's and Aarav's continuity while the dispute is open, but risks the buyback offer being withdrawn and provides no guarantee the dispute resolves before the vacate deadline.",
-    "Accept, negotiate a 6-month rent-back: preserves the buyback price and lets Aarav finish his exam term, but the rent-back itself is unconfirmed — no source establishes this developer offers one.",
+    "Accept, negotiate a 6-month rent-back: preserves the buyback price and lets Aarav finish his exam term, but the rent-back itself is unconfirmed, no source establishes this developer offers one.",
   ],
   tradeOffs: [
     "Speed of resolution versus continuity of Dadi's dialysis care and Aarav's board-exam term.",
@@ -403,7 +403,7 @@ const RELOCATION_CALIBRATION_FIXTURE: CalibrationEstimate = {
   stdevVariance: null,
   confidenceBandNote: null,
   honestNote:
-    "Only 2 prior relocation-category outcomes exist in this household's history — below the minimum of 3 needed for a reliable variance estimate. Stated plainly rather than manufacturing a confidence figure the data doesn't support.",
+    "Only 2 prior relocation-category outcomes exist in this household's history, below the minimum of 3 needed for a reliable variance estimate. Stated plainly rather than manufacturing a confidence figure the data doesn't support.",
 } as const;
 
 const STAFF_TRANSITION_CALIBRATION_FIXTURE: CalibrationEstimate = {
@@ -414,7 +414,7 @@ const STAFF_TRANSITION_CALIBRATION_FIXTURE: CalibrationEstimate = {
   stdevVariance: 0.05,
   confidenceBandNote: "68% confidence band: 0.13-0.23 (mean ± 1 stdev, n=5).",
   honestNote:
-    "5 prior staff-transition outcomes on file — enough to support the variance figures above, though still a small sample; treat the confidence band as indicative, not a precise guarantee.",
+    "5 prior staff-transition outcomes on file, enough to support the variance figures above, though still a small sample; treat the confidence band as indicative, not a precise guarantee.",
 } as const;
 
 const CALIBRATION_ESTIMATES_BY_CATEGORY: Readonly<Record<string, CalibrationEstimate>> = {
@@ -435,7 +435,7 @@ const BACKWARD_MODE_ANALYSIS_FIXTURE: BackwardModeAnalysis = {
     "Assume this failed: six months after the move, Dadi's dialysis care lapsed for at least one week during the centre transfer, and Aarav's board-exam continuity form was filed too late to count toward his registration.",
   supportingOutcomeIds: ["outcome-staff-transition-maya-2025", "outcome-relocation-2019-vacate"],
   confidenceNote:
-    "Based on only 2 prior household relocation-category outcomes (thin history — see the Calibration panel) — this is a plausible failure mode worth planning around, not a statistically confident prediction.",
+    "Based on only 2 prior household relocation-category outcomes (thin history, see the Calibration panel), this is a plausible failure mode worth planning around, not a statistically confident prediction.",
   suggestedMitigations: [
     "Confirm a transferred dialysis slot for Dadi in writing at the new location before signing the buyback agreement, not after.",
     "File the CBSE mid-year continuity form for Aarav jointly with both schools before committing to any move date inside the exam-registration window.",
@@ -543,7 +543,7 @@ export function buildRiskRegister(
 // ---------------------------------------------------------------------------
 
 const FALLBACK_ANSWER =
-  "This isn't something the Simulator answers with a single figure. See the branch comparison and risk register above for what's known and what remains genuinely open — ask about a specific trade-off or open question for a more direct pointer.";
+  "This isn't something the Simulator answers with a single figure. See the branch comparison and risk register above for what's known and what remains genuinely open, ask about a specific trade-off or open question for a more direct pointer.";
 
 /**
  * Deterministic, fixture-backed stand-in for a real follow-up-question
@@ -608,7 +608,7 @@ export function answerFollowup(brief: DecisionBrief, question: string): string {
   const openQuestionMatch = bestMatch(brief.openQuestions);
 
   if (openQuestionMatch && (!tradeOffMatch || openQuestionMatch.score >= tradeOffMatch.score)) {
-    return `Already an open question on this brief: "${openQuestionMatch.text}" It isn't answered yet — that's exactly why it's listed as open, not resolved by guessing.`;
+    return `Already an open question on this brief: "${openQuestionMatch.text}" It isn't answered yet, that's exactly why it's listed as open, not resolved by guessing.`;
   }
 
   if (tradeOffMatch) {

@@ -16,7 +16,7 @@ function buildR4Item(overrides: Partial<ApprovalQueueItem> = {}): ApprovalQueueI
     expiresAt: "2026-09-21T09:00:00Z",
     evidenceBundle: {
       proposedAction: "Whether to accept the redevelopment buyback offer and relocate.",
-      reasoning: "This is irreversible and emotionally loaded — the Council produces a brief, not a decision.",
+      reasoning: "This is irreversible and emotionally loaded, the Council produces a brief, not a decision.",
       evidenceConsulted: ["Redevelopment notice sets a 90-day vacate deadline", "Care specialist flags mobility"],
       confidence: 0.71,
       consequenceIfWrong: "Either error is largely irreversible and affects every household member.",
@@ -48,7 +48,7 @@ function buildExpiredItem(overrides: Partial<ApprovalQueueItem> = {}): ApprovalQ
 describe("EscalationCard", () => {
   it("renders an R4 item as a Council brief, never as an approve/reject item", () => {
     render(<EscalationCard item={buildR4Item()} now={NOW} />);
-    expect(screen.getByText("Council brief — humans decide")).toBeInTheDocument();
+    expect(screen.getByText("Council brief, humans decide")).toBeInTheDocument();
     expect(screen.queryByRole("button", { name: "Approve" })).not.toBeInTheDocument();
     expect(screen.queryByRole("button", { name: "Reject" })).not.toBeInTheDocument();
     expect(screen.getByText(/Council never resolves it/)).toBeInTheDocument();
@@ -70,7 +70,7 @@ describe("EscalationCard", () => {
 
   it("renders an expired item as escalated, distinctly from approved or pending, with no Approve/Reject", () => {
     render(<EscalationCard item={buildExpiredItem()} now={NOW} />);
-    expect(screen.getByText("Escalated — approval window expired")).toBeInTheDocument();
+    expect(screen.getByText("Escalated, approval window expired")).toBeInTheDocument();
     expect(screen.queryByText("Approved")).not.toBeInTheDocument();
     expect(screen.queryByRole("button", { name: "Approve" })).not.toBeInTheDocument();
     expect(screen.getByText(/has not been approved, and it has not been rejected/)).toBeInTheDocument();
@@ -80,7 +80,7 @@ describe("EscalationCard", () => {
     const onToggle = vi.fn();
     render(<EscalationCard item={buildR4Item()} now={NOW} onToggleDiscussed={onToggle} />);
     expect(
-      screen.getByText("This only tracks whether the household has talked this through — it does not approve, reject, or execute anything."),
+      screen.getByText("This only tracks whether the household has talked this through, it does not approve, reject, or execute anything."),
     ).toBeInTheDocument();
 
     fireEvent.click(screen.getByRole("switch", { name: "Discussed with the household" }));

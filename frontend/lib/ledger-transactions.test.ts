@@ -10,7 +10,7 @@ import {
 function ledgerEventNode(overrides: Partial<GraphNode> & { id: string }): GraphNode {
   return {
     type: "LEDGER_EVENT",
-    label: "Debit — INR 100",
+    label: "Debit, INR 100",
     derivation: "extracted",
     confidence: 0.9,
     source_document_id: "doc-1",

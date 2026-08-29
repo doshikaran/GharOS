@@ -40,7 +40,7 @@ export function CouncilExplorer() {
       <section className={styles.convening} aria-label="Council convening">
         <p className={styles.question}>{composition.question}</p>
         <p className={styles.trigger}>
-          <strong>Trigger — </strong>
+          <strong>Trigger, </strong>
           {composition.trigger}
         </p>
         <p className={styles.convened}>
@@ -60,19 +60,19 @@ export function CouncilExplorer() {
         <h2 className={styles.sectionHeading}>Specialist positions</h2>
         <p className={styles.sectionIntro}>
           Each specialist queried only its own subgraph, independently, before seeing any other agent&apos;s
-          output (spec §12.3 Phase 1 — anti-anchoring isolation). Finance reports from real ledger figures;
-          Care reports from a real mobility constraint. They are not arguing with each other — they are
+          output (spec §12.3 Phase 1, anti-anchoring isolation). Finance reports from real ledger figures;
+          Care reports from a real mobility constraint. They are not arguing with each other, they are
           reporting from genuinely different data.
         </p>
         <SpecialistPositions positions={brief.specialistPositions} />
       </section>
 
       <section className={styles.section} aria-label="Eliminated options">
-        <h2 className={styles.sectionHeading}>Eliminated — not scored down</h2>
+        <h2 className={styles.sectionHeading}>Eliminated, not scored down</h2>
         <p className={styles.sectionIntro}>
           A hard constraint removes an option from consideration entirely before any interest scoring runs
           (Gate 12: Care&apos;s hard constraint eliminates, it does not score down). What survives below is a
-          genuinely different, smaller set — never the same list with a low number attached.
+          genuinely different, smaller set, never the same list with a low number attached.
         </p>
         <EliminatedBranches eliminatedBranchIds={brief.resolution.eliminatedBranchIds} positions={brief.specialistPositions} />
         <p className={styles.survivingNote}>
@@ -84,7 +84,7 @@ export function CouncilExplorer() {
         <h2 className={styles.sectionHeading}>Delegate scores</h2>
         <p className={styles.sectionIntro}>
           Every convened member&apos;s own cost for each surviving option, from their own behaviourally-derived
-          valuation profile — genuine conflicting interest, attributed by name, never anonymised into one
+          valuation profile, genuine conflicting interest, attributed by name, never anonymised into one
           household number.
         </p>
         <DelegateScores delegateScorings={brief.delegateScorings} />
@@ -93,7 +93,7 @@ export function CouncilExplorer() {
       <section className={styles.section} aria-label="Adversary">
         <h2 className={styles.sectionHeading}>The Adversary&apos;s attack</h2>
         <p className={styles.sectionIntro}>
-          Structurally tasked with attacking the arbiter&apos;s own winning option (ADR-019 Decision 7) — a
+          Structurally tasked with attacking the arbiter&apos;s own winning option (ADR-019 Decision 7), a
           critique of another agent&apos;s output, rendered distinctly from the positions above, never a sixth
           position among equals.
         </p>

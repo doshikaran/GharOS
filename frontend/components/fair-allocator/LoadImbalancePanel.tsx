@@ -22,12 +22,12 @@ const VERDICT_VARIANT: Record<LoadImbalanceVerdict, BadgeVariant> = {
 };
 
 function formatPercent(share: number | null): string {
-  if (share === null) return "—";
+  if (share === null) return ", ";
   return `${Math.round(share * 100)}%`;
 }
 
 function formatDrift(drift: number | null): string {
-  if (drift === null) return "—";
+  if (drift === null) return ", ";
   const sign = drift > 0 ? "+" : "";
   return `${sign}${Math.round(drift * 100)} pts`;
 }
@@ -49,7 +49,7 @@ export function LoadImbalancePanel({ findings, personName }: LoadImbalancePanelP
           <div className={styles.verdictRow}>
             <Badge variant={VERDICT_VARIANT[finding.verdict]}>{VERDICT_LABEL[finding.verdict]}</Badge>
             <span className={styles.modelTier}>
-              {finding.modelTier === "flash" ? "Narrated by a real model call" : "Deterministic — no model call needed"}
+              {finding.modelTier === "flash" ? "Narrated by a real model call" : "Deterministic, no model call needed"}
             </span>
           </div>
 

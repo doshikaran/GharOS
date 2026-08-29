@@ -46,7 +46,7 @@ export function DiagnosisDisplay({ diagnosis, obligationTitle, personName }: Dia
                 (<em>{BLOCKER_TYPE_META[diagnosis.supersededDiagnosisType].label}</em>)
               </>
             )}{" "}
-            may have been wrong — this replaces it, it does not add to it.
+            may have been wrong, this replaces it, it does not add to it.
           </div>
         )}
 

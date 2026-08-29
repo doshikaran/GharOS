@@ -136,10 +136,10 @@ export function LedgerExplorer({ baseUrl }: LedgerExplorerProps) {
 
       {mandateCancelItems.length > 0 && (
         <section aria-label="Mandate cancellation approval gate">
-          <h2 className={styles.sectionHeading}>Mandate cancellation — approval gate</h2>
+          <h2 className={styles.sectionHeading}>Mandate cancellation, approval gate</h2>
           <p className={styles.sectionIntro}>
             Cancelling a live mandate routes through the exact same Approval Gate every payment or mandate action
-            does — nothing here executes until a household member explicitly confirms it below.
+            does, nothing here executes until a household member explicitly confirms it below.
           </p>
           <ApprovalsBoard initialItems={[]} extraItems={mandateCancelItems} />
         </section>

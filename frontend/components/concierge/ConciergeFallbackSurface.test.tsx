@@ -17,10 +17,10 @@ describe("ConciergeFallbackSurface", () => {
     expect(screen.queryByRole("button")).not.toBeInTheDocument();
   });
 
-  it("renders a full ESCALATE brief — summary, risk tier, and every evidenceConsulted entry", () => {
+  it("renders a full ESCALATE brief, summary, risk tier, and every evidenceConsulted entry", () => {
     const fallback = getDadiCleaningFallback();
     render(<ConciergeFallbackSurface title="Dadi's cleaning" decision={fallback} />);
-    expect(screen.getByText("Escalated — a human decides")).toBeInTheDocument();
+    expect(screen.getByText("Escalated, a human decides")).toBeInTheDocument();
     expect(screen.getByText(fallback.escalationPayload!.summary)).toBeInTheDocument();
     for (const evidence of fallback.escalationPayload!.evidenceBundle.evidenceConsulted) {
       expect(screen.getByText(evidence)).toBeInTheDocument();

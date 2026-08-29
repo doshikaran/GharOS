@@ -167,7 +167,7 @@ export function LedgerTransactionTable({
                   <div className={styles.commitmentInfo}>
                     <span className={styles.commitmentLabel}>{commitment.label}</span>
                     <span className={styles.commitmentDetail}>
-                      {commitment.counterparty} — {formatCurrency(commitment.amount, "INR")}/{commitment.cadence} —{" "}
+                      {commitment.counterparty}, {formatCurrency(commitment.amount, "INR")}/{commitment.cadence}, {" "}
                       <Badge variant={commitment.status === "active" ? "success" : "neutral"}>{commitment.status}</Badge>
                     </span>
                     <span className={styles.commitmentDetail}>
@@ -179,7 +179,7 @@ export function LedgerTransactionTable({
                   {cancellable &&
                     (alreadyProposed ? (
                       <p className={styles.proposedNote} role="status">
-                        Cancellation proposed — see the approval gate below.
+                        Cancellation proposed, see the approval gate below.
                       </p>
                     ) : (
                       <Button variant="danger" onClick={() => onProposeMandateCancel(commitment)}>

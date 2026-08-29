@@ -111,7 +111,7 @@ describe("minimax-regret resolution is arithmetically honest (ADR-019 Decision 3
     );
   });
 
-  it("mostCostlyTo is the delegate with the highest regret for the winner; mostFavorableTo the lowest — ties broken by lexical personId order, the same documented-arbitrary-tiebreak discipline ADR-019 Decision 3 names for branch ties", () => {
+  it("mostCostlyTo is the delegate with the highest regret for the winner; mostFavorableTo the lowest, ties broken by lexical personId order, the same documented-arbitrary-tiebreak discipline ADR-019 Decision 3 names for branch ties", () => {
     const brief = getCouncilBrief();
     const entries = Object.entries(brief.resolution.regretByPerson);
 
@@ -166,7 +166,7 @@ describe("risk register", () => {
   });
 });
 
-describe("buildTradeOffStatement — real prose, never a bare number dump or a synthesized consensus", () => {
+describe("buildTradeOffStatement, real prose, never a bare number dump or a synthesized consensus", () => {
   it("names the winning branch, the real costly/favorable people, and their exact regret numbers", () => {
     const brief = getCouncilBrief();
     const statement = buildTradeOffStatement(brief);

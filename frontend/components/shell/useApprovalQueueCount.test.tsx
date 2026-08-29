@@ -14,7 +14,7 @@ describe("useApprovalQueueCount", () => {
     expect(result.current).toBe(2);
   });
 
-  it("agrees with /approvals's own rendered 'need your decision' count — same source, same predicate", () => {
+  it("agrees with /approvals's own rendered 'need your decision' count, same source, same predicate", () => {
     const { result } = renderHook(() => useApprovalQueueCount(NOW));
 
     render(<ApprovalsBoard initialItems={getApprovalQueue()} now={NOW} />);

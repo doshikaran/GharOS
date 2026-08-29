@@ -22,7 +22,7 @@ const commitment: LedgerCommitmentRow = {
 };
 
 describe("buildMandateCancelApprovalItem", () => {
-  it("builds an R3 pending approval item — 'Cancel mandate' is spec's own R3 example", () => {
+  it("builds an R3 pending approval item, 'Cancel mandate' is spec's own R3 example", () => {
     const item = buildMandateCancelApprovalItem(commitment, NOW);
     expect(item.riskTier).toBe("R3");
     expect(item.status).toBe("pending");
@@ -42,7 +42,7 @@ describe("buildMandateCancelApprovalItem", () => {
     expect(item.evidenceBundle.reasoning).toContain(commitment.id);
   });
 
-  it("carries a full evidence bundle — never a bare action with no reasoning", () => {
+  it("carries a full evidence bundle, never a bare action with no reasoning", () => {
     const item = buildMandateCancelApprovalItem(commitment, NOW);
     expect(item.evidenceBundle.evidenceConsulted.length).toBeGreaterThan(0);
     expect(item.evidenceBundle.consequenceIfWrong.length).toBeGreaterThan(0);

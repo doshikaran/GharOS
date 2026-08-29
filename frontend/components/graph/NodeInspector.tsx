@@ -21,7 +21,7 @@ function formatFieldKey(key: string): string {
 }
 
 function formatFieldValue(value: unknown): string {
-  if (value === null || value === undefined) return "—";
+  if (value === null || value === undefined) return ", ";
   if (typeof value === "string") return value;
   if (typeof value === "number" || typeof value === "boolean") return String(value);
   return JSON.stringify(value);
@@ -85,7 +85,7 @@ export function NodeInspector({ node, baseUrl, onClose, onExplain }: NodeInspect
           </div>
         ) : (
           <p className={styles.emptyNote}>
-            No single source document — this node has no one place to point to (expected for an AMBIGUOUS
+            No single source document, this node has no one place to point to (expected for an AMBIGUOUS
             derivation drawn from multiple contributing observations).
           </p>
         )}

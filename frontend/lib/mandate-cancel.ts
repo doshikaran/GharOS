@@ -58,15 +58,15 @@ export function buildMandateCancelApprovalItem(
   const usage = describeUsage(commitment.lastUsedAt, now);
   const proposedActionSummary = `Cancel the recurring mandate for ${commitment.label} (${commitment.counterparty}), ${formatRupees(commitment.amount)}/${commitment.cadence}.`;
   const reasoning =
-    `This mandate is live in the household graph as ${commitment.id} — ${usage}. Cancelling a mandate is a real, ` +
+    `This mandate is live in the household graph as ${commitment.id}, ${usage}. Cancelling a mandate is a real, ` +
     "irreversible-until-re-established action, so it goes through the same approval gate every payment/mandate " +
     'action does (spec §10.5\'s payment-tool group; "Cancel mandate" is R3 per spec §18.1). Approving this ' +
     "authorises the exact effect=\"cancel_mandate\" call `SandboxPaymentTool` would perform against this " +
     "commitment's real node id.";
   const consequenceIfWrong =
     `Cancelling a mandate still in genuine use interrupts ${commitment.counterparty}'s service until a household ` +
-    "member re-establishes it by hand. The underlying payment tool is sandboxed — no real external payment rail is " +
-    "ever called — but the graph's own mandate-status record would still need a manual correction.";
+    "member re-establishes it by hand. The underlying payment tool is sandboxed, no real external payment rail is " +
+    "ever called, but the graph's own mandate-status record would still need a manual correction.";
   const evidenceConsulted = [
     `Live RECURRING_COMMITMENT node ${commitment.id}: "${commitment.label}", ${formatRupees(commitment.amount)}/${commitment.cadence}, status "${commitment.status}".`,
     `Usage signal: ${usage}.`,

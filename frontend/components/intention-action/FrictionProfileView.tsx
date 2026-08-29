@@ -61,7 +61,7 @@ export function FrictionProfileView({ patterns, people, justUpdatedPatternId }: 
                       </div>
                       <p className={styles.patternDescription}>{pattern.description}</p>
                       <p className={styles.confidenceNote}>
-                        {Math.round(pattern.confidence * 100)}% confidence — growing evidence, never treated as
+                        {Math.round(pattern.confidence * 100)}% confidence, growing evidence, never treated as
                         certainty from one data point.
                       </p>
                     </li>
