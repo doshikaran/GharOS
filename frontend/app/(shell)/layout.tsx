@@ -4,7 +4,12 @@ import { AppShell } from "@/components/shell/AppShell";
  * Nested layout for the `(shell)` route group (ADR-018) — wraps every
  * page under it (`/graph`, `/approvals`, `/status`, `/ledger`,
  * `/fair-allocator`, `/intention-action`, `/concierge`, `/simulator`,
- * and `/` itself) in the persistent app shell. This is a nested layout,
+ * `/council`, `/voice`, and `/story`) in the persistent app shell. `/`
+ * itself moved OUT of this group in the 2026-08-29 private-bank pass:
+ * the standalone landing lives in `app/(landing)/` with its own minimal
+ * layout (no AppShell), and the old narrative landing this group used to
+ * serve at `/` now lives on at `/story` (deliberately not in the
+ * sidebar; reachable from the landing's footer). This is a nested layout,
  * not a root layout — `app/layout.tsx` above it still owns `<html>`,
  * `<body>`, fonts, and `ThemeProvider` (see Next's layout convention:
  * "any layout without a `layout.js` above it is a root layout" — this

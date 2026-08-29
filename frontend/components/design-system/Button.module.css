@@ -42,8 +42,13 @@
   background: var(--accent-brass);
   color: var(--on-brass);
 }
+/* Hover shifts the fill TOWARD the theme's ink rather than jumping to
+ * --accent-brass-muted: the muted token is a fill/tint whose light-theme
+ * value (pale champagne) can't carry --on-brass text (2026-08-29
+ * private-bank pass). Mixing with ink darkens the fill in light mode and
+ * lightens it in dark mode — --on-brass stays contrast-safe both ways. */
 .brass:hover:not(:disabled) {
-  background: var(--accent-brass-muted);
+  background: color-mix(in srgb, var(--accent-brass) 85%, var(--ink-primary));
 }
 
 .secondary {
@@ -69,7 +74,11 @@
   color: var(--royal-primary);
   border-color: transparent;
 }
+/* --royal-soft is a fill/tint (pale sage in light mode since the
+ * 2026-08-29 private-bank pass) — --on-royal text is only verified on
+ * -primary/-deep fills, so ghost hover pairs the tint with --ink-primary,
+ * which clears AA on it in both themes. */
 .ghost:hover:not(:disabled) {
   background: var(--royal-soft);
-  color: var(--on-royal);
+  color: var(--ink-primary);
 }

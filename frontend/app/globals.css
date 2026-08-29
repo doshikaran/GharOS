@@ -22,7 +22,11 @@ h6 {
   border-color: var(--ink-muted);
 }
 
+/* Selection moved from --royal-soft to --royal-primary in the 2026-08-29
+ * private-bank pass: royal-soft is a fill/tint token and the new light
+ * value is a pale sage — --on-royal text is only contrast-verified
+ * against --royal-primary / --royal-deep fills (7.9:1+ both themes). */
 ::selection {
-  background: var(--royal-soft);
+  background: var(--royal-primary);
   color: var(--on-royal);
 }

@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Fraunces, Instrument_Serif, Inter } from "next/font/google";
+import { Fraunces, IBM_Plex_Mono, Instrument_Sans, Instrument_Serif } from "next/font/google";
 import { ThemeProvider } from "next-themes";
 import "./globals.css";
 
@@ -10,9 +10,22 @@ const fraunces = Fraunces({
   style: ["normal", "italic"],
 });
 
-const inter = Inter({
+// 2026-08-29 private-bank pass: body face is Instrument Sans (was Inter),
+// bound to the SAME --font-body variable so no component changes.
+const instrumentSans = Instrument_Sans({
   variable: "--font-body",
   subsets: ["latin"],
+});
+
+// 2026-08-29 private-bank pass: IBM Plex Mono for data moments — ₹
+// amounts, dates, IDs, proof lines — bound to --font-data-family, which
+// tokens.css's --font-data falls back through (same pattern as
+// --font-accent-family below). Use sites pair it with
+// `font-variant-numeric: tabular-nums` so rupee columns align.
+const ibmPlexMono = IBM_Plex_Mono({
+  variable: "--font-data-family",
+  subsets: ["latin"],
+  weight: ["400", "500"],
 });
 
 // 2026-08-29 royal redesign (docs/design/2026-08-29-redesign-brief.md):
@@ -36,7 +49,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
     <html
       lang="en"
-      className={`${fraunces.variable} ${inter.variable} ${instrumentSerif.variable} h-full`}
+      className={`${fraunces.variable} ${instrumentSans.variable} ${ibmPlexMono.variable} ${instrumentSerif.variable} h-full`}
       suppressHydrationWarning
     >
       <body className="min-h-full flex flex-col antialiased">

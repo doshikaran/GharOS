@@ -1,0 +1,508 @@
+/**
+ * The standalone landing at `/` (2026-08-29 private-bank pass).
+ *
+ * Composition rules from the frozen plan, restated where they are
+ * enforced:
+ * - One narrow reading spine (40rem), generous margins, near-monochrome
+ *   ground carrying the faint full-page graph-paper grid (operator
+ *   amendment; drawn by the landing layout's .shell, both themes, at
+ *   texture register — see landing-layout.module.css).
+ * - Champagne (--accent-brass) appears in exactly five places: the two
+ *   CTAs, the read-back amount, the single rule above "What it will
+ *   never do", and the footer mark. Nothing else on this page may use
+ *   the accent.
+ * - The oxblood --margin-rule appears ONLY inside the ledger card
+ *   (quoting the product), nowhere else.
+ * - Motion: the staged load reveal below, the device scrub
+ *   (HeroDevice.module.css), and the shared once-only ScrollReveal —
+ *   at 16px distance, set via the --reveal-distance override on .page.
+ *   All of it transform/opacity only; all of it inert under
+ *   prefers-reduced-motion.
+ */
+
+.page {
+  --reveal-distance: 16px;
+
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-9);
+  width: 100%;
+  max-width: 68rem;
+  margin-inline: auto;
+  padding: var(--space-7) var(--space-5) var(--space-7);
+}
+
+/* ---------------------------------------------------------------- *
+ * Staged hero load reveal — one keyframe, one easing, four delays,
+ * finished by ~1.04s (inside the 1.2s ceiling).
+ * ---------------------------------------------------------------- */
+@keyframes loadFadeUp {
+  from {
+    opacity: 0;
+    transform: translateY(16px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+.loadStep1,
+.loadStep2,
+.loadStep3,
+.loadStep4 {
+  animation: loadFadeUp 560ms var(--reveal-ease) both;
+}
+
+.loadStep2 {
+  animation-delay: 160ms;
+}
+
+.loadStep3 {
+  animation-delay: 320ms;
+}
+
+.loadStep4 {
+  animation-delay: 480ms;
+  /* .hero centres its flex children, which would otherwise shrink this
+   * wrapper (and the device inside it) to fit-content width. */
+  width: 100%;
+}
+
+/* ---------------------------------------------------------------- *
+ * 1. HERO
+ * ---------------------------------------------------------------- */
+.hero {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-5);
+  text-align: center;
+}
+
+.heroTitle {
+  font-family: var(--font-display), serif;
+  font-weight: 600;
+  font-size: clamp(2.375rem, 6vw, 4rem);
+  line-height: 1.04; /* tight leading at display sizes, per the plan */
+  letter-spacing: -0.015em;
+  color: var(--ink-primary);
+  max-width: 18ch;
+  margin: 0;
+  text-wrap: balance;
+}
+
+.heroSub {
+  color: var(--ink-secondary);
+  font-size: 1.125rem;
+  line-height: 1.6;
+  max-width: 36rem;
+  margin: 0;
+}
+
+.heroCta {
+  margin-bottom: var(--space-6);
+}
+
+/* Champagne use 1 + 2 of 5: the CTAs. A real link styled as the brass
+ * button (same metrics as design-system Button). */
+.ctaButton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 2.75rem;
+  padding: var(--space-2) var(--space-6);
+  border-radius: var(--radius-md);
+  background: var(--accent-brass);
+  color: var(--on-brass);
+  font-size: 1rem;
+  font-weight: 600;
+  line-height: 1.2;
+  text-decoration: none;
+  transition: background-color var(--motion-fast) var(--motion-ease-standard),
+    transform var(--motion-fast) var(--motion-ease-standard);
+}
+
+.ctaButton:hover {
+  background: color-mix(in srgb, var(--accent-brass) 85%, var(--ink-primary));
+}
+
+.ctaButton:focus-visible {
+  outline: 2px solid var(--royal-primary);
+  outline-offset: 2px;
+}
+
+/* ---------------------------------------------------------------- *
+ * Reading spine — sections 3-6.
+ * ---------------------------------------------------------------- */
+.section {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-6);
+  width: 100%;
+  max-width: 40rem;
+  margin-inline: auto;
+}
+
+.sectionTitle {
+  font-family: var(--font-display), serif;
+  font-weight: 600;
+  font-size: clamp(1.5rem, 3vw, 2rem);
+  line-height: 1.15;
+  color: var(--ink-primary);
+  margin: 0;
+}
+
+.sectionLead {
+  color: var(--ink-muted);
+  font-size: 1rem;
+  line-height: 1.6;
+  margin: var(--space-3) 0 0;
+}
+
+/* ---------------------------------------------------------------- *
+ * 3. IT RUNS ON WHAT ACTUALLY ARRIVES — three quiet items.
+ * ---------------------------------------------------------------- */
+.arrivesList {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-5);
+  margin: 0;
+}
+
+.arrivesItem {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  padding-bottom: var(--space-5);
+  border-bottom: 1px solid color-mix(in srgb, var(--ink-muted) 25%, transparent);
+}
+
+.arrivesItem:last-child {
+  border-bottom: none;
+  padding-bottom: 0;
+}
+
+.arrivesTitle {
+  font-family: var(--font-display), serif;
+  font-weight: 600;
+  font-size: 1.125rem;
+  color: var(--ink-primary);
+}
+
+.arrivesBody {
+  color: var(--ink-secondary);
+  font-size: 0.9688rem;
+  line-height: 1.6;
+  margin: 0;
+}
+
+/* ---------------------------------------------------------------- *
+ * 4. WORKED NARRATIVE — four steps, real registers.
+ * ---------------------------------------------------------------- */
+.steps {
+  list-style: none;
+  counter-reset: step;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-7);
+  margin: 0;
+  padding: 0;
+}
+
+.step {
+  counter-increment: step;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.stepTitle {
+  font-family: var(--font-display), serif;
+  font-weight: 600;
+  font-size: 1.1875rem;
+  color: var(--ink-primary);
+  margin: 0;
+}
+
+.stepTitle::before {
+  content: counter(step, decimal-leading-zero);
+  font-family: var(--font-data);
+  font-weight: 400;
+  font-size: 0.8125rem;
+  color: var(--ink-muted);
+  margin-right: var(--space-3);
+  letter-spacing: 0.06em;
+}
+
+.stepBody {
+  color: var(--ink-secondary);
+  font-size: 0.9688rem;
+  line-height: 1.6;
+  margin: 0;
+}
+
+.sourceMessage {
+  margin: 0;
+  padding: var(--space-4) var(--space-5);
+  border-left: 2px solid var(--ink-muted);
+  background: var(--surface-raised);
+  border-radius: 0 var(--radius-md) var(--radius-md) 0;
+}
+
+.sourceMessageText {
+  color: var(--ink-primary);
+  font-size: 1rem;
+  line-height: 1.55;
+  margin: 0 0 var(--space-2);
+}
+
+.sourceMessageMeta {
+  font-family: var(--font-data);
+  font-size: 0.75rem;
+  color: var(--ink-muted);
+  letter-spacing: 0.02em;
+}
+
+.obligation {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.obligationHead {
+  display: flex;
+  align-items: baseline;
+  gap: var(--space-4);
+  flex-wrap: wrap;
+}
+
+/* Champagne use 3 of 5: the read-back amount, in the data face. */
+.obligationAmount {
+  font-family: var(--font-data);
+  font-variant-numeric: tabular-nums;
+  font-weight: 500;
+  font-size: 1.375rem;
+  color: var(--accent-brass);
+}
+
+.obligationDue {
+  font-family: var(--font-data);
+  font-variant-numeric: tabular-nums;
+  font-size: 0.875rem;
+  color: var(--ink-muted);
+}
+
+.evidenceQuotes {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.evidenceQuotes li {
+  padding-left: var(--space-4);
+  border-left: 2px solid color-mix(in srgb, var(--derivation-inferred) 45%, transparent);
+  color: var(--ink-secondary);
+  font-size: 0.875rem;
+  line-height: 1.55;
+}
+
+.bundleCard {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--space-4);
+  padding: var(--space-5);
+  background: var(--surface-raised);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--elevation-1);
+}
+
+/* The ledger card — the ONLY element on this page allowed to carry the
+ * oxblood --margin-rule, because it quotes the product's own ledger. */
+.ledgerCard {
+  position: relative;
+  padding: var(--space-5) var(--space-5) var(--space-4) var(--space-7);
+  background: var(--surface-raised);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--elevation-1);
+  overflow: hidden;
+}
+
+.ledgerCard::before {
+  content: "";
+  position: absolute;
+  top: var(--space-3);
+  bottom: var(--space-3);
+  left: var(--space-5);
+  width: 2px;
+  background: var(--margin-rule);
+  opacity: 0.7;
+}
+
+.ledgerRow {
+  display: flex;
+  align-items: baseline;
+  gap: var(--space-4);
+  flex-wrap: wrap;
+  font-family: var(--font-data);
+  font-variant-numeric: tabular-nums;
+  font-size: 0.9375rem;
+  color: var(--ink-primary);
+}
+
+.ledgerDate {
+  color: var(--ink-muted);
+}
+
+.ledgerParty {
+  flex: 1;
+  min-width: 12rem;
+  color: var(--ink-secondary);
+}
+
+.ledgerAmount {
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+.ledgerNote {
+  margin: var(--space-3) 0 0;
+  color: var(--ink-muted);
+  font-size: 0.8438rem;
+  line-height: 1.55;
+}
+
+/* ---------------------------------------------------------------- *
+ * 5. WHAT IT WILL NEVER DO.
+ * ---------------------------------------------------------------- */
+
+/* Champagne use 4 of 5: the single short rule above the heading. */
+.neverRule {
+  display: block;
+  width: 3rem;
+  height: 2px;
+  background: var(--accent-brass);
+  margin-bottom: var(--space-4);
+}
+
+.neverList {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.neverItem {
+  padding: var(--space-4) 0;
+  border-bottom: 1px solid color-mix(in srgb, var(--ink-muted) 25%, transparent);
+  color: var(--ink-primary);
+  font-size: 1.0625rem;
+  line-height: 1.5;
+}
+
+.neverItem:last-child {
+  border-bottom: none;
+}
+
+/* ---------------------------------------------------------------- *
+ * 6. PROOF LINE + CLOSING + FOOTER.
+ * ---------------------------------------------------------------- */
+.closing {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  max-width: 40rem;
+  margin-inline: auto;
+}
+
+.proofLine {
+  font-family: var(--font-data);
+  font-size: 0.8125rem;
+  letter-spacing: 0.02em;
+  color: var(--ink-muted);
+  margin: 0 0 var(--space-4);
+}
+
+.closingTitle {
+  font-family: var(--font-display), serif;
+  font-weight: 600;
+  font-size: clamp(1.75rem, 4vw, 2.5rem);
+  line-height: 1.08;
+  color: var(--ink-primary);
+  margin: 0 0 var(--space-5);
+  text-wrap: balance;
+}
+
+.footer {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--space-4);
+  width: 100%;
+  max-width: 40rem;
+  margin-inline: auto;
+  padding-top: var(--space-5);
+  border-top: 1px solid color-mix(in srgb, var(--ink-muted) 25%, transparent);
+}
+
+/* Champagne use 5 of 5: the footer mark. */
+.footerMark {
+  font-family: var(--font-display), serif;
+  font-weight: 600;
+  font-size: 0.9375rem;
+  color: var(--accent-brass);
+}
+
+.footerLink {
+  color: var(--ink-secondary);
+  font-size: 0.9375rem;
+  text-decoration: none;
+  border-radius: var(--radius-sm);
+}
+
+.footerLink:hover {
+  color: var(--ink-primary);
+  text-decoration: underline;
+}
+
+.footerLink:focus-visible {
+  outline: 2px solid var(--royal-primary);
+  outline-offset: 2px;
+}
+
+/* ---------------------------------------------------------------- *
+ * Responsive floor: 375px.
+ * ---------------------------------------------------------------- */
+@media (max-width: 480px) {
+  .page {
+    gap: var(--space-8);
+    padding: var(--space-6) var(--space-4);
+  }
+
+  .heroCta {
+    margin-bottom: var(--space-4);
+  }
+}
+
+/* ---------------------------------------------------------------- *
+ * Reduced motion: the load reveal is dropped entirely — the page
+ * composes statically (ScrollReveal and HeroDevice each handle their
+ * own reduced-motion paths in their own stylesheets).
+ * ---------------------------------------------------------------- */
+@media (prefers-reduced-motion: reduce) {
+  .loadStep1,
+  .loadStep2,
+  .loadStep3,
+  .loadStep4 {
+    animation: none;
+  }
+
+  .ctaButton {
+    transition: none;
+  }
+}

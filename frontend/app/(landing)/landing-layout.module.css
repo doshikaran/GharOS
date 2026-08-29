@@ -1,0 +1,75 @@
+/**
+ * Minimal chrome for the standalone landing at `/` (2026-08-29
+ * private-bank pass) — wordmark left, one quiet action right. No
+ * AppShell, no sidebar.
+ *
+ * Ground: near-monochrome stone/vault carrying the faint graph-paper
+ * grid (operator amendment mid-pass, twotimespi.dev/tau reference) —
+ * the same pure-CSS gradient technique the old landing (now /story,
+ * `home-page.module.css`) already uses. `--paper-grid-line` is already
+ * re-hued per theme in tokens.css (banker's green on Stone, champagne
+ * on Vault) at texture-register opacity (0.08). Static
+ * background-image gradients: no layout shift, no repaint cost beyond
+ * ordinary scrolling. Applied here on .shell so it runs the full page
+ * height behind everything — header, hero device, sections, footer.
+ */
+
+.shell {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 100vh;
+  background-color: var(--surface-base);
+  background-image: linear-gradient(var(--paper-grid-line) 1px, transparent 1px),
+    linear-gradient(90deg, var(--paper-grid-line) 1px, transparent 1px);
+  background-size: var(--paper-grid-size) var(--paper-grid-size);
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-4);
+  max-width: 68rem;
+  width: 100%;
+  margin-inline: auto;
+  padding: var(--space-5) var(--space-5) 0;
+}
+
+.wordmark {
+  font-family: var(--font-display), serif;
+  font-weight: 600;
+  font-size: 1.125rem;
+  color: var(--ink-primary);
+  text-decoration: none;
+  border-radius: var(--radius-sm);
+}
+
+.openApp {
+  font-size: 0.9375rem;
+  font-weight: 600;
+  color: var(--ink-primary);
+  text-decoration: none;
+  padding: var(--space-2) var(--space-4);
+  border: 1px solid var(--ink-muted);
+  border-radius: var(--radius-md);
+  transition: border-color var(--motion-fast) var(--motion-ease-standard),
+    background-color var(--motion-fast) var(--motion-ease-standard);
+}
+
+.openApp:hover {
+  border-color: var(--royal-primary);
+  background: var(--surface-raised);
+}
+
+.wordmark:focus-visible,
+.openApp:focus-visible {
+  outline: 2px solid var(--royal-primary);
+  outline-offset: 2px;
+}
+
+.main {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+}

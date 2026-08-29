@@ -129,19 +129,19 @@ export default function TokensPage() {
 
       <ColorSection
         title="Ink"
-        note="Text colour on parchment (light) / ink (dark). Contrast ratios verified against --surface-base."
+        note="Iron on stone (light) / porcelain on vault (dark). Contrast ratios verified against each theme's worst-case surface."
         tokens={INK_TOKENS}
       />
 
       <ColorSection
         title="Royal"
-        note="Deep lapis. -deep and -soft are fill/tint tokens; use --on-royal for text placed on top of a royal fill."
+        note="Banker's green (the token name predates the 2026-08-29 private-bank pass). -deep and -soft are fill/tint tokens; use --on-royal for text placed on top of a royal fill."
         tokens={ROYAL_TOKENS}
       />
 
       <ColorSection
         title="Accent — brass"
-        note="Antique brass in light mode, candlelight brass in dark mode. -muted is a fill/tint token only."
+        note="Champagne (the token name predates the 2026-08-29 private-bank pass): darkened for text on stone in light mode, full strength in dark mode. -muted is a fill/tint token only."
         tokens={ACCENT_TOKENS}
       />
 
@@ -200,7 +200,7 @@ export default function TokensPage() {
 
       <section className={styles.section}>
         <h2 className={styles.sectionTitle}>Elevation</h2>
-        <p className={styles.sectionNote}>Warm-tinted shadows — never pure black.</p>
+        <p className={styles.sectionNote}>Cool-cast shadows — never pure black in light mode.</p>
         <div className={styles.flexWrapRow}>
           {ELEVATION_TOKENS.map((name) => (
             <div className={styles.elevationRow} key={name}>

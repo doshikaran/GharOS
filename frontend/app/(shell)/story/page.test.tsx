@@ -26,7 +26,7 @@ class FakeIntersectionObserver implements IntersectionObserver {
  * paraphrased" requirement the redesign brief calls out explicitly.
  */
 function readSafetyInvariantsFromPhasesDoc(): string[] {
-  const phasesDoc = readFileSync(path.join(__dirname, "../../../PHASES.md"), "utf-8");
+  const phasesDoc = readFileSync(path.join(__dirname, "../../../../PHASES.md"), "utf-8");
   const sectionStart = phasesDoc.indexOf("## APPENDIX B — SAFETY INVARIANT SCHEDULE");
   const sectionEnd = phasesDoc.indexOf("## APPENDIX C", sectionStart);
   const section = phasesDoc.slice(sectionStart, sectionEnd);

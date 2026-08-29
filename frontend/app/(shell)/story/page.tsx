@@ -6,15 +6,16 @@ import { ScrollReveal } from "@/components/landing/ScrollReveal";
 import styles from "./home-page.module.css";
 
 export const metadata: Metadata = {
-  title: "GharOS — The household remembers, even when you don't",
+  title: "GharOS — The full story",
   description:
     "An autonomous operating system for the one institution nobody runs like one — built on a knowledge graph that shows its work, not a dashboard that hides it.",
 };
 
 /**
- * The narrative landing page (2026-08-29 royal redesign,
- * docs/design/2026-08-29-redesign-brief.md) — replaces the Phase 0
- * placeholder. Six sections, copy taken close to verbatim from the
+ * The full-story page (formerly the landing page at `/`; relocated to
+ * `/story` in the 2026-08-29 private-bank pass — the new standalone
+ * landing lives in `app/(landing)/`). Kept inside the shell chrome,
+ * deliberately absent from the sidebar; the landing's footer links here. Six sections, copy taken close to verbatim from the
  * CTO-frozen brief. Section 3 reuses the real, already-shipped
  * `DerivationBadge` — never a mockup. Section 5's safety-invariant list is
  * pulled verbatim from `PHASES.md` Appendix B (see `SAFETY_INVARIANTS`
