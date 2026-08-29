@@ -26,7 +26,16 @@
  * the WebSocket wire shape specifically, by ADR-020 as a frozen
  * transport-level agreement between E3 (server) and E4 (this file). This
  * file mirrors that shape; it never redefines it.
+ *
+ * Phase 14.5 adds one forward-looking frame, `ingestion_run`, carrying an
+ * `IngestionRunResult` (ADR-023 §7 — "the `WS /voice/session` frame
+ * handling surfaces the resulting `IngestionRunResult` to the same live
+ * run view the text path uses"). E3 must emit it once A67's
+ * `ingest.scan_mailbox` intent is wired; until then `parseVoiceServerEvent`
+ * handles it but it is never received.
  */
+
+import { parseIngestionRunResult, type IngestionRunResult } from "./connections";
 
 // ---------------------------------------------------------------------------
 // Session state
@@ -91,13 +100,31 @@ export interface VoiceErrorEvent {
   readonly message: string;
 }
 
+/**
+ * Result of an `ingest.scan_mailbox` voice intent (A67 → the ingestion
+ * orchestrator, ADR-023 §7). Carried on the voice session so "scan my
+ * Gmail" spoken aloud surfaces the exact same run view the `/connections`
+ * text path uses. `run` is the `IngestionRunResult` JSON (`snake_case`,
+ * per `lib/connections.ts` — a nested foreign shape, not re-cased here).
+ *
+ * **Integration point:** E3's `WS /voice/session` handler must emit this
+ * text frame (`{ "type": "ingestion_run", "run": <IngestionRunResult> }`)
+ * once A67's intent + the orchestrator call are wired. Until then this
+ * parses correctly but is never received.
+ */
+export interface IngestionRunEvent {
+  readonly type: "ingestion_run";
+  readonly run: IngestionRunResult;
+}
+
 export type VoiceServerEvent =
   | SessionStateEvent
   | TranscriptPartialEvent
   | TranscriptFinalEvent
   | ConfirmationPromptEvent
   | ResponseAudioEvent
-  | VoiceErrorEvent;
+  | VoiceErrorEvent
+  | IngestionRunEvent;
 
 // ---------------------------------------------------------------------------
 // Parsing — every frame arrives as untyped JSON off the wire; this is the
@@ -180,6 +207,11 @@ export function parseVoiceServerEvent(raw: unknown): VoiceServerEvent | null {
     case "error": {
       if (typeof raw.code !== "string" || typeof raw.message !== "string") return null;
       return { type: "error", code: raw.code, message: raw.message };
+    }
+    case "ingestion_run": {
+      const run = parseIngestionRunResult(raw.run);
+      if (run === null) return null;
+      return { type: "ingestion_run", run };
     }
     default:
       return null;

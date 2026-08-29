@@ -74,3 +74,44 @@ class RegionOutOfBounds(PersistenceError):
         self.region = region
         self.detail = detail
         super().__init__(f"region locator {region!r} out of bounds: {detail}")
+
+
+# ---------------------------------------------------------------------------
+# Ingestion-connector persistence (Phase 14.5, ADR-023 §6)
+# ---------------------------------------------------------------------------
+#
+# `contracts.errors.IngestionError` and its subclasses are the CTO-frozen,
+# cross-role conditions the *orchestrator* converts to `ConnectorFailure`
+# run data. The two below are local to E1's `oauth_credential_store` /
+# `oauth_pending_store` implementations — a mutation aimed at a credential
+# row that is not there, or a CSRF `state` collision — internal defects a
+# caller up the stack is not expected to recover from, so they live here
+# (same precedent as `RawPayloadNotFound` vs. the frozen taxonomy).
+
+
+class OAuthCredentialNotFound(PersistenceError):
+    """Raised by `FirestoreOAuthCredentialStore.mark_revoked` /
+    `touch_last_scan` when no `oauth_credentials` document exists for the
+    `(provider, principal)` pair. `get` returns `None` for the same
+    condition — these two are mutations of an existing row, so a missing
+    row is a caller bug, not a normal outcome, and is never silently
+    turned into an insert."""
+
+    def __init__(self, *, provider: str, principal: str) -> None:
+        self.provider = provider
+        self.principal = principal
+        super().__init__(f"no oauth_credentials record for {provider!r}:{principal!r}")
+
+
+class OAuthPendingConflict(PersistenceError):
+    """Raised by `FirestoreOAuthPendingStore.put_pending` when a record
+    already exists for the given CSRF `state`. The `state` is a
+    high-entropy single-use nonce the consent-start route mints fresh per
+    attempt, so a collision means either a programming error (reused
+    `state`) or a replayed consent-start request — never overwritten in
+    place, since the existing record's `code_verifier` may be mid-flight
+    for a legitimate callback."""
+
+    def __init__(self, *, state: str) -> None:
+        self.state = state
+        super().__init__(f"oauth_pending record already exists for state {state!r}")

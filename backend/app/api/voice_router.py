@@ -66,22 +66,28 @@ from __future__ import annotations
 import asyncio
 import base64
 import json
+import threading
 import uuid
-from datetime import UTC, datetime
+from collections.abc import Callable
+from datetime import UTC, datetime, timedelta
 from typing import Annotated, Any
 
 import structlog
 from contracts.actions import IdempotencyKey
 from contracts.graph_types import LiteracyMode, NodeId, Person
+from contracts.ingestion import IngestionRequest, IngestionSourceKind, OAuthProvider
 from fastapi import APIRouter, Depends, HTTPException, WebSocket, WebSocketDisconnect, status
 from google.cloud import firestore
 from pydantic import BaseModel
 
+from app.adapters.secret_manager import SecretManagerAdapter
 from app.agents.intake.entity_resolution import EntityResolutionAgent
 from app.agents.voice.confirmation_agent import ConfirmationAgent
 from app.agents.voice.language_script_identifier_agent import LanguageScriptIdentifierAgent
 from app.agents.voice.normalisation_agent import NormalisationAgent
 from app.agents.voice.voice_intent_classifier_agent import VoiceIntentClassifierAgent
+from app.api.ingest_router import DEMO_HOUSEHOLD_ID, build_ingestion_orchestrator
+from app.api.oauth_router import get_credential_store, get_secret_reader
 from app.arbitration.approval_gate import ApprovalGate
 from app.audit.audit_log import FirestoreAuditLog
 from app.graph.reader import FirestoreGraphReader
@@ -89,14 +95,16 @@ from app.graph.writer import FirestoreGraphWriter
 from app.persistence.firestore_client import create_firestore_client
 from app.persistence.firestore_store import FirestoreGraphStore
 from app.persistence.idempotency_store import FirestoreIdempotencyStore
+from app.persistence.oauth_credential_store import FirestoreOAuthCredentialStore
 from app.persistence.raw_payload_store import RawPayloadStore, create_local_filesystem_payload_store
+from app.pipelines.ingestion_orchestrator import IngestionOrchestrator
 from app.reasoning.gemini_client import GeminiClient
 from app.reasoning.model_router import ModelRouter
 from app.settings import Settings, get_settings
 from app.tools.voice_profile_tools import LanguageProfileTool, PersonNotFound, VoiceprintEnrollmentTool
 
 from ..voice.session_manager import TurnRequest, VoiceSessionManager
-from ..voice.session_types import TurnResult
+from ..voice.session_types import TurnResult, VoiceRoutingCallbacks
 from ..voice.speaker_identification import SpeakerIdentificationAgent
 from ..voice.speech_recognition_handler import SpeechRecognitionHandler
 from ..voice.tts_client import VertexTtsClient
@@ -179,17 +187,113 @@ def get_approval_gate(
     return ApprovalGate(graph_reader=reader, graph_writer=writer, audit_log=audit_log)
 
 
+def get_ingestion_orchestrator_for_voice(
+    settings: Annotated[Settings, Depends(get_settings)],
+    client: Annotated[firestore.Client, Depends(get_firestore_client)],
+    graph_store: Annotated[FirestoreGraphStore, Depends(get_graph_store)],
+    payload_store: Annotated[RawPayloadStore, Depends(get_payload_store)],
+    reader: Annotated[SecretManagerAdapter, Depends(get_secret_reader)],
+    credential_store: Annotated[FirestoreOAuthCredentialStore, Depends(get_credential_store)],
+) -> IngestionOrchestrator:
+    """The same real `IngestionOrchestrator` the `POST /ingest` route
+    builds (ADR-023 §6) — reused here so a spoken "scan my Gmail" runs the
+    identical wire (Gate 14.5)."""
+    return build_ingestion_orchestrator(
+        settings=settings,
+        firestore_client=client,
+        graph_store=graph_store,
+        payload_store=payload_store,
+        reader=reader,
+        credential_store=credential_store,
+    )
+
+
+def _voice_scan_request(
+    turn_id: str, credential_store: FirestoreOAuthCredentialStore
+) -> IngestionRequest | None:
+    """Build the `IngestionRequest` for a spoken "scan my Gmail and
+    Outlook" (ADR-023 §7). Single-principal per run (ADR-022): the
+    connected account's principal, scanning whichever of Gmail / Outlook
+    that principal actually has an active grant for. `None` when nothing
+    is connected — the caller logs it and does not start a run."""
+    actives = credential_store.list_active()
+    if not actives:
+        return None
+    principal = actives[0].principal
+    providers = {c.provider for c in actives if c.principal == principal}
+    sources: list[IngestionSourceKind] = []
+    if OAuthProvider.GOOGLE in providers:
+        sources.append(IngestionSourceKind.GMAIL)
+    if OAuthProvider.MICROSOFT in providers:
+        sources.append(IngestionSourceKind.OUTLOOK)
+    if not sources:
+        return None
+    return IngestionRequest(
+        idempotency_scope=f"voice-turn:{turn_id}",
+        triggered_by="voice",
+        household_id=DEMO_HOUSEHOLD_ID,
+        sources=tuple(sources),
+        window=timedelta(hours=24),
+        principal=principal,
+    )
+
+
+def _make_scan_mailbox_callback(
+    orchestrator: IngestionOrchestrator, credential_store: FirestoreOAuthCredentialStore
+) -> Callable[[str], None]:
+    """The `VoiceRoutingCallbacks.on_scan_mailbox` hand-off (ADR-023 §7):
+    builds the request and runs the orchestrator on a daemon thread so the
+    voice turn is not blocked for the length of a mailbox scan. A failure
+    is logged in full — never a fabricated success (invariant #7). The
+    resulting nodes surface to the frontend through `/graph/stream`, the
+    same channel the text path uses."""
+
+    def on_scan_mailbox(turn_id: str) -> None:
+        request = _voice_scan_request(turn_id, credential_store)
+        if request is None:
+            logger.info("api.voice.scan_mailbox_no_connected_account", turn_id=turn_id)
+            return
+
+        def _run() -> None:
+            try:
+                result = orchestrator.run(request)
+                logger.info(
+                    "api.voice.scan_mailbox_complete",
+                    turn_id=turn_id,
+                    run_id=result.run_id,
+                    documents_seen=result.documents_seen,
+                    new_node_count=result.new_node_count,
+                    counts=result.counts,
+                    connector_failures=len(result.connector_failures),
+                )
+            except Exception:  # noqa: BLE001 — background task boundary; logged in full, never a fake success
+                logger.exception("api.voice.scan_mailbox_failed", turn_id=turn_id)
+
+        threading.Thread(target=_run, name=f"voice-scan-{turn_id[:12]}", daemon=True).start()
+
+    return on_scan_mailbox
+
+
 def get_voice_session_manager(
     gemini_client: Annotated[GeminiClient, Depends(get_gemini_client)],
     tts_client: Annotated[VertexTtsClient, Depends(get_tts_client)],
     approval_gate: Annotated[ApprovalGate, Depends(get_approval_gate)],
     graph_writer: Annotated[FirestoreGraphWriter, Depends(get_graph_writer)],
     payload_store: Annotated[RawPayloadStore, Depends(get_payload_store)],
+    ingestion_orchestrator: Annotated[IngestionOrchestrator, Depends(get_ingestion_orchestrator_for_voice)],
+    credential_store: Annotated[FirestoreOAuthCredentialStore, Depends(get_credential_store)],
 ) -> VoiceSessionManager:
     """Builds one real `VoiceSessionManager` for one WebSocket connection
     — a fresh instance per session (never a module-level singleton), so
     each household member's session has its own, isolated turn-taking and
-    confirmation state."""
+    confirmation state.
+
+    `callbacks.on_scan_mailbox` is wired to the real ingestion
+    orchestrator (ADR-023 §7): a spoken "scan my Gmail" from an
+    identified, enrolled speaker runs the identical wire as `POST
+    /ingest`. Every other callback stays a logged no-op this phase — the
+    R-tier gating in `routing.py` is what Gate 13 tests, not the
+    downstream subsystem call signatures."""
     return VoiceSessionManager(
         speech_recognition=SpeechRecognitionHandler(gemini_client=gemini_client),
         speaker_identification=SpeakerIdentificationAgent(gemini_client=gemini_client),
@@ -202,6 +306,9 @@ def get_voice_session_manager(
         approval_gate=approval_gate,
         graph_writer=graph_writer,
         raw_payload_store=payload_store,
+        callbacks=VoiceRoutingCallbacks(
+            on_scan_mailbox=_make_scan_mailbox_callback(ingestion_orchestrator, credential_store)
+        ),
     )
 
 
@@ -371,9 +478,7 @@ async def voice_session(
     try:
         while True:
             try:
-                message = await asyncio.wait_for(
-                    websocket.receive(), timeout=_END_OF_TURN_SILENCE_SECONDS
-                )
+                message = await asyncio.wait_for(websocket.receive(), timeout=_END_OF_TURN_SILENCE_SECONDS)
             except TimeoutError:
                 if has_pending_audio:
                     await _process_one_turn(

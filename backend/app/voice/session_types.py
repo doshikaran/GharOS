@@ -91,6 +91,20 @@ class VoiceRoutingCallbacks:
     on_correction: VoiceIntentCallback | None = None
     on_decision_trigger: VoiceIntentCallback | None = None
     on_command_r0_r1: VoiceIntentCallback | None = None
+    on_scan_mailbox: Callable[[str], None] | None = None
+    """Phase 14.5 / ADR-023 §7 — the hand-off for A67's
+    `ingest.scan_mailbox` intent, a read-only "scan my Gmail and Outlook"
+    ingestion trigger. Deliberately typed `Callable[[str], None]`, NOT
+    `VoiceIntentCallback`: it is structurally distinct from every
+    action-routing field above and receives only the `turn_id` (a
+    `str`), which is all E3's orchestrator wiring needs to build
+    `IngestionRequest(sources=(GMAIL, OUTLOOK), window=24h,
+    principal=<the household's single connected principal>,
+    triggered_by="voice", idempotency_scope=f"voice-turn:{turn_id}")`.
+    This intent carries no `RiskTier` and must never reach
+    `VoiceRouter._route_gated`, `ApprovalGate`, or any tool — invariant
+    #8 holds because nothing on this path can reach a T4/T5/T6 tool.
+    `None` (a logged no-op) until E3 wires the ingestion orchestrator."""
 
 
 @dataclass(frozen=True, slots=True)
@@ -106,12 +120,21 @@ class VoiceRoutingOutcome:
         "approval_pending",
         "approved_and_executed",
         "refused_unknown_speaker",
+        "declined_needs_identification",
     ]
     """`"refused_unknown_speaker"` (spec §15.11 A66's own failure mode:
     "unknown speaker -> restrict to R0/R1 actions only; never accept an
     approval from an unidentified voice") is reachable only for `risk_
     tier` at or above R2 with no identified speaker — see `routing.
-    VoiceRouter.check_speaker_authorization`."""
+    VoiceRouter.check_speaker_authorization`.
+
+    `"declined_needs_identification"` (Phase 14.5, ADR-023 §7 addendum) is
+    the identity gate on `VoiceIntentClass.INGEST_SCAN_MAILBOX`: a mailbox
+    scan reads the household's private Gmail/Outlook, so it is treated as
+    an identity-gated read — an unidentified / unenrolled speaker is
+    declined and asked to identify, and NO ingestion run is started. The
+    intent carries no `RiskTier`, so `check_speaker_authorization`'s R2
+    floor never fires for it; this branch is the explicit gate instead."""
     risk_tier: RiskTier | None
     approval_request_id: NodeId | None
     note: str

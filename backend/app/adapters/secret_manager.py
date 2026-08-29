@@ -29,7 +29,12 @@ from __future__ import annotations
 
 from typing import Any, Protocol
 
-from google.api_core.exceptions import GoogleAPICallError, NotFound
+from google.api_core.exceptions import (
+    AlreadyExists,
+    FailedPrecondition,
+    GoogleAPICallError,
+    NotFound,
+)
 from google.cloud import secretmanager
 
 from app.settings import Settings
@@ -209,3 +214,149 @@ class SecretManagerAdapter:
             raise SecretManagerUnavailable(secret_id=secret_id, version=version, cause=str(exc)) from exc
         payload: bytes = response.payload.data
         return payload.decode("utf-8")
+
+    def get_secret_by_resource_name(self, resource_name: str) -> str:
+        """Fetches and decodes a secret version addressed by its full
+        resource name (`projects/<p>/secrets/<s>/versions/<v|latest>`).
+
+        This is what a connector calls with `OAuthCredential.secret_ref`
+        (ADR-022 §2): the reference is stored verbatim on the credential
+        record, so the connector resolves it as-is rather than
+        re-deriving a path from parts. Uses the same `access_secret_
+        version` call as `get_secret` — no wider client surface needed.
+
+        Raises:
+            SecretNotFoundError: no such secret/version exists.
+            SecretManagerUnavailable: the API call failed for any other
+                reason.
+        """
+        try:
+            response = self._client.access_secret_version(request={"name": resource_name})
+        except NotFound as exc:
+            raise SecretNotFoundError(secret_id=resource_name, version="(embedded)") from exc
+        except GoogleAPICallError as exc:
+            raise SecretManagerUnavailable(
+                secret_id=resource_name, version="(embedded)", cause=str(exc)
+            ) from exc
+        payload: bytes = response.payload.data
+        return payload.decode("utf-8")
+
+
+class SecretManagerWriteClient(Protocol):
+    """Structural shape of the `SecretManagerServiceClient` methods
+    `SecretManagerWriteAdapter` uses to *create* a secret, *add a version*
+    to it, and *destroy* versions — kept separate from the read-only
+    `SecretManagerClient` so the existing read adapter and its tests are
+    untouched (gharos-standards: narrowest interface actually used).
+
+    The real `SecretManagerServiceClient` satisfies this structurally; a
+    test double implements the same five methods.
+    """
+
+    def secret_path(self, project: str, secret: str) -> str: ...
+
+    def create_secret(self, request: dict[str, Any]) -> Any: ...
+
+    def add_secret_version(self, request: dict[str, Any]) -> Any: ...
+
+    def list_secret_versions(self, request: dict[str, Any]) -> Any: ...
+
+    def destroy_secret_version(self, request: dict[str, Any]) -> Any: ...
+
+
+class SecretManagerWriteAdapter:
+    """Creates / rotates / destroys secret *values* for the OAuth
+    connection surface (ADR-022 §2, §5): the callback route writes a
+    connected account's refresh token here; the disconnect route destroys
+    every live version of it.
+
+    A failed call raises a `SecretManagerError` subclass — it never
+    reports a fabricated success (gharos-standards non-negotiable #7).
+    """
+
+    def __init__(self, client: SecretManagerWriteClient, *, project_id: str) -> None:
+        if not project_id:
+            raise SecretNotConfigured
+        self._client = client
+        self._project_id = project_id
+
+    @classmethod
+    def from_settings(
+        cls, settings: Settings, client: SecretManagerWriteClient | None = None
+    ) -> SecretManagerWriteAdapter:
+        return cls(
+            client or create_secret_manager_client(),
+            project_id=settings.gcp_project_id,
+        )
+
+    def put_secret(self, secret_id: str, payload: str) -> str:
+        """Ensures secret `secret_id` exists, adds `payload` as a new
+        enabled version, and returns that version's full resource name
+        (written verbatim onto `OAuthCredential.secret_ref`).
+
+        Idempotent w.r.t. the secret container: a re-connect of the same
+        account re-uses the existing secret and simply adds a new
+        version (the old one is destroyed separately on disconnect).
+
+        Raises:
+            SecretManagerUnavailable: any create/add-version call failed
+                for a reason other than "the secret already exists".
+        """
+        parent = f"projects/{self._project_id}"
+        try:
+            self._client.create_secret(
+                request={
+                    "parent": parent,
+                    "secret_id": secret_id,
+                    "secret": {"replication": {"automatic": {}}},
+                }
+            )
+        except AlreadyExists:
+            pass
+        except GoogleAPICallError as exc:
+            raise SecretManagerUnavailable(secret_id=secret_id, version="(new)", cause=str(exc)) from exc
+
+        try:
+            version = self._client.add_secret_version(
+                request={
+                    "parent": self._client.secret_path(self._project_id, secret_id),
+                    "payload": {"data": payload.encode("utf-8")},
+                }
+            )
+        except GoogleAPICallError as exc:
+            raise SecretManagerUnavailable(secret_id=secret_id, version="(new)", cause=str(exc)) from exc
+        return str(version.name)
+
+    def destroy_all_versions(self, secret_id: str) -> int:
+        """Destroys every not-already-destroyed version of `secret_id`
+        (disconnect, ADR-022 §5). Returns the number destroyed. Missing
+        secret / already-destroyed versions are not errors — the goal
+        state is "no live credential", and that is reached either way.
+
+        Raises:
+            SecretManagerUnavailable: a `destroy` call failed for a
+                reason other than the version already being gone.
+        """
+        secret_path = self._client.secret_path(self._project_id, secret_id)
+        try:
+            versions = list(self._client.list_secret_versions(request={"parent": secret_path}))
+        except NotFound:
+            return 0
+        except GoogleAPICallError as exc:
+            raise SecretManagerUnavailable(secret_id=secret_id, version="(all)", cause=str(exc)) from exc
+
+        destroyed = 0
+        for version in versions:
+            state = getattr(getattr(version, "state", None), "name", str(getattr(version, "state", "")))
+            if state == "DESTROYED":
+                continue
+            try:
+                self._client.destroy_secret_version(request={"name": str(version.name)})
+                destroyed += 1
+            except (NotFound, FailedPrecondition):
+                continue
+            except GoogleAPICallError as exc:
+                raise SecretManagerUnavailable(
+                    secret_id=secret_id, version=str(version.name), cause=str(exc)
+                ) from exc
+        return destroyed

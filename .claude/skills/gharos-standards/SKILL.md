@@ -125,7 +125,7 @@ An engineer may not edit files outside their owned directories (see each role's 
 | `cto` | `contracts/`, `docs/adr/`, `README.md`, `PHASES.md`, `verification.md`, root config |
 | `e1` | `backend/app/graph/`, `persistence/`, `audit/`, `solvers/`, `migrations/`, `seeds/` |
 | `e2` | `backend/app/agents/`, `reasoning/`, `prompts/` |
-| `e3` | `backend/app/tools/`, `adapters/`, `events/`, `voice/`, `infra/`, `scripts/` |
+| `e3` | `backend/app/tools/`, `adapters/`, `events/`, `voice/`, `pipelines/` (Phase 14.5, ADR-023), `infra/`, `scripts/` |
 | `e4` | `frontend/` |
 
 ## Phase gating — the operator's standing rule for this project

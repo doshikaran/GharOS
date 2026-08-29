@@ -110,10 +110,37 @@ class Settings(BaseSettings):
     # otherwise-idle connection. Seconds.
     sse_heartbeat_interval_seconds: float = 30.0
 
+    # OAuth ingestion connectors (Phase 14.5, ADR-022) — the consent-start
+    # and callback routes (`app.api.oauth_router`) and the Gmail / Outlook
+    # connectors. Client *ids* are plain config; client *secrets* are
+    # themselves Secret Manager secret ids, read at startup, never in
+    # `.env` in any committed form. `oauth_redirect_base_url` is the
+    # public base of `gharos-api` (e.g. `https://gharos-api-xxxx.a.run.app`
+    # or `http://localhost:8000` for local dev) — the callback URL is
+    # `f"{oauth_redirect_base_url}/oauth/{provider}/callback"` and must be
+    # registered verbatim on both providers' app registrations.
+    # `frontend_connections_url` is where the callback 302s the browser
+    # back to after writing (or failing to write) a connection.
+    google_oauth_client_id: str = ""
+    google_oauth_client_secret_ref: str = ""
+    microsoft_oauth_client_id: str = ""
+    microsoft_oauth_client_secret_ref: str = ""
+    microsoft_oauth_tenant: str = "consumers"
+    oauth_redirect_base_url: str = "http://localhost:8000"
+    frontend_connections_url: str = "http://localhost:3000/connections"
+
     # App
     env: str = "local"
     log_level: str = "INFO"
     budget_alert_threshold_usd: float = 25.0
+
+    @property
+    def google_oauth_redirect_uri(self) -> str:
+        return f"{self.oauth_redirect_base_url.rstrip('/')}/oauth/google/callback"
+
+    @property
+    def microsoft_oauth_redirect_uri(self) -> str:
+        return f"{self.oauth_redirect_base_url.rstrip('/')}/oauth/microsoft/callback"
 
     @property
     def cors_allowed_origins_list(self) -> list[str]:

@@ -107,6 +107,24 @@ def _unknown_speaker_refusal(intent: VoiceIntentResult) -> VoiceRoutingOutcome:
     )
 
 
+# ADR-023 §7 addendum (Phase 14.5): `ingest.scan_mailbox` carries no RiskTier,
+# so the R2 floor in `check_speaker_authorization` never gates it — but a
+# mailbox scan reads the household's private Gmail/Outlook, so it is gated
+# here as an identity-gated read: an unidentified / unenrolled speaker is
+# declined and asked to identify, and no ingestion run is started.
+def _scan_needs_identification_refusal(intent: VoiceIntentResult) -> VoiceRoutingOutcome:
+    return VoiceRoutingOutcome(
+        kind="declined_needs_identification",
+        risk_tier=None,
+        approval_request_id=None,
+        note=(
+            "ingest.scan_mailbox requested by an unidentified speaker — declined; a mailbox scan "
+            "reads the household's private Gmail/Outlook and is gated on an identified, enrolled "
+            "speaker (identity-gated read, ADR-023 §7 addendum). No ingestion run started."
+        ),
+    )
+
+
 class VoiceRouter:
     """Owns exactly one thing: turning a classified `VoiceIntentResult`
     (plus an optional `ConfirmationResult`) into the real, gated outcome
@@ -135,14 +153,26 @@ class VoiceRouter:
             and `intent.risk_tier` is R2 or above. The caller
             (`session_manager.py`) must stop right there — never offer a
             read-back/confirmation, never reach the gated path below.
+            A `VoiceRoutingOutcome(kind="declined_needs_identification")`
+            when the intent is `INGEST_SCAN_MAILBOX` and the speaker is
+            unidentified — a mailbox scan is an identity-gated read of the
+            household's private mail (ADR-023 §7 addendum), even though
+            the intent carries no risk tier.
             `None` when the turn may proceed normally: a known speaker,
-            or an intent carrying no risk tier at all (capture/intention/
-            query/correction), or a `COMMAND` at R0/R1 — spec's own line
-            restricts *to* R0/R1 for an unidentified speaker, it does not
-            block everything.
+            or a non-scan intent carrying no risk tier at all (capture/
+            intention/query/correction), or a `COMMAND` at R0/R1 — spec's
+            own line restricts *to* R0/R1 for an unidentified speaker, it
+            does not block everything.
         """
         if speaker_person_id is not None:
             return None
+        if intent.intent is VoiceIntentClass.INGEST_SCAN_MAILBOX:
+            # Identity-gated read (ADR-023 §7 addendum): an unidentified /
+            # unenrolled speaker may not trigger a scan of the household's
+            # private mailbox. `speaker_person_id is None` here means A66
+            # matched no enrolled voiceprint.
+            logger.warning("voice.routing.scan_mailbox_declined_unidentified_speaker", turn_id=intent.turn_id)
+            return _scan_needs_identification_refusal(intent)
         if intent.risk_tier is None:
             return None
         if not tier_at_least(intent.risk_tier, _UNKNOWN_SPEAKER_GATE_FLOOR):
@@ -176,6 +206,26 @@ class VoiceRouter:
         refusal = self.check_speaker_authorization(intent, speaker_person_id=speaker_person_id)
         if refusal is not None:
             return refusal
+
+        if intent.intent is VoiceIntentClass.INGEST_SCAN_MAILBOX:
+            # ADR-023 §7: a read-only "scan my Gmail and Outlook" trigger.
+            # Reached only for an identified, enrolled speaker (the
+            # unidentified case was declined in `check_speaker_
+            # authorization` above). Hands off to the ingestion
+            # orchestrator via `on_scan_mailbox(turn_id)` — never a tool,
+            # never the Approval Gate, carries no RiskTier. Invariant #8
+            # holds: nothing on this path can reach a T4/T5/T6 tool.
+            scan_callback = self._callbacks.on_scan_mailbox
+            if scan_callback is None:
+                logger.info("voice.routing.no_scan_mailbox_callback_wired", turn_id=intent.turn_id)
+            else:
+                scan_callback(intent.turn_id)
+            return VoiceRoutingOutcome(
+                kind="handed_off",
+                risk_tier=None,
+                approval_request_id=None,
+                note="ingest.scan_mailbox - read-only ingestion trigger, no action (ADR-023)",
+            )
 
         if intent.intent is VoiceIntentClass.DECISION_TRIGGER:
             self._invoke_callback(self._callbacks.on_decision_trigger, intent)

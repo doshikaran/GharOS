@@ -49,8 +49,10 @@ ADK orchestration, all agent implementations, Gemini integration, prompts, model
 **Owns:** `backend/app/agents/`, `backend/app/reasoning/`, `backend/app/prompts/`
 
 ### E3 — INTEGRATIONS & ACTIONS — `@e3`
-Tools, permission enforcement, ingestion adapters, document-type registry, Pub/Sub, Cloud Run and Scheduler infra, external APIs, voice/telephony, deployment.
-**Owns:** `backend/app/tools/`, `backend/app/adapters/`, `backend/app/events/`, `backend/app/voice/`, `infra/`, `scripts/`
+Tools, permission enforcement, ingestion adapters, document-type registry, ingestion connectors + the end-to-end orchestrator, OAuth, Pub/Sub, Cloud Run and Scheduler infra, external APIs, voice/telephony, deployment.
+**Owns:** `backend/app/tools/`, `backend/app/adapters/`, `backend/app/events/`, `backend/app/voice/`, `backend/app/pipelines/` (added Phase 14.5, ADR-023), `infra/`, `scripts/`
+
+`backend/app/api/` has no single owner — each router file is owned by the owner of the surface it exposes (`graph_router.py` → E1, `debug.py` → E2, `pubsub_receiver.py` / `voice_router.py` / `ingest_router.py` / `oauth_router.py` → E3). `main.py` router-registration lines are made by that router's owner.
 
 ### E4 — FRONTEND & EXPERIENCE — `@e4`
 Next.js app, design system, graph visualisation, approval UI, council and ledger surfaces, voice UI, demo surfaces.
@@ -1125,11 +1127,12 @@ Enforce in review that **no two council agents share both tool access and object
 - [ ] The same works for a real Outlook account via Microsoft Graph
 - [ ] "Scan my Gmail" spoken aloud triggers the identical path (A67 → orchestrator), routed to ingestion, never to an action
 - [ ] A dragged-in receipt image and a picked Drive PDF both reach the graph through the one `POST /ingest` wire
-- [ ] Re-scanning the same 24-hour window writes zero new nodes (idempotent per content hash)
-- [ ] OAuth tokens live in Secret Manager, never in Firestore, never passed to a reasoning agent — proven by test
-- [ ] `IngestionRunResult` reports every per-document outcome; a failed extraction is a visible failure, never a silent drop
+- [ ] Re-scanning the same 24-hour window writes zero new nodes (idempotent per content hash — `contracts.ingestion.compute_content_hash`, ADR-023 §3); the re-run's `IngestionRunResult` shows every outcome `duplicate_skipped` and `new_node_ids` empty
+- [ ] OAuth tokens live in Secret Manager, never in Firestore, never passed to a reasoning agent — proven by test: a scan of every `oauth_credentials` document and every `AgentInput` for token-shaped material finds none, and `backend/app/agents/` has no import path to the connectors or `app.adapters.secret_manager` (AST scan, like the Phase 13 arbitration-boundary test)
+- [ ] A connector auth failure (revoked / expired 7-day test-mode token) surfaces as a visible `ConnectorFailure(is_auth_failure=True)` → reconnect prompt in the Connections surface — never a silent empty scan or a fabricated success (invariant #7)
+- [ ] `IngestionRunResult` reports every per-document outcome; a failed extraction is a visible `extraction_failed`, a hard-constraint-ambiguous entity is a visible `entity_resolution_escalated`, never a silent drop
 - [ ] Provenance on every node the wire produces (invariant 3): SOURCE_DOCUMENT → extracted fields → nodes, queryable end to end
-- [ ] **DEBT-009 struck** — a genuine raw-document-to-graph orchestrator exists and runs live
+- [ ] **DEBT-009 struck** — a genuine raw-document-to-graph orchestrator exists and runs live, with a test proving one real raw document produces a real graph-written node; **DEBT-004** condition (a) satisfied if a register is run through the wire, condition (b) noted still-open
 
 **CTO review:** read the graph directly and confirm a real message actually landed as a real node — do not trust the run report. Confirm the OAuth test-mode limitation and the "no local-filesystem / Photos / WhatsApp / iMessage" boundary are stated plainly in the submission write-up, not implied away.
 

@@ -93,7 +93,9 @@ Original entry, for the record:
 
 ---
 
-### DEBT-009 — no end-to-end raw-document-to-graph orchestrator exists for any node type
+### DEBT-009 — no end-to-end raw-document-to-graph orchestrator exists for any node type — STRUCK 2026-08-30 (Phase 14.5)
+
+**STRUCK:** 2026-08-30. Phase 14.5 built `backend/app/pipelines/ingestion_orchestrator.py` — a real `IngestionOrchestrator.run(IngestionRequest) -> IngestionRunResult` sequencing per-source fetch → normalise → `compute_content_hash` dedupe → raw-payload store → **audit append** → A2 Intake Router → A3/A3b/A3c extraction → A5 entity resolution → registered `ExtractionStrategy.map_to_graph` → `GraphWriter`, behind one `POST /ingest` entry. The repayment condition ("a real orchestrator demonstrated against at least one real raw-document-to-graph-write flow live, end to end, with a test proving it") is met by `backend/tests/test_ingestion_orchestrator.py::test_one_real_document_produces_provenance_linked_graph_nodes` — a real message body through the full pipeline against the Firestore emulator, asserting `str(vendor.provenance.source_ref.source_document_id) == outcome.source_document_id` (the written node traces to the SOURCE_DOCUMENT the wire created) and that an audit record was written first. Verified independently by the CTO at the Gate 14.5 review (see `verification.md`). The *live-against-a-real-mailbox* run is a separate Gate 14.5 item pending operator OAuth-client setup; DEBT-009's own condition was the orchestrator + a proving test, both of which now exist. DEBT-004 condition (a) is advanced by this (the orchestrator exists) but not fully satisfied — see that entry.
 
 **Opened:** Phase 7, 2026-08-27
 **Decision (operator-delegated to CTO), 2026-08-27:** repayment phase assigned — **Phase 15 (Demo Hardening)**, not sooner. The demo will be built around a real orchestrator by Phase 15, not permanently scoped around pre-staged documents as a design choice — but Phases 8-14 proceed on the existing staged-testing discipline unchanged, since building the orchestrator now would risk the remaining phases with four days left in the submission window. This is a real, tracked commitment, not a deferral-by-silence: Phase 15's own gate must not sign off without this repaid.
@@ -196,7 +198,9 @@ Organic hallucination reached the target (0%) and one of the two control documen
 
 ### DEBT-004 — no graph node shape for per-day attendance marks — SUBSTANTIALLY REPAID, not struck, 2026-08-27
 
-**Opened:** Phase 3, 2026-08-23. **Updated:** Phase 7, 2026-08-27.
+**Opened:** Phase 3, 2026-08-23. **Updated:** Phase 7, 2026-08-27; Phase 14.5, 2026-08-30.
+
+**Update, Phase 14.5 (2026-08-30):** condition (a) of the repayment — "a dedicated end-to-end ingestion orchestrator is built" — is now met (DEBT-009 struck; `backend/app/pipelines/ingestion_orchestrator.py`). What is still missing for DEBT-004 specifically: an actual attendance register run *through that wire* to produce a real, graph-written `AttendanceRecord` (Phase 14.5's orchestrator integration test used a receipt, not a register). Remaining work is small — feed a register image through `POST /ingest` in Phase 15's demo-seed pass (or a targeted follow-up) and assert an `AttendanceRecord` node with provenance. Condition (b) (a standalone writer step) is no longer needed given (a) exists.
 **Owner:** cto (contract, done) + e1 (persistence wiring, done) + e2 (consumption via A34, done; production write-path, still open)
 **Repayment phase:** Phase 7 (Household Ledger — A34 Staff Payroll Agent).
 

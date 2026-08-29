@@ -141,3 +141,96 @@ class RegistryGap(GharOSError):
     def __init__(self, *, detection_summary: str) -> None:
         self.detection_summary = detection_summary
         super().__init__(f"registry gap: {detection_summary}")
+
+
+# ---------------------------------------------------------------------------
+# Ingestion-connector conditions (Phase 14.5, contracts/ingestion.py)
+# ---------------------------------------------------------------------------
+
+
+class IngestionError(GharOSError):
+    """Base for the ingestion-connector family. The first deliberately
+    *grouped* subtree in this module (every other error extends
+    `GharOSError` directly): the ingestion orchestrator needs a single
+    `except IngestionError` at its per-source boundary to convert any
+    connector-precondition failure into a
+    `contracts.ingestion.ConnectorFailure` on the run result, without
+    catching unrelated `GharOSError`s (spec §19.3: "failures reported,
+    not hidden" — but reported as run data, not raised past the
+    orchestrator).
+
+    Per ADR-002: these are RAISED (not modelled as a Result) because they
+    are caller-setup preconditions — an account that was never connected,
+    a grant that is too narrow, a token the provider revoked. A run's
+    per-document outcomes stay on `IngestionRunResult`; these are the
+    conditions that stop a whole connector before any document is seen.
+    """
+
+
+class OAuthConnectionRequired(IngestionError):
+    """A scanning connector was asked to fetch for a `(provider,
+    principal)` with no stored, unrevoked `OAuthCredential`. The
+    household must connect the account first (spec §17). Never falls back
+    to an unauthenticated fetch or a fabricated empty result (safety
+    invariant #7's ingestion analogue)."""
+
+    def __init__(self, *, provider: str, principal: str) -> None:
+        self.provider = provider
+        self.principal = principal
+        super().__init__(f"no connected {provider} account for principal '{principal}' — connect it first")
+
+
+class OAuthScopeInsufficient(IngestionError):
+    """A stored `OAuthCredential` exists for the `(provider, principal)`
+    but its `granted_scopes` do not include a scope the requested fetch
+    needs (e.g. a Drive-only grant asked to read Gmail). The caller must
+    re-run consent for the wider scope — never a partial or degraded
+    read."""
+
+    def __init__(
+        self,
+        *,
+        provider: str,
+        principal: str,
+        missing_scopes: tuple[str, ...],
+        granted_scopes: tuple[str, ...],
+    ) -> None:
+        self.provider = provider
+        self.principal = principal
+        self.missing_scopes = missing_scopes
+        self.granted_scopes = granted_scopes
+        super().__init__(
+            f"{provider} grant for '{principal}' is missing scope(s) {missing_scopes}; "
+            f"granted: {granted_scopes}"
+        )
+
+
+class OAuthTokenRefreshFailed(IngestionError):
+    """Exchanging the stored refresh token for an access token failed —
+    the user revoked the grant at the provider, the 7-day OAuth-test-mode
+    refresh token expired (ADR-022), or the provider's token endpoint is
+    down. Surfaces as a `ConnectorFailure(is_auth_failure=True)` and
+    prompts a reconnect; never a fabricated success or a silent skip."""
+
+    def __init__(self, *, provider: str, principal: str, reason: str) -> None:
+        self.provider = provider
+        self.principal = principal
+        self.reason = reason
+        super().__init__(f"{provider} token refresh failed for '{principal}': {reason}")
+
+
+class ConnectorFetchFailed(IngestionError):
+    """A non-auth failure fetching from the provider that survived the
+    connector's own retry/backoff — quota exhausted, repeated 5xx, a
+    response the connector could not parse. Surfaces as a
+    `ConnectorFailure(is_auth_failure=False)`. A partial page already
+    fetched before the failure is still returned and processed; this
+    names only the part that failed (spec §19.3: "failures reported, not
+    hidden")."""
+
+    def __init__(self, *, provider: str, principal: str, reason: str, retryable: bool) -> None:
+        self.provider = provider
+        self.principal = principal
+        self.reason = reason
+        self.retryable = retryable
+        super().__init__(f"{provider} fetch failed for '{principal}': {reason} (retryable={retryable})")

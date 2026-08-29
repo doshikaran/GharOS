@@ -3,8 +3,10 @@ Phase 13, ADR-020) — E2's `backend/app/agents/voice/`.
 
 *Responsibility:* classify one normalised, per-span-tagged voice turn into
 exactly one of spec §14.5's seven classes (`capture` / `intention` /
-`command` / `query` / `approval` / `decision_trigger` / `correction`),
-each with its own distinct downstream handling rule:
+`command` / `query` / `approval` / `decision_trigger` / `correction`) —
+or into the one Phase 14.5 addition, `ingest.scan_mailbox` (ADR-023 §7,
+a read-only "scan my Gmail and Outlook" ingestion trigger) — each with
+its own distinct downstream handling rule:
 
 | Class | Downstream handling this output enables |
 |---|---|
@@ -15,6 +17,20 @@ each with its own distinct downstream handling rule:
 | `approval` | R2/R3 — **mandatory read-back confirmation, spec §14.6** |
 | `decision_trigger` | Convenes the Council — **never resolved by voice itself** |
 | `correction` | Feeds A5 Entity Resolution's alias learning |
+| `ingest.scan_mailbox` | Routes to `on_scan_mailbox`; never a tool/gate; no `risk_tier` (ADR-023 §7) |
+
+**`ingest.scan_mailbox` is decided deterministically, independent of the
+model call** (`_is_scan_mailbox_request`, a pure function over the turn's
+own tokens — a scan/check/read verb co-occurring with a mailbox noun, or
+one of a small set of fixed multi-word phrases, English and code-mixed).
+When it matches, `classify()` returns immediately with
+`model_tier="deterministic"` and makes **no Gemini call at all** — the
+same "nothing to narrate -> no model call" discipline A68's
+`evaluate_response` and A55 already follow. The A67 prompt (v2+) also
+describes this intent so the model path agrees on any phrasing the token
+match does not cover, but the deterministic path is authoritative and
+runs first. This mirrors `_requires_confirmation`'s pure-function style:
+a real structural signal, never model discretion.
 
 **`risk_tier` is populated only for `command` (R0/R1), `approval`
 (R2/R3), and `decision_trigger`** — and for `decision_trigger` it is
@@ -49,6 +65,7 @@ AST-based proof.
 
 from __future__ import annotations
 
+import re
 import uuid
 from dataclasses import dataclass
 from datetime import UTC, datetime
@@ -67,6 +84,104 @@ AGENT_ID = AgentId("A67")
 
 _COMMAND_TIERS: frozenset[str] = frozenset({RiskTier.R0_SILENT.value, RiskTier.R1_NOTIFY.value})
 _APPROVAL_TIERS: frozenset[str] = frozenset({RiskTier.R2_APPROVE.value, RiskTier.R3_EXPLICIT_APPROVE.value})
+
+# ---------------------------------------------------------------------------
+# `ingest.scan_mailbox` — deterministic detection (ADR-023 §7)
+# ---------------------------------------------------------------------------
+
+_TOKEN_PATTERN = re.compile(r"\w+", re.UNICODE)
+
+_SCAN_VERB_TOKENS: frozenset[str] = frozenset(
+    {
+        # English
+        "scan",
+        "check",
+        "read",
+        "fetch",
+        "pull",
+        "sync",
+        "import",
+        "go",  # "go through my inbox"
+        # Romanised Hindi/Marathi imperatives
+        "padho",
+        "padh",
+        "dekho",
+        "dekh",
+        "nikaal",
+        "nikaalo",
+        "nikal",
+        "nikalo",
+    }
+)
+"""Verb tokens that, co-occurring with a mailbox noun in the same turn,
+mark a mailbox-scan request. Deliberately generous: a false positive
+triggers only a read-only ingestion run (no action, no tool, no
+approval — ADR-023 §7), while a false negative silently drops a real
+request. The A67 prompt (v2+) is the model-path backstop for phrasings
+these tokens miss."""
+
+_MAILBOX_NOUN_TOKENS: frozenset[str] = frozenset(
+    {
+        "gmail",
+        "email",
+        "emails",
+        "mail",
+        "mails",
+        "inbox",
+        "mailbox",
+        "outlook",
+        "मेल",
+        "ईमेल",
+        "इनबॉक्स",
+    }
+)
+"""Nouns that name a mailbox. `e-mail` tokenises to `e` + `mail`; `mail`
+is here, so it still matches."""
+
+_SCAN_MAILBOX_PHRASES: tuple[str, ...] = (
+    "scan last 24 hours",
+    "scan the last 24 hours",
+    "scan my last 24 hours",
+    "last 24 hours of mail",
+    "last 24 hours of email",
+    "scan karo",
+    "check karo",
+    "scan kar do",
+)
+"""Fixed multi-word phrases that mean "scan the mailbox" without fitting
+the verb+noun co-occurrence shape (e.g. a bare "scan karo" following a
+turn that already established the mailbox context, or an explicit
+"last 24 hours" window request). Matched against the space-joined,
+case-folded token stream."""
+
+
+def _is_scan_mailbox_request(raw_text: str) -> bool:
+    """Pure, deterministic test for A67's `ingest.scan_mailbox` intent —
+    the read-only "scan my Gmail and Outlook" trigger (ADR-023 §7).
+
+    Runs BEFORE, and independently of, any model call (mirrors
+    `_requires_confirmation`'s pure-function discipline and A68's
+    "structural check resolves it -> no Gemini call" pattern). Returns
+    `True` when the turn's own tokens contain a scan/check/read verb
+    together with a mailbox noun, or contain one of `_SCAN_MAILBOX_
+    PHRASES`. Case- and script-tolerant; never consults the model.
+
+    Args:
+        raw_text: the turn's normalised transcript, exactly as A65
+            produced it (code-mixed, not "cleaned up").
+
+    Returns:
+        `True` iff this turn is a mailbox-scan request.
+    """
+    folded = raw_text.casefold()
+    tokens = _TOKEN_PATTERN.findall(folded)
+    if not tokens:
+        return False
+    token_set = set(tokens)
+    if token_set & _SCAN_VERB_TOKENS and token_set & _MAILBOX_NOUN_TOKENS:
+        return True
+    joined = " ".join(tokens)
+    return any(phrase in joined for phrase in _SCAN_MAILBOX_PHRASES)
 
 
 @dataclass(frozen=True, slots=True)
@@ -138,9 +253,10 @@ def _resolve_risk_tier(*, intent: VoiceIntentClass, raw_risk_tier: str | None) -
             )
         return RiskTier(raw_risk_tier)
 
-    # capture / intention / query / correction never carry a risk tier
-    # from this classifier — their eventual tier (if any) is decided
-    # downstream by the subsystem they route to.
+    # capture / intention / query / correction / ingest.scan_mailbox
+    # never carry a risk tier from this classifier — their eventual tier
+    # (if any) is decided downstream by the subsystem they route to, and
+    # ingest.scan_mailbox carries no tier at all (ADR-023 §7).
     return None
 
 
@@ -157,7 +273,14 @@ class VoiceIntentClassifierAgent:
 
     def classify(self, request: VoiceIntentRequest) -> VoiceIntentResult:
         """Classifies `request` into one of spec §14.5's seven intent
-        classes.
+        classes, or into `ingest.scan_mailbox` (ADR-023 §7).
+
+        A turn whose text is a mailbox-scan request
+        (`_is_scan_mailbox_request`) is resolved to
+        `VoiceIntentClass.INGEST_SCAN_MAILBOX` deterministically, with
+        NO Gemini call — `risk_tier` `None`, `requires_confirmation`
+        `False`, `model_tier` `"deterministic"`. Every other turn takes
+        the model path unchanged.
 
         Args:
             request: A65's real normalised spans for one turn, plus the
@@ -171,12 +294,31 @@ class VoiceIntentClassifierAgent:
         Raises:
             errors.ModelResponseMalformed: the model response could not
                 be parsed as the expected JSON shape, reported an intent
-                outside spec §14.5's seven classes, or reported a
+                outside the permitted classes, or reported a
                 `command`/`approval` risk tier outside the set that class
                 permits.
         """
+        if _is_scan_mailbox_request(request.raw_text):
+            prompt = load_prompt("A67")
+            return VoiceIntentResult(
+                turn_id=request.turn_id,
+                intent=VoiceIntentClass.INGEST_SCAN_MAILBOX,
+                risk_tier=None,
+                target_summary="scan the household mailbox (Gmail/Outlook) for the last 24 hours",
+                requires_confirmation=False,
+                reasoning=(
+                    "deterministic phrase match on a mailbox-scan request — resolved without a "
+                    "model call (ADR-023 §7); a read-only ingestion trigger, never an action"
+                ),
+                confidence=1.0,
+                model_tier="deterministic",
+                prompt_version=prompt.version,
+                invocation_id=uuid.uuid4().hex,
+                classified_at=datetime.now(UTC),
+            )
+
         spans_block = "\n".join(
-            f"- \"{span.normalized_text}\" (kind={span.kind}, language={span.language})"
+            f'- "{span.normalized_text}" (kind={span.kind}, language={span.language})'
             for span in request.normalized_spans
         )
         prompt = load_prompt("A67")
@@ -196,7 +338,7 @@ class VoiceIntentClassifierAgent:
         except ValueError as exc:
             raise ModelResponseMalformed(
                 agent_id=AGENT_ID,
-                reason=f"intent {intent_raw!r} is not one of spec §14.5's seven classes",
+                reason=f"intent {intent_raw!r} is not one of A67's permitted classes",
                 raw_text=call_result.text,
             ) from exc
 

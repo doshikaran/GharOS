@@ -355,9 +355,7 @@ class VoiceSessionManager:
                 reference_date=request.reference_date,
             )
         )
-        dominant_language = (
-            language_result.spans[0].language if language_result.spans else "en"
-        )
+        dominant_language = language_result.spans[0].language if language_result.spans else "en"
 
         if normalization.any_needs_clarification:
             reasons = ", ".join(
@@ -396,8 +394,13 @@ class VoiceSessionManager:
         )
         if speaker_refusal is not None:
             refusal_message = (
-                "I don't recognize your voice for this kind of request — "
-                "please use the app to approve this."
+                "I don't recognize your voice, so I can't scan the household mailbox — "
+                "that reads private mail. Please identify yourself first, or run it from the app."
+                if speaker_refusal.kind == "declined_needs_identification"
+                else (
+                    "I don't recognize your voice for this kind of request — "
+                    "please use the app to approve this."
+                )
             )
             response = self._speak(
                 turn_id=request.turn_id,

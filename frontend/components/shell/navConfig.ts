@@ -6,6 +6,7 @@ import {
   Mic,
   Network,
   PhoneCall,
+  Plug,
   Route,
   Scale,
   ScrollText,
@@ -41,6 +42,7 @@ export const NAV_SECTIONS: readonly NavSection[] = [
     items: [
       { href: "/graph", label: "Household Graph", icon: Network },
       { href: "/approvals", label: "Approvals", icon: CircleCheck },
+      { href: "/connections", label: "Connections", icon: Plug },
       { href: "/status", label: "System Status", icon: Activity },
     ],
   },

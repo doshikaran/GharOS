@@ -33,11 +33,23 @@ from dataclasses import dataclass, field
 from datetime import datetime
 from typing import Protocol
 
+from contracts.ingestion import RawIntakePayload
+
 STORAGE_REF_HEADER = "storage_ref"
 """The `RawIntakePayload.headers` key an upstream channel integration sets
 when it has already durably stored the raw payload (E1's source-document
 storage, PHASES.md Phase 3 E1 column) before handing input to an adapter.
 Named once here so all four adapters read the same key."""
+
+INGESTION_SOURCE_KIND_HEADER = "ingestion_source_kind"
+"""The `RawIntakePayload.headers` key the Phase 14.5 ingestion entry point
+sets on an *inline* payload (a `direct_upload` multipart part, or a
+`drive_picker` fetch) to record which `IngestionSourceKind` it is —
+`SourceConnector.fetch_since` output does not need it (the orchestrator
+already knows which connector produced each item), but an
+`IngestionRequest.inline_payloads` entry carries no other signal of its
+kind, and `compute_content_hash` needs the right `source_kind` value.
+Absent -> the orchestrator treats the item as `DIRECT_UPLOAD`."""
 
 
 class IntakeNormalizationError(RuntimeError):
@@ -55,28 +67,14 @@ class IntakeNormalizationError(RuntimeError):
         super().__init__(f"{channel} intake normalization failed: {reason}")
 
 
-@dataclass(frozen=True, slots=True)
-class RawIntakePayload:
-    """The channel-agnostic envelope a channel integration (a Gmail
-    webhook handler, an upload HTTP endpoint, a chat-export file-drop
-    handler, an SMS-forwarding endpoint — none of which are this phase's
-    concern; they are the wiring that would sit in front of these
-    adapters in a real deployment) assembles before calling one of the
-    four adapters' `normalize()`.
-
-    Deliberately loose (`text`/`binary` both optional, `headers`
-    untyped): "ingestion fragility is an adapter problem, not a
-    core-architecture problem" (spec §17) — each concrete adapter is what
-    imposes real per-channel structure on top of this, by validating the
-    specific headers/content shape it actually requires and raising
-    `IntakeNormalizationError` when that shape isn't met.
-    """
-
-    text: str | None
-    binary: bytes | None
-    media_type: str
-    headers: dict[str, str] = field(default_factory=dict)
-    received_at: datetime | None = None
+# `RawIntakePayload` is RE-HOMED to `contracts.ingestion` as of Phase 14.5
+# (ADR-023): the frozen `SourceConnector` protocol returns it and the
+# ingestion orchestrator consumes it, so it is now a genuine cross-role
+# shape and lives in `contracts/`. This module re-exports the name
+# unchanged for its existing callers (the four Phase 3 adapters, which
+# import it from here) — `resolve_raw_payload_ref` and `STORAGE_REF_HEADER`
+# stay here because they are logic, not shape. See the top-of-module
+# `from contracts.ingestion import RawIntakePayload`.
 
 
 @dataclass(frozen=True, slots=True)
@@ -175,6 +173,7 @@ class IngestionAdapter(Protocol):
 
 
 __all__ = [
+    "INGESTION_SOURCE_KIND_HEADER",
     "STORAGE_REF_HEADER",
     "IngestionAdapter",
     "IntakeNormalizationError",

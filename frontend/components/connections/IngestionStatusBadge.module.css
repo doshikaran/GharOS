@@ -1,0 +1,7 @@
+.badge {
+  gap: var(--space-1);
+}
+
+.icon {
+  flex-shrink: 0;
+}

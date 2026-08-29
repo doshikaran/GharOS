@@ -31,7 +31,7 @@ import structlog
 # established convention for a real interop gap (see
 # `app.api.pubsub_receiver`'s identical rationale for `google.oauth2.
 # id_token.verify_oauth2_token`).
-from google.cloud import pubsub_v1  # type: ignore[import-untyped,attr-defined]
+from google.cloud import pubsub_v1  # type: ignore[attr-defined]
 
 from app.settings import Settings
 

@@ -7,7 +7,11 @@ export const metadata: Metadata = {
   title: "GharOS, Household knowledge graph",
 };
 
-export default function GraphPage() {
+export default async function GraphPage({ searchParams }: PageProps<"/graph">) {
+  const params = await searchParams;
+  const nodeParam = params.node;
+  const initialSelectedNodeId = typeof nodeParam === "string" ? nodeParam : null;
+
   return (
     <div className={styles.page}>
       <div className={styles.header}>
@@ -18,7 +22,11 @@ export default function GraphPage() {
           Gate 6).
         </p>
       </div>
-      <GraphExplorer baseUrl={getApiBaseUrl()} />
+      <GraphExplorer
+        key={initialSelectedNodeId ?? "no-deep-link"}
+        baseUrl={getApiBaseUrl()}
+        initialSelectedNodeId={initialSelectedNodeId}
+      />
     </div>
   );
 }

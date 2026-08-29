@@ -47,6 +47,7 @@ from app.agents.intake.document_extraction import DocumentExtractionAgent, Extra
 from app.agents.intake.entity_resolution import EntityResolutionAgent, ResolutionVerdict
 from app.agents.intake.intake_router import IntakeRouter
 from app.agents.intake.strategies import register_all_strategies
+from app.persistence.region_resolver import TextSpanRegion, parse_region
 from app.reasoning.gemini_client import GeminiClient, MediaPart
 from app.reasoning.model_router import ModelRouter
 from app.settings import Settings
@@ -191,3 +192,71 @@ def test_a5_real_cross_script_entity_resolution() -> None:
         )
         if result.resolution is ResolutionVerdict.MATCHED_EXISTING:
             assert result.matched_person_id == NodeId("person-aarav-live")
+
+
+@pytest.mark.live_gcp
+@pytest.mark.skipif(not _LIVE_TESTS_ENABLED or not _LIVE_PROJECT_ID, reason=_SKIP_REASON)
+def test_a3_real_extraction_on_a_real_shaped_forwarded_school_mail() -> None:
+    """Phase 14.5 (ADR-023) — real Vertex AI Gemini text call: A3 against
+    a *real-shaped* forwarded school-notice email body (quoted reply
+    chain + forwarding boilerplate stripped by `EmailAdapter` first),
+    NOT a golden-file fixture. Backs `app/agents/intake/
+    REAL_MAIL_EXTRACTION_NOTE.md`'s field-recall / citation-validity
+    comparison to the synthetic golden baseline.
+    """
+    from app.adapters.email_adapter import EmailAdapter
+    from app.adapters.ingestion import RawIntakePayload
+
+    client = GeminiClient(router=_live_router())
+    agent = DocumentExtractionAgent(gemini_client=client)
+    registry = _registry()
+    spec, _strategy = registry.resolve("school_communication")
+
+    raw = RawIntakePayload(
+        text=(
+            "Hi all,\n\nForwarding the field-trip note from school. Someone please\n"
+            "arrange the cash before Wednesday.\n\nThanks,\nPriya\n\n"
+            "---------- Forwarded message ---------\n"
+            "From: Greenwood International School <office@greenwood.edu.in>\n"
+            "Date: Wed, 27 Aug 2026 at 09:14\n"
+            "Subject: Grade 4 Field Trip - Consent & Payment\n"
+            "To: Priya Sharma <priya.sharma@gmail.com>\n\n"
+            "> Dear Parents,\n>\n"
+            "> The Grade 4 field trip to the Nehru Science Centre is scheduled for\n"
+            "> Friday, 5 September 2026.\n"
+            "> 1. The signed consent slip is due back by Wednesday, 3 September 2026.\n"
+            "> 2. A contribution of Rs. 500 per child covers transport and entry.\n"
+            "> 3. Children must carry a nut-free packed lunch.\n"
+            "> 4. Early dismissal at 1:30 PM on the day of the trip.\n>\n"
+            "> Regards,\n> Mrs. Anjali Menon\n> Grade 4 Coordinator\n"
+        ),
+        binary=None,
+        media_type="text/plain",
+        headers={"from": "Priya Sharma <priya.sharma@gmail.com>", "subject": "Fwd: Grade 4 Field Trip"},
+        received_at=datetime(2026, 8, 27, 9, 40, tzinfo=UTC),
+    )
+    normalized = EmailAdapter().normalize(raw)
+    request = ExtractionRequest(
+        source_document_id=NodeId("live-real-mail-1"),
+        type_id="school_communication",
+        field_schema=spec.field_schema,
+        text_content=normalized.text_content,
+    )
+    result = agent.extract(request)
+
+    field_names = {f.name for f in result.extracted_fields}
+    # institution + student are the two required fields; the real model
+    # should recover at least the institution from an unambiguous
+    # signature block.
+    assert "institution" in field_names, f"real model missed the institution; got {field_names}"
+    assert normalized.text_content is not None
+    for extracted_field in result.extracted_fields:
+        assert 0.0 <= extracted_field.confidence <= 1.0
+        assert extracted_field.derivation in (Derivation.EXTRACTED, Derivation.AMBIGUOUS)
+        # Citation validity: same guarantee the golden suite asserts — a
+        # non-empty, well-formed region locator (parse_region raises
+        # MalformedRegion otherwise).
+        assert extracted_field.source_region
+        locator = parse_region(extracted_field.source_region)
+        assert isinstance(locator, TextSpanRegion)
+        assert 0 <= locator.start < locator.end <= len(normalized.text_content)

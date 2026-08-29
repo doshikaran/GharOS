@@ -24,7 +24,13 @@ from app.graph.conformance import (
 )
 from app.graph.reader import FirestoreGraphReader
 from app.graph.writer import FirestoreGraphWriter
-from app.persistence.conformance import _idempotency_store_conforms, _raw_payload_store_conforms
+from app.persistence.conformance import (
+    _idempotency_store_conforms,
+    _ingestion_dedupe_store_conforms,
+    _oauth_credential_store_conforms,
+    _oauth_pending_store_conforms,
+    _raw_payload_store_conforms,
+)
 from app.persistence.firestore_store import FirestoreGraphStore
 from app.persistence.idempotency_store import FirestoreIdempotencyStore
 from app.tools.conformance import (
@@ -47,6 +53,9 @@ def test_all_graph_protocol_conformance_factories_construct(
     assert _audit_log_conforms(firestore_client) is not None
     assert _idempotency_store_conforms(firestore_client) is not None
     assert _raw_payload_store_conforms(tmp_path / "raw_payloads") is not None
+    assert _ingestion_dedupe_store_conforms(firestore_client) is not None
+    assert _oauth_credential_store_conforms(firestore_client) is not None
+    assert _oauth_pending_store_conforms(firestore_client) is not None
 
 
 def test_all_tool_protocol_conformance_factories_construct(

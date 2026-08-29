@@ -59,6 +59,12 @@ from contracts.tools import GATED_TIERS, PermissionTier
 from hypothesis import HealthCheck, given, settings
 from hypothesis import strategies as st
 
+from app.agents.voice.types import (
+    SpeakerLanguageContext,
+    VoiceIntentClass,
+    VoiceIntentRequest,
+)
+from app.agents.voice.voice_intent_classifier_agent import VoiceIntentClassifierAgent
 from app.arbitration.actions import GatedAction
 from app.arbitration.approval_gate import ApprovalGate
 from app.arbitration.confidence_arbiter import ConfidenceArbiter
@@ -566,9 +572,7 @@ class TestInvariant8VoiceConfersNoActionCapability:
     )
 
     def _scanned_voice_files(self) -> list[Path]:
-        reasoning_files = [
-            p for p in self._VOICE_REASONING_ROOT.glob("*.py") if "__pycache__" not in p.parts
-        ]
+        reasoning_files = [p for p in self._VOICE_REASONING_ROOT.glob("*.py") if "__pycache__" not in p.parts]
         infra_files = [
             p
             for p in self._VOICE_INFRA_ROOT.glob("*.py")
@@ -709,3 +713,241 @@ class _IdleTtsClient:
 
     def synthesize(self, *, text: str, voice_name: str, language_code: str) -> TtsAudio:
         raise AssertionError("must never be invoked by this invariant's own routing-only test")
+
+
+class TestInvariant8VoiceScanMailboxIsReadOnlyIngestionNeverAction:
+    """Phase 14.5 (ADR-023 §7) extension of invariant 8: A67's new
+    `ingest.scan_mailbox` voice intent is a read-only ingestion trigger,
+    not an action. It carries NO `RiskTier`, never requires a
+    confirmation read-back, is detected deterministically without a model
+    call, routes only to `VoiceRoutingCallbacks.on_scan_mailbox` (a
+    minimal `Callable[[str], None]`, structurally distinct from every
+    action-routing callback), and A67 still holds no import path to the
+    arbitration / action-execution layer.
+
+    Mirrors `TestNonRiskTieredIntentsHandOff::
+    test_capture_hands_off_via_callback_never_touches_approval_gate`
+    (Phase 13) at the classifier + callback-shape boundary — the
+    `session_manager.py` / `routing.py` dispatch of this intent to
+    `on_scan_mailbox` is E3's orchestrator wiring (ADR-023 §6).
+    """
+
+    def _classifier_with_poison_model(self) -> tuple[VoiceIntentClassifierAgent, FakeModels]:
+        # A body that would raise on JSON-parse if the model were ever
+        # consulted for a scan-mailbox turn.
+        fake_models = FakeModels(texts=["THIS MODEL CALL MUST NOT HAPPEN"])
+        client = GeminiClient(router=fake_router(fake_models))
+        return VoiceIntentClassifierAgent(gemini_client=client), fake_models
+
+    def _scan_request(self, raw_text: str) -> VoiceIntentRequest:
+        return VoiceIntentRequest(
+            turn_id="scan-turn-1",
+            raw_text=raw_text,
+            normalized_spans=(),
+            speaker=SpeakerLanguageContext(person_id=NodeId("person-1"), language_profile=None),
+        )
+
+    def test_scan_mailbox_is_classified_deterministically_with_no_model_call(self) -> None:
+        classifier, fake_models = self._classifier_with_poison_model()
+
+        for phrase in (
+            "scan my gmail and outlook",
+            "check my inbox for the last 24 hours",
+            "mera email scan karo",
+        ):
+            result = classifier.classify(self._scan_request(phrase))
+            assert result.intent is VoiceIntentClass.INGEST_SCAN_MAILBOX, phrase
+            assert result.model_tier == "deterministic", phrase
+            assert result.risk_tier is None, phrase
+            assert result.requires_confirmation is False, phrase
+
+        assert fake_models.calls == [], (
+            "invariant 8: `ingest.scan_mailbox` must be resolved without consulting the model — "
+            "detection is a deterministic phrase match, not model discretion"
+        )
+
+    def test_scan_mailbox_result_has_no_action_preconditions(self) -> None:
+        classifier, _ = self._classifier_with_poison_model()
+        result = classifier.classify(self._scan_request("scan my gmail"))
+
+        # The two structural preconditions for ANY gated / approval path
+        # in VoiceRouter are a non-None risk_tier and (for a read-back)
+        # requires_confirmation — a scan-mailbox turn has neither.
+        assert result.risk_tier is None
+        assert result.requires_confirmation is False
+        assert result.intent not in {
+            VoiceIntentClass.COMMAND,
+            VoiceIntentClass.APPROVAL,
+            VoiceIntentClass.DECISION_TRIGGER,
+        }
+
+    def test_a67_even_a_hallucinated_scan_mailbox_risk_tier_is_dropped(self) -> None:
+        from app.agents.voice.voice_intent_classifier_agent import _resolve_risk_tier
+
+        # If the model path (a phrasing the deterministic match missed)
+        # ever returned a risk tier for this intent, _resolve_risk_tier
+        # discards it — the class carries no tier, structurally.
+        assert _resolve_risk_tier(intent=VoiceIntentClass.INGEST_SCAN_MAILBOX, raw_risk_tier="R3") is None
+        assert _resolve_risk_tier(intent=VoiceIntentClass.INGEST_SCAN_MAILBOX, raw_risk_tier="R0") is None
+
+    def test_a67_module_holds_no_import_path_to_action_or_arbitration_layer(self) -> None:
+        import ast
+
+        path = (
+            Path(__file__).resolve().parent.parent
+            / "app"
+            / "agents"
+            / "voice"
+            / "voice_intent_classifier_agent.py"
+        )
+        tree = ast.parse(path.read_text(encoding="utf-8"), filename=str(path))
+        forbidden_modules = ("app.arbitration", "app.tools")
+        forbidden_symbols = {"Action", "GatedAction", "ApprovalGatedTool", "GATED_TIERS", "ToolRegistry"}
+        violations: list[str] = []
+        for node in ast.walk(tree):
+            if isinstance(node, ast.Import):
+                violations += [a.name for a in node.names if a.name.startswith(forbidden_modules)]
+            elif isinstance(node, ast.ImportFrom):
+                if node.module is not None and node.module.startswith(forbidden_modules):
+                    violations.append(node.module)
+                violations += [a.name for a in node.names if a.name in forbidden_symbols]
+        assert violations == [], (
+            "A67 (the module that now recognises `ingest.scan_mailbox`) must have no import path to "
+            f"the action / arbitration layer: {violations}"
+        )
+
+    def test_on_scan_mailbox_hook_is_a_minimal_non_action_callback(self) -> None:
+        import dataclasses
+
+        from app.voice.session_types import VoiceRoutingCallbacks
+
+        by_name = {f.name: f for f in dataclasses.fields(VoiceRoutingCallbacks)}
+        assert "on_scan_mailbox" in by_name, "the on_scan_mailbox hand-off hook field is missing"
+        field = by_name["on_scan_mailbox"]
+        # It takes only the turn id — NOT a VoiceIntentResult — so it can
+        # never be wired into VoiceRouter.route's action dispatch.
+        assert str(field.type) == "Callable[[str], None] | None", str(field.type)
+        assert str(by_name["on_capture"].type) != str(field.type), (
+            "on_scan_mailbox must be typed distinctly from the action-routing VoiceIntentCallback hooks"
+        )
+        instance = VoiceRoutingCallbacks()
+        assert instance.on_scan_mailbox is None  # default no-op until E3 wires the orchestrator
+
+
+class TestPhase145IngestionCredentialAndSpeakerBoundary:
+    """Phase 14.5 (ADR-022 / ADR-023) structural boundary — the ingestion
+    connectors read the household's private mail through long-lived OAuth
+    credentials, so the same isolation the gated tools get applies:
+
+    1. No module under `backend/app/agents/` has an import path to the
+       connectors, the OAuth clients, or the Secret Manager adapter — a
+       reasoning agent can never reach token material (Gate 14.5, mirrors
+       the Phase 13 arbitration-boundary AST scan).
+    2. The persisted `OAuthCredential` record carries a Secret Manager
+       *pointer* and nothing token-shaped; `contracts.agents.AgentInput`
+       has no field that could carry a token either.
+    3. A spoken "scan my Gmail" (`INGEST_SCAN_MAILBOX`) is gated on an
+       identified, enrolled speaker — an unidentified voice is declined
+       and NO ingestion run is started (ADR-023 §7 addendum).
+    """
+
+    _AGENTS_ROOT = Path(__file__).resolve().parent.parent / "app" / "agents"
+    _FORBIDDEN_INGESTION_IMPORTS = (
+        "app.adapters.connectors",
+        "app.adapters.oauth",
+        "app.adapters.secret_manager",
+    )
+
+    def test_no_agent_module_imports_a_connector_oauth_client_or_secret_manager(self) -> None:
+        import ast
+
+        violations: list[str] = []
+        for path in sorted(self._AGENTS_ROOT.rglob("*.py")):
+            if "__pycache__" in path.parts:
+                continue
+            tree = ast.parse(path.read_text(encoding="utf-8"), filename=str(path))
+            for node in ast.walk(tree):
+                names: list[str] = []
+                if isinstance(node, ast.Import):
+                    names = [alias.name for alias in node.names]
+                elif isinstance(node, ast.ImportFrom) and node.module is not None:
+                    names = [node.module]
+                for name in names:
+                    if any(name == f or name.startswith(f + ".") for f in self._FORBIDDEN_INGESTION_IMPORTS):
+                        violations.append(f"{path.relative_to(self._AGENTS_ROOT)} imports {name!r}")
+        assert violations == [], (
+            "no reasoning agent may reach the ingestion connectors / OAuth clients / Secret Manager "
+            f"adapter (token isolation, Gate 14.5): {violations}"
+        )
+
+    def test_oauth_credential_record_carries_no_token_shaped_field(self) -> None:
+        import dataclasses
+
+        from contracts.ingestion import OAuthCredential
+
+        field_names = {f.name for f in dataclasses.fields(OAuthCredential)}
+        token_shaped = {"refresh_token", "access_token", "token", "code", "client_secret", "id_token"}
+        assert token_shaped.isdisjoint(field_names), field_names
+        assert "secret_ref" in field_names  # a pointer, resolved only inside a connector
+
+    def test_agent_input_has_no_token_carrying_field(self) -> None:
+        import dataclasses
+
+        from contracts.agents import AgentInput
+
+        field_types = {f.name: str(f.type) for f in dataclasses.fields(AgentInput)}
+        # every field is a plain id / string / tuple-of-strings envelope
+        assert all("str" in t or "tuple" in t or "AgentId" in t for t in field_types.values()), field_types
+        assert not any("secret" in name or "token" in name or "credential" in name for name in field_types), (
+            field_types
+        )
+
+    def test_voice_scan_mailbox_requires_an_identified_speaker(self) -> None:
+        from datetime import datetime as _dt
+
+        from app.agents.voice.types import VoiceIntentClass, VoiceIntentResult
+        from app.voice.routing import VoiceRouter, default_approval_context
+        from app.voice.session_types import VoiceRoutingCallbacks
+
+        class _NoGate:
+            def request_approval(self, *a: object, **k: object) -> object:
+                raise AssertionError("a scan-mailbox turn must never reach the Approval Gate")
+
+            def approve_and_execute(self, *a: object, **k: object) -> object:
+                raise AssertionError("a scan-mailbox turn must never reach the Approval Gate")
+
+        received: list[str] = []
+        router = VoiceRouter(
+            approval_gate=_NoGate(),  # type: ignore[arg-type]
+            callbacks=VoiceRoutingCallbacks(on_scan_mailbox=received.append),
+        )
+        intent = VoiceIntentResult(
+            turn_id="scan-turn-42",
+            intent=VoiceIntentClass.INGEST_SCAN_MAILBOX,
+            risk_tier=None,
+            target_summary="scan the household mailbox for the last 24 hours",
+            requires_confirmation=False,
+            reasoning="deterministic phrase match",
+            confidence=1.0,
+            model_tier="deterministic",
+            prompt_version="v2",
+            invocation_id="inv-scan",
+            classified_at=_dt.now(UTC),
+        )
+        ctx = default_approval_context("scan-turn-42", intent, now=_dt.now(UTC))
+
+        declined = router.route(
+            intent, confirmation=None, approval_context=ctx, gated_execution=None, speaker_person_id=None
+        )
+        assert declined.kind == "declined_needs_identification"
+        assert received == []  # NO ingestion run was started for an unidentified voice
+
+        handed_off = router.route(
+            intent,
+            confirmation=None,
+            approval_context=ctx,
+            gated_execution=None,
+            speaker_person_id=NodeId("person:alice"),
+        )
+        assert handed_off.kind == "handed_off"
+        assert received == ["scan-turn-42"]  # the identified speaker's turn_id reached the orchestrator hook

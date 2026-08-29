@@ -217,8 +217,20 @@ class NormalizationResult:
 
 
 class VoiceIntentClass(StrEnum):
-    """Spec §14.5's exact seven-class table — closed set, never extended
-    without a spec/ADR change."""
+    """Spec §14.5's seven-class table, plus the one Phase 14.5 addition
+    (`INGEST_SCAN_MAILBOX`, ADR-023 §7). Still a closed set, never
+    extended without a spec/ADR change — ADR-023 is that change.
+
+    `INGEST_SCAN_MAILBOX` is not one of spec §14.5's action/answer
+    classes: it is a read-only ingestion *trigger* ("scan my Gmail and
+    Outlook"), detected deterministically from the turn's phrasing
+    independent of the model call (see
+    `voice_intent_classifier_agent._is_scan_mailbox_request`), carrying
+    NO `risk_tier` and routed to `VoiceRoutingCallbacks.on_scan_mailbox`
+    — never to `_route_gated`, `ApprovalGate`, or any tool. It writes
+    only T3-internal graph nodes, so safety invariant 8 ("voice confers
+    no action capability") is preserved: nothing on this path can reach
+    a T4/T5/T6 tool."""
 
     CAPTURE = "capture"
     INTENTION = "intention"
@@ -227,6 +239,7 @@ class VoiceIntentClass(StrEnum):
     APPROVAL = "approval"
     DECISION_TRIGGER = "decision_trigger"
     CORRECTION = "correction"
+    INGEST_SCAN_MAILBOX = "ingest.scan_mailbox"
 
 
 @dataclass(frozen=True, slots=True)
@@ -252,9 +265,9 @@ class VoiceIntentResult:
     (`COMMAND` -> R0/R1, `APPROVAL` -> R2/R3, `DECISION_TRIGGER` -> always
     `R4_ESCALATE_ONLY`, structurally, never taken from the model — see
     `voice_intent_classifier_agent.py`) — `None` for `CAPTURE`/
-    `INTENTION`/`QUERY`/`CORRECTION`, whose eventual risk tier (if any) is
-    decided downstream by the subsystem they route to, not by this
-    classifier."""
+    `INTENTION`/`QUERY`/`CORRECTION` (eventual tier decided downstream)
+    and for `INGEST_SCAN_MAILBOX` (a read-only ingestion trigger that
+    carries no tier at all, ADR-023 §7)."""
 
     turn_id: str
     intent: VoiceIntentClass
@@ -264,10 +277,16 @@ class VoiceIntentResult:
     """`True` exactly when spec §14.6's mandatory-read-back rule applies
     to this turn — computed deterministically in code
     (`voice_intent_classifier_agent._requires_confirmation`), never left
-    to the model's own discretion alone."""
+    to the model's own discretion alone. Always `False` for
+    `INGEST_SCAN_MAILBOX`."""
     reasoning: str
     confidence: float
-    model_tier: Literal["pro"]
+    model_tier: Literal["pro", "deterministic"]
+    """`"deterministic"` only when the turn was resolved to
+    `INGEST_SCAN_MAILBOX` by the structural phrase match in
+    `_is_scan_mailbox_request` with no Gemini call made at all (mirrors
+    A68's identical "nothing to narrate -> no model call" discipline).
+    `"pro"` for every genuine classification pass."""
     prompt_version: str
     invocation_id: str
     classified_at: datetime

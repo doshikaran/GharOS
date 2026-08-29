@@ -1,0 +1,84 @@
+.zone {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-6) var(--space-4);
+  border: 2px dashed var(--royal-soft);
+  border-radius: var(--radius-lg);
+  background: var(--surface-raised);
+  text-align: center;
+  transition: border-color var(--motion-fast) var(--motion-ease-standard),
+    background-color var(--motion-fast) var(--motion-ease-standard);
+}
+
+.zone[data-drag-active="true"] {
+  border-color: var(--royal-primary);
+  background: var(--royal-soft);
+}
+
+.icon {
+  color: var(--royal-primary);
+}
+
+.headline {
+  margin: 0;
+  font-weight: 600;
+  color: var(--ink-primary);
+}
+
+.sub {
+  margin: 0;
+  color: var(--ink-muted);
+  font-size: 0.875rem;
+}
+
+/* Visually hidden but reachable — the label below is the visible control. */
+.input {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+.chooseButton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  margin-top: var(--space-2);
+  min-height: 2.75rem;
+  padding: var(--space-2) var(--space-5);
+  border-radius: var(--radius-md);
+  border: 1px solid var(--ink-muted);
+  background: var(--surface-base);
+  color: var(--ink-primary);
+  font-family: var(--font-body), ui-sans-serif, sans-serif;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.chooseButton:hover {
+  border-color: var(--royal-primary);
+}
+
+.input:focus-visible + .chooseButton {
+  outline: 2px solid var(--royal-primary);
+  outline-offset: 2px;
+}
+
+.chooseButton[data-disabled="true"] {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.rejected {
+  margin: var(--space-2) 0 0 0;
+  color: var(--state-warning);
+  font-size: 0.8125rem;
+}

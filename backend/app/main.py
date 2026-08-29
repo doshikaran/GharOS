@@ -29,6 +29,14 @@ preflight) — no origin restriction is added for it this phase, matching
 this module's own stated local-dev-first posture for every other
 non-GET-eligible surface introduced so far.
 
+Phase 14.5 adds the ingestion-connector surface (`app.api.oauth_router`
+and `app.api.ingest_router`, E3 — ADR-022 / ADR-023): the OAuth
+consent-start / callback routes, the one `POST /ingest` orchestrator
+entry, and the `GET /connections` / disconnect management routes E4's
+Connections page uses. Each router builds its own dependency-injection
+providers (mirroring `voice_router.py`); this module only registers
+them.
+
 This module stays thin; it wires, it does not implement.
 """
 
@@ -42,6 +50,8 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from app.api.debug import router as debug_router
 from app.api.graph_router import router as graph_router
+from app.api.ingest_router import router as ingest_router
+from app.api.oauth_router import router as oauth_router
 from app.api.pubsub_receiver import router as pubsub_router
 from app.api.voice_router import router as voice_router
 from app.graph.change_stream import FirestoreGraphChangeStream
@@ -89,6 +99,8 @@ app.include_router(pubsub_router)
 app.include_router(debug_router)
 app.include_router(graph_router)
 app.include_router(voice_router)
+app.include_router(oauth_router)
+app.include_router(ingest_router)
 
 
 @app.get("/health")

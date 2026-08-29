@@ -1,7 +1,9 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
+import { IngestionRunView } from "@/components/connections/IngestionRunView";
 import { useApprovalQueueCount } from "@/components/shell/useApprovalQueueCount";
+import type { IngestionRunResult } from "@/lib/connections";
 import { MicCapture, type MicCaptureHandlers, type MicPermissionState } from "@/lib/mic-capture";
 import { VoiceSessionClient, type VoiceSessionHandlers } from "@/lib/voice-session";
 import type { ConfirmationPromptEvent, ResponseAudioEvent, SessionState, VoiceServerEvent } from "@/lib/voice-types";
@@ -71,6 +73,7 @@ export function VoiceSessionPanel({
   const [entries, setEntries] = useState<readonly TranscriptEntry[]>([]);
   const [confirmation, setConfirmation] = useState<ConfirmationPromptEvent | null>(null);
   const [response, setResponse] = useState<ResponseAudioEvent | null>(null);
+  const [ingestionRun, setIngestionRun] = useState<IngestionRunResult | null>(null);
   const [connectionError, setConnectionError] = useState<string | null>(null);
 
   const audioPauseRef = useRef<() => void>(() => {});
@@ -117,6 +120,13 @@ export function VoiceSessionPanel({
       }
       case "error": {
         setConnectionError(`${event.code}: ${event.message}`);
+        break;
+      }
+      case "ingestion_run": {
+        // "Scan my Gmail" spoken aloud (A67 → the ingestion orchestrator,
+        // ADR-023 §7) surfaces here in the exact same run view the
+        // `/connections` text path renders.
+        setIngestionRun(event.run);
         break;
       }
     }
@@ -191,6 +201,13 @@ export function VoiceSessionPanel({
       {confirmation && <ConfirmationPrompt prompt={confirmation} pendingApprovalCount={pendingApprovalCount} />}
 
       <ResponsePlaybackWithPauseRegistration response={response} elderMode={elderMode} registerAudioPause={registerAudioPause} />
+
+      {ingestionRun && (
+        <section className={styles.ingestionRun} aria-label="Mailbox scan result">
+          <h3 className={styles.ingestionRunHeading}>Mailbox scan</h3>
+          <IngestionRunView state={{ phase: "done", run: ingestionRun, liveNodeIds: [] }} />
+        </section>
+      )}
 
       <AccessibilityControls elderMode={elderMode} onElderModeChange={setElderMode} />
     </div>

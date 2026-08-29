@@ -14,6 +14,10 @@ import styles from "./GraphExplorer.module.css";
 
 export interface GraphExplorerProps {
   readonly baseUrl: string;
+  /** Deep-link target: when set (from `/graph?node=<id>` — used by the
+   * ingestion run view's "new node" links), that node's inspector opens
+   * once the graph has loaded. */
+  readonly initialSelectedNodeId?: string | null;
 }
 
 type LoadState = { status: "loading" } | { status: "error"; message: string } | { status: "ready" };
@@ -30,11 +34,14 @@ type LoadState = { status: "loading" } | { status: "error"; message: string } | 
  * genuinely new arrival, never a replay — this is what makes the graph
  * visibly "being built", not pre-seeded or replayed, when watched cold.
  */
-export function GraphExplorer({ baseUrl }: GraphExplorerProps) {
+export function GraphExplorer({ baseUrl, initialSelectedNodeId = null }: GraphExplorerProps) {
   const [loadState, setLoadState] = useState<LoadState>({ status: "loading" });
   const [graphState, setGraphState] = useState(createEmptyGraphState);
   const [filters, setFilters] = useState<GraphFilterState>(EMPTY_GRAPH_FILTER_STATE);
-  const [selectedNodeId, setSelectedNodeId] = useState<string | null>(null);
+  // Seeded from `/graph?node=<id>` (the ingestion run view's node links).
+  // `app/(shell)/graph/page.tsx` keys this component on that value, so a
+  // later deep link with a different node remounts and re-seeds here.
+  const [selectedNodeId, setSelectedNodeId] = useState<string | null>(initialSelectedNodeId);
   const [explainingNodeId, setExplainingNodeId] = useState<string | null>(null);
   const [highlightedPath, setHighlightedPath] = useState<HighlightedPath | null>(null);
 
