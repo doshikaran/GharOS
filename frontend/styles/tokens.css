@@ -16,9 +16,12 @@
  *   - metallic accent (`--accent-brass*`): muted olive champagne ->
  *     a warmer, truer GOLD.
  *   - light ground: cool near-neutral "Paper" (#f7f7f5) -> warm IVORY
- *     (#f7f4ec). Barely a lightness change (L 0.905 -> 0.905) so every
- *     light-theme foreground ratio below is unmoved; the shift is
- *     entirely in warmth/cast.
+ *     (#f7f4ec) -> **Alice Blue #F0F8FF** (operator override, same day).
+ *     Alice Blue is L 0.929, a touch LIGHTER than both prior grounds
+ *     (0.905), so every light-theme foreground ratio below only rises;
+ *     nothing was re-tuned, only re-verified. Note the ground now casts
+ *     cool while the accents (emerald, gold) cast warm — a deliberate
+ *     operator choice, not an oversight.
  *   - dark ground "Vault": deepened one step (#0e1311 -> #0b100e base)
  *     for a richer well, which only *raises* every dark-theme foreground
  *     ratio (a darker ground gives light ink and accents MORE contrast).
@@ -73,15 +76,17 @@
 
 :root {
   /* ---------------------------------------------------------------- *
-   * SURFACES, "Ivory", light theme (2026-08-29 jewel-tone pass): a
-   * warm, low-chroma off-white, replacing the cool near-neutral "Paper"
-   * (#f7f7f5). base #f7f4ec is the darkest of the three (L 0.905,
-   * unchanged from Paper), so it is the worst-case surface every
-   * light-theme foreground below is verified against.
+   * SURFACES, "Alice Blue", light theme (2026-08-29 operator override,
+   * after the jewel-tone pass): CSS Alice Blue #F0F8FF, a pale cool
+   * blue-white, replacing the warm Ivory (#f7f4ec) that had briefly
+   * replaced Paper (#f7f7f5). base #f0f8ff is the darkest of the three
+   * (L 0.929, LIGHTER than either prior ground), so it is the worst-case
+   * surface every light-theme foreground below is verified against, and
+   * every prior ratio only rose.
    * ---------------------------------------------------------------- */
-  --surface-base: #f7f4ec;
-  --surface-raised: #fbf9f2;
-  --surface-overlay: #fefdf8;
+  --surface-base: #f0f8ff;
+  --surface-raised: #f6fbff;
+  --surface-overlay: #fbfdff;
 
   /* ---------------------------------------------------------------- *
    * INK, "Bistre", a warm near-black matched to Ivory.

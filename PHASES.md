@@ -1079,6 +1079,62 @@ Enforce in review that **no two council agents share both tool access and object
 
 ---
 
+# PHASE 14.5 — INGESTION CONNECTORS & END-TO-END WIRE
+
+**Roles:** `@e3` (lead) · `@e2` · `@e4` · `@cto`
+**Depends on:** 14
+**Inserted:** 2026-08-29, operator direction — a real, triggerable ingestion path plus the first live raw-input-to-graph wire (DEBT-009's repayment). Numbered 14.5 rather than renumbering so existing "Phase 15" references (ADRs, `docs/DEBT.md`, `docs/DEPLOYMENT_PROOF.md`, code comments) stay accurate; Demo Hardening remains Phase 15.
+
+**Goal:** turn ingestion from "parsers that exist but nothing calls" into a path a household member actually triggers — "scan my Gmail and Outlook", by text or by voice — reading the last 24 hours of mail through official OAuth APIs, plus a file/Drive picker, plus the orchestrator that finally connects the Phase 3 stages end to end. Scope is deliberately narrow.
+
+**Explicitly out of scope** (stated so the write-up can't imply otherwise): any local-filesystem, Apple Photos, iMessage, or WhatsApp read. A deployed web app cannot reach those; a native desktop companion is the only route and is a post-submission roadmap item, not a claimed capability. Google Photos is Picker-only (no library sweep). Google restricted scopes (`gmail.readonly`, `drive.readonly`) run in OAuth **test mode** for the demo — a real, documented limitation.
+
+## Work — CTO (contract freeze first)
+
+- `contracts/` additions, frozen before E2/E3 start:
+  - `SourceConnector` protocol — `fetch_since(window: timedelta) -> list[RawIntakePayload]`, implemented per provider.
+  - `IngestionRequest` / `IngestionRunResult` — the run's input and its honest per-document outcome record (counts, per-doc status, registry gaps, errors; never a silent partial success).
+  - `OAuthCredential` record — provider, granted scopes, principal, refresh-token **reference** only. The token itself lives in Secret Manager, never in Firestore, never passed to a reasoning agent (spec §23).
+- **ADR — OAuth in a backend-only architecture:** Authorization Code + PKCE; consent-start and callback are FastAPI routes; refresh tokens in Secret Manager keyed by principal; access tokens held in memory for the run only, never persisted.
+- **ADR — the ingestion orchestrator boundary:** one entry point (`POST /ingest`), one path (`SourceConnector`/adapter → A2 route → A3/A3b/A3c extract → A5 entity resolution → strategy `map_to_graph` → `GraphWriter`), idempotent per `SourceDocument` content hash so a re-scan of the same window writes nothing new.
+
+## Work — E3 (lead)
+
+- **`GmailConnector(SourceConnector)`** — OAuth consent + callback routes; `users.messages.list` with `newer_than:1d` (or an explicit `after:` epoch); `users.messages.get` per id; MIME → the `{headers, body}` shape `email_adapter.py` already consumes; token refresh, quota backoff.
+- **`OutlookConnector(SourceConnector)`** — Microsoft Graph OAuth; `GET /me/messages?$filter=receivedDateTime ge <ISO>&$select=...`; Graph JSON → the same adapter shape.
+- **File / Drive picker ingestion** — a `POST /ingest` multipart path for drag-dropped images/PDFs (reusing `document_upload_adapter.py`), and a Google Picker (`drive.file` scope, no verification) for choosing specific Drive files. No whole-Drive or Photos-library enumeration.
+- **The end-to-end orchestrator** (`backend/app/pipelines/ingestion_orchestrator.py`) — the single wire from `RawIntakePayload` to committed graph nodes: idempotent per content hash, structured-logged per stage, returning a real `IngestionRunResult`. This is DEBT-009's actual code.
+- Wire "scan my mailbox" as a real trigger from both the text command and the Phase 13 voice path.
+
+## Work — E2
+
+- A2 Intake Router — confirm it routes a real Gmail/Outlook message end to end (channel `email`), no new classification branch.
+- A67 Voice Intent Classifier — add an `ingest.scan_mailbox` intent (enumerated, deterministic check independent of the LLM call, mirroring A68's pattern), routed to the orchestrator, **never** to an action tool.
+- Run A3 extraction against real (not golden-file) mail bodies; write a short honesty note comparing real-world extraction quality to the golden-file baseline.
+
+## Work — E4
+
+- An **Ingestion / Connections** surface — connect/disconnect Gmail and Outlook (OAuth status, last-scan time, granted scopes shown plainly), a "Scan last 24 hours" button, a drag-drop zone for images/PDFs, the Drive picker.
+- A live ingestion-run view — per-document status as the orchestrator processes, each new node linked into the graph view. Reuses `/graph/stream`, no new endpoint.
+- The voice path surfaces the same run view when triggered by "scan my Gmail".
+- Both themes.
+
+## 🟢 GATE 14.5
+
+- [ ] A real Gmail account connects via OAuth and "scan last 24 hours" ingests real messages into the graph, live
+- [ ] The same works for a real Outlook account via Microsoft Graph
+- [ ] "Scan my Gmail" spoken aloud triggers the identical path (A67 → orchestrator), routed to ingestion, never to an action
+- [ ] A dragged-in receipt image and a picked Drive PDF both reach the graph through the one `POST /ingest` wire
+- [ ] Re-scanning the same 24-hour window writes zero new nodes (idempotent per content hash)
+- [ ] OAuth tokens live in Secret Manager, never in Firestore, never passed to a reasoning agent — proven by test
+- [ ] `IngestionRunResult` reports every per-document outcome; a failed extraction is a visible failure, never a silent drop
+- [ ] Provenance on every node the wire produces (invariant 3): SOURCE_DOCUMENT → extracted fields → nodes, queryable end to end
+- [ ] **DEBT-009 struck** — a genuine raw-document-to-graph orchestrator exists and runs live
+
+**CTO review:** read the graph directly and confirm a real message actually landed as a real node — do not trust the run report. Confirm the OAuth test-mode limitation and the "no local-filesystem / Photos / WhatsApp / iMessage" boundary are stated plainly in the submission write-up, not implied away.
+
+---
+
 # PHASE 15 — DEMO HARDENING & DEPLOYMENT PROOF
 
 **Roles:** all five
@@ -1156,6 +1212,7 @@ Log every break point and fix it. **The exception beat must be deterministic.**
 | 12 Council | ● | ● | **L** | | ● |
 | 13 Voice + multilingual | ● | | ● | **L** | ● |
 | 14 Consolidation | | **L** | ● | ● | |
+| 14.5 Ingestion connectors | ● | | ● | **L** | ● |
 | 15 Demo hardening | **L** | ● | ● | ● | ● |
 
 **L** = lead · ● = contributing
