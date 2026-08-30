@@ -77,7 +77,7 @@
   background: var(--surface-overlay);
   border-left: 4px solid var(--royal-primary);
   color: var(--ink-primary);
-  font-family: var(--font-display), serif;
+  font-family: var(--font-display), var(--font-body), sans-serif;
   font-size: 1.125rem;
   font-style: italic;
   line-height: 1.5;

@@ -11,7 +11,7 @@
 
 .label {
   margin: 0;
-  font-family: var(--font-display), serif;
+  font-family: var(--font-display), var(--font-body), sans-serif;
   font-size: 1.0625rem;
   font-weight: 600;
   color: var(--ink-primary);

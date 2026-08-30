@@ -15,7 +15,7 @@
 .neutral {
   background: var(--surface-overlay);
   color: var(--ink-secondary);
-  border-color: var(--ink-muted);
+  border-color: var(--border-strong);
 }
 
 .royal {

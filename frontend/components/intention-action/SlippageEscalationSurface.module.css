@@ -138,7 +138,7 @@
 .optionCard {
   padding: var(--space-3);
   border-radius: var(--radius-md);
-  border: 1px solid var(--ink-muted);
+  border: 1px solid var(--border-strong);
   display: flex;
   flex-direction: column;
   gap: var(--space-2);

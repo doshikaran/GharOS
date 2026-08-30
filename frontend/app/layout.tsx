@@ -1,55 +1,41 @@
 import type { Metadata } from "next";
-import { Fraunces, IBM_Plex_Mono, Instrument_Sans, Instrument_Serif } from "next/font/google";
+import { IBM_Plex_Mono, Inter, Space_Grotesk } from "next/font/google";
 import { ThemeProvider } from "next-themes";
 import "./globals.css";
 
-const fraunces = Fraunces({
+// 2026-08-30 "Vivid Product" revamp: geometric sans throughout.
+// Space Grotesk for headings (bound to --font-display), Inter for body
+// (--font-body), IBM Plex Mono for data moments (--font-data-family).
+// The accent serif (Instrument Serif) is retired; tokens.css's
+// --font-accent falls through to --font-display.
+const spaceGrotesk = Space_Grotesk({
   variable: "--font-display",
   subsets: ["latin"],
-  weight: ["500", "600", "700"],
-  style: ["normal", "italic"],
+  weight: ["400", "500", "600", "700"],
 });
 
-// 2026-08-29 private-bank pass: body face is Instrument Sans (was Inter),
-// bound to the SAME --font-body variable so no component changes.
-const instrumentSans = Instrument_Sans({
+const inter = Inter({
   variable: "--font-body",
   subsets: ["latin"],
 });
 
-// 2026-08-29 private-bank pass: IBM Plex Mono for data moments — ₹
-// amounts, dates, IDs, proof lines — bound to --font-data-family, which
-// tokens.css's --font-data falls back through (same pattern as
-// --font-accent-family below). Use sites pair it with
-// `font-variant-numeric: tabular-nums` so rupee columns align.
 const ibmPlexMono = IBM_Plex_Mono({
   variable: "--font-data-family",
   subsets: ["latin"],
   weight: ["400", "500"],
 });
 
-// 2026-08-29 royal redesign (docs/design/2026-08-29-redesign-brief.md):
-// the accent serif for hero/pull-quote/landing-page storytelling moments
-// only — bound to --font-accent-family, which tokens.css's --font-accent
-// falls back to. Instrument Serif only ships weight 400, normal + italic.
-const instrumentSerif = Instrument_Serif({
-  variable: "--font-accent-family",
-  subsets: ["latin"],
-  weight: ["400"],
-  style: ["normal", "italic"],
-});
-
 export const metadata: Metadata = {
   title: "GharOS",
   description:
-    "GharOS, an autonomous household operating system: a ledger and archive that happens to think.",
+    "GharOS, an autonomous household operating system: it reads the household's inbox, works out what each item implies, and does the parts a script can.",
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
     <html
       lang="en"
-      className={`${fraunces.variable} ${instrumentSans.variable} ${ibmPlexMono.variable} ${instrumentSerif.variable} h-full`}
+      className={`${spaceGrotesk.variable} ${inter.variable} ${ibmPlexMono.variable} h-full`}
       suppressHydrationWarning
     >
       <body className="min-h-full flex flex-col antialiased">

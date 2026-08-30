@@ -4,7 +4,7 @@
   gap: var(--space-1);
   padding: var(--space-1);
   background: var(--surface-raised);
-  border: 1px solid var(--royal-soft);
+  border: 1px solid var(--border);
   border-radius: var(--radius-full);
 }
 

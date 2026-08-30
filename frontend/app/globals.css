@@ -16,17 +16,22 @@ h4,
 h5,
 h6 {
   font-family: var(--font-display), var(--font-body), ui-sans-serif, sans-serif;
+  letter-spacing: -0.01em;
 }
 
+/* Default hairline colour for any bare `border` in a component's CSS. */
 * {
-  border-color: var(--ink-muted);
+  border-color: var(--border);
 }
 
-/* Selection moved from --royal-soft to --royal-primary in the 2026-08-29
- * private-bank pass: royal-soft is a fill/tint token and the new light
- * value is a pale sage — --on-royal text is only contrast-verified
- * against --royal-primary / --royal-deep fills (7.9:1+ both themes). */
 ::selection {
   background: var(--royal-primary);
   color: var(--on-royal);
+}
+
+/* A single, consistent keyboard-focus treatment across the app. */
+:focus-visible {
+  outline: 2px solid var(--royal-primary);
+  outline-offset: 2px;
+  border-radius: var(--radius-sm);
 }

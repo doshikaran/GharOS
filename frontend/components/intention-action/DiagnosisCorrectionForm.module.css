@@ -30,7 +30,7 @@
 .select,
 .textarea {
   border-radius: var(--radius-md);
-  border: 1px solid var(--ink-muted);
+  border: 1px solid var(--border-strong);
   background: var(--surface-base);
   color: var(--ink-primary);
   padding: var(--space-2) var(--space-3);

@@ -75,7 +75,7 @@
 }
 
 .heroTitle {
-  font-family: var(--font-display), serif;
+  font-family: var(--font-display), var(--font-body), sans-serif;
   font-size: clamp(2.5rem, 6vw, 4.25rem);
   font-weight: 600;
   line-height: 1.08;
@@ -84,7 +84,7 @@
 }
 
 .heroSubtitle {
-  font-family: var(--font-accent), serif;
+  font-family: var(--font-display), var(--font-body), sans-serif;
   font-style: italic;
   font-size: clamp(1.375rem, 2.5vw, 1.75rem);
   color: var(--royal-primary);
@@ -110,7 +110,7 @@
  * 2. THE PAIN
  * ---------------------------------------------------------------- */
 .leadLine {
-  font-family: var(--font-display), serif;
+  font-family: var(--font-display), var(--font-body), sans-serif;
   font-size: clamp(1.25rem, 2.2vw, 1.5rem);
   line-height: 1.5;
   color: var(--ink-primary);
@@ -141,7 +141,7 @@
 }
 
 .vignetteTitle {
-  font-family: var(--font-display), serif;
+  font-family: var(--font-display), var(--font-body), sans-serif;
   font-size: 1.0625rem;
   font-weight: 600;
   color: var(--royal-primary);
@@ -159,7 +159,7 @@
  * Section headline/body — shared by sections 3 and 5
  * ---------------------------------------------------------------- */
 .sectionHeadline {
-  font-family: var(--font-display), serif;
+  font-family: var(--font-display), var(--font-body), sans-serif;
   font-size: clamp(1.75rem, 3.5vw, 2.25rem);
   font-weight: 600;
   color: var(--ink-primary);
@@ -200,12 +200,12 @@
   row-gap: var(--space-1);
   align-items: baseline;
   padding-left: var(--space-4);
-  border-left: 2px solid var(--royal-soft);
+  border-left: 2px solid var(--border);
 }
 
 .chapterNumber {
   grid-row: 1 / 3;
-  font-family: var(--font-accent), serif;
+  font-family: var(--font-display), var(--font-body), sans-serif;
   font-style: italic;
   font-size: 1.75rem;
   color: var(--accent-brass);
@@ -213,7 +213,7 @@
 }
 
 .chapterName {
-  font-family: var(--font-display), serif;
+  font-family: var(--font-display), var(--font-body), sans-serif;
   font-size: 1.1875rem;
   font-weight: 600;
   color: var(--ink-primary);
@@ -243,7 +243,7 @@
 .stackItem {
   padding: var(--space-2) var(--space-4);
   border-radius: var(--radius-full);
-  border: 1px solid var(--royal-soft);
+  border: 1px solid var(--border);
   color: var(--royal-primary);
   font-size: 0.875rem;
   font-weight: 600;
@@ -265,7 +265,7 @@
   align-items: baseline;
   gap: var(--space-3);
   padding: var(--space-2) 0;
-  border-bottom: 1px solid var(--royal-soft);
+  border-bottom: 1px solid var(--border);
   color: var(--ink-primary);
   font-size: 0.9375rem;
 }
@@ -275,7 +275,7 @@
 }
 
 .invariantNumber {
-  font-family: var(--font-accent), serif;
+  font-family: var(--font-display), var(--font-body), sans-serif;
   font-style: italic;
   font-size: 1.125rem;
   color: var(--accent-brass);
@@ -292,11 +292,11 @@
   gap: var(--space-5);
   max-width: 40rem;
   padding: var(--space-7) 0 var(--space-8);
-  border-top: 1px solid var(--royal-soft);
+  border-top: 1px solid var(--border);
 }
 
 .closingHeadline {
-  font-family: var(--font-display), serif;
+  font-family: var(--font-display), var(--font-body), sans-serif;
   font-size: clamp(1.75rem, 4vw, 2.5rem);
   font-weight: 600;
   color: var(--ink-primary);

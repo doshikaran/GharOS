@@ -12,7 +12,7 @@
 
 .amount {
   color: var(--accent-brass);
-  font-family: var(--font-display), serif;
+  font-family: var(--font-display), var(--font-body), sans-serif;
   font-size: 1.4em;
 }
 

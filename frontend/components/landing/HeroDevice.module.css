@@ -126,7 +126,7 @@
 }
 
 .screenBarBrand {
-  font-family: var(--font-display), serif;
+  font-family: var(--font-display), var(--font-body), sans-serif;
   font-weight: 600;
   font-size: 0.75rem;
   color: var(--ink-primary);

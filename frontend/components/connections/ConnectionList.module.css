@@ -19,7 +19,7 @@
 
 .provider {
   margin: 0;
-  font-family: var(--font-display), serif;
+  font-family: var(--font-display), var(--font-body), sans-serif;
   font-size: 1.0625rem;
   font-weight: 600;
   color: var(--ink-primary);
@@ -86,7 +86,7 @@
   flex-direction: column;
   gap: 2px;
   padding: var(--space-2) var(--space-3);
-  border: 1px solid var(--royal-soft);
+  border: 1px solid var(--border);
   border-radius: var(--radius-sm);
   background: var(--surface-overlay);
 }

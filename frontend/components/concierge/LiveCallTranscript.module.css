@@ -33,7 +33,7 @@
   padding: var(--space-3);
   border-radius: var(--radius-md);
   background: var(--surface-overlay);
-  border-left: 3px solid var(--ink-muted);
+  border-left: 3px solid var(--border-strong);
   animation: turnArrive var(--motion-base) var(--motion-ease-emphasized);
 }
 

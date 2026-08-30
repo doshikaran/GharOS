@@ -21,7 +21,7 @@
 
 .tableScroll {
   overflow-x: auto;
-  border: 1px solid var(--royal-soft);
+  border: 1px solid var(--border);
   border-radius: var(--radius-md);
 }
 
@@ -47,7 +47,7 @@
   background: var(--surface-raised);
   color: var(--ink-primary);
   font-weight: 600;
-  border-bottom: 1px solid var(--royal-soft);
+  border-bottom: 1px solid var(--border);
   white-space: nowrap;
 }
 
@@ -57,7 +57,7 @@
   font-weight: 600;
   color: var(--ink-primary);
   background: var(--surface-raised);
-  border-bottom: 1px solid var(--royal-soft);
+  border-bottom: 1px solid var(--border);
   white-space: nowrap;
 }
 
@@ -66,13 +66,13 @@
 .editedCell,
 .editableCell {
   padding: var(--space-3) var(--space-4);
-  border-bottom: 1px solid var(--royal-soft);
+  border-bottom: 1px solid var(--border);
   text-align: center;
   min-width: 8rem;
 }
 
 .notAskedCell {
-  border: 1px dashed var(--ink-muted);
+  border: 1px dashed var(--border-strong);
   color: var(--ink-muted);
 }
 
@@ -115,7 +115,7 @@
 .cellInput {
   width: 5rem;
   padding: var(--space-1) var(--space-2);
-  border: 1px solid var(--royal-soft);
+  border: 1px solid var(--border);
   border-radius: var(--radius-sm);
   background: var(--surface-base);
   color: var(--ink-primary);

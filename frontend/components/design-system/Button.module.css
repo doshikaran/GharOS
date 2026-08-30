@@ -15,7 +15,13 @@
   transition: background-color var(--motion-fast) var(--motion-ease-standard),
     border-color var(--motion-fast) var(--motion-ease-standard),
     color var(--motion-fast) var(--motion-ease-standard),
+    box-shadow var(--motion-fast) var(--motion-ease-standard),
+    transform var(--motion-fast) var(--motion-ease-standard),
     opacity var(--motion-fast) var(--motion-ease-standard);
+}
+
+.button:active:not(:disabled) {
+  transform: translateY(1px);
 }
 
 .button:disabled {
@@ -33,9 +39,11 @@
 .primary {
   background: var(--royal-primary);
   color: var(--on-royal);
+  box-shadow: var(--elevation-1);
 }
 .primary:hover:not(:disabled) {
   background: var(--royal-deep);
+  box-shadow: var(--elevation-2);
 }
 
 .brass {
@@ -54,7 +62,7 @@
 .secondary {
   background: var(--surface-raised);
   color: var(--ink-primary);
-  border-color: var(--ink-muted);
+  border-color: var(--border-strong);
 }
 .secondary:hover:not(:disabled) {
   background: var(--surface-overlay);

@@ -1,7 +1,7 @@
 .card {
   background: var(--surface-raised);
   color: var(--ink-primary);
-  border: 1px solid var(--royal-soft);
+  border: 1px solid var(--border);
   border-radius: var(--radius-lg);
   padding: var(--space-5);
   box-shadow: var(--elevation-1);
@@ -17,7 +17,7 @@
 
 .title {
   margin: 0 0 var(--space-2) 0;
-  font-family: var(--font-display), serif;
+  font-family: var(--font-display), var(--font-body), sans-serif;
   font-size: 1.125rem;
   font-weight: 600;
   color: var(--ink-primary);

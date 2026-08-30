@@ -5,7 +5,7 @@
 }
 
 .heading {
-  font-family: var(--font-display), serif;
+  font-family: var(--font-display), var(--font-body), sans-serif;
   font-size: 1.25rem;
   margin: 0;
   color: var(--ink-primary);
@@ -49,7 +49,7 @@
 }
 
 .bundleCard {
-  border: 1px solid var(--royal-soft);
+  border: 1px solid var(--border);
   border-radius: var(--radius-md);
   padding: var(--space-4);
   display: flex;
@@ -59,7 +59,7 @@
 
 .bundlePerson {
   margin: 0;
-  font-family: var(--font-display), serif;
+  font-family: var(--font-display), var(--font-body), sans-serif;
   color: var(--ink-primary);
 }
 
@@ -95,7 +95,7 @@
 .picksTable td {
   text-align: left;
   padding: var(--space-2) var(--space-3);
-  border-bottom: 1px solid var(--royal-soft);
+  border-bottom: 1px solid var(--border);
 }
 
 .order {

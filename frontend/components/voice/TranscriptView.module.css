@@ -15,7 +15,7 @@
   overflow-y: auto;
   padding: var(--space-4);
   background: var(--surface-base);
-  border: 1px solid var(--ink-muted);
+  border: 1px solid var(--border-strong);
   border-radius: var(--radius-lg);
 }
 

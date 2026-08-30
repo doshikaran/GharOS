@@ -15,7 +15,7 @@
 }
 
 .heading {
-  font-family: var(--font-display), serif;
+  font-family: var(--font-display), var(--font-body), sans-serif;
   font-size: 2rem;
   font-weight: 600;
   margin: 0;
@@ -44,7 +44,7 @@
 
 .sectionHeading {
   margin: 0;
-  font-family: var(--font-display), serif;
+  font-family: var(--font-display), var(--font-body), sans-serif;
   font-size: 1.5rem;
   font-weight: 600;
   color: var(--ink-primary);

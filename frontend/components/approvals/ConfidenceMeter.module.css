@@ -9,7 +9,7 @@
   height: 0.5rem;
   border-radius: var(--radius-full);
   background: var(--surface-overlay);
-  border: 1px solid var(--royal-soft);
+  border: 1px solid var(--border);
   overflow: hidden;
 }
 

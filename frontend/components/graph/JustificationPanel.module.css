@@ -64,7 +64,7 @@
 }
 
 .sources {
-  border-top: 1px solid var(--ink-muted);
+  border-top: 1px solid var(--border);
   padding-top: var(--space-3);
 }
 

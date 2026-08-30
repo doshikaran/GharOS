@@ -35,7 +35,7 @@
 }
 
 .chip {
-  border: 1px solid var(--royal-soft);
+  border: 1px solid var(--border);
   background: var(--surface-base);
   color: var(--ink-secondary);
   border-radius: var(--radius-full);
@@ -55,7 +55,7 @@
 .select {
   background: var(--surface-base);
   color: var(--ink-primary);
-  border: 1px solid var(--royal-soft);
+  border: 1px solid var(--border);
   border-radius: var(--radius-md);
   padding: var(--space-2) var(--space-3);
   font-size: 0.875rem;
@@ -90,7 +90,7 @@
   gap: var(--space-3);
   padding: var(--space-3);
   background: var(--surface-raised);
-  border: 1px solid var(--royal-soft);
+  border: 1px solid var(--border);
   border-radius: var(--radius-md);
 }
 
@@ -123,12 +123,12 @@
   flex-direction: column;
   gap: var(--space-3);
   padding-top: var(--space-4);
-  border-top: 1px solid var(--royal-soft);
+  border-top: 1px solid var(--border);
 }
 
 .commitmentsHeading {
   margin: 0;
-  font-family: var(--font-display), serif;
+  font-family: var(--font-display), var(--font-body), sans-serif;
   font-size: 1.125rem;
   font-weight: 600;
   color: var(--ink-primary);
@@ -142,7 +142,7 @@
   gap: var(--space-3);
   padding: var(--space-3);
   background: var(--surface-raised);
-  border: 1px solid var(--royal-soft);
+  border: 1px solid var(--border);
   border-radius: var(--radius-md);
 }
 

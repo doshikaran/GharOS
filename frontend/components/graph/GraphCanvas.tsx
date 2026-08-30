@@ -247,16 +247,24 @@ export function GraphCanvas({
         const scale = arrival ? arrival.scale : 1;
         const radius = DRAW_NODE_RADIUS * scale * (node.id === selectedId ? 1.35 : 1);
 
+        const isSelected = node.id === selectedId;
+
         ctx.save();
         ctx.translate(simNode.x, simNode.y);
         ctx.globalAlpha = (isHighlighted ? 1 : DIMMED_ALPHA) * (arrival ? arrival.opacity : 1);
         ctx.fillStyle = resolveColorToken(visual.colorToken);
         ctx.strokeStyle = resolveColorToken(visual.colorToken);
         ctx.lineWidth = 2;
+        if (isSelected) {
+          // Soft indigo halo behind the selected node.
+          ctx.shadowColor = resolveColorToken("--glow");
+          ctx.shadowBlur = 22;
+        }
         drawNodeGeometry(ctx, visual.geometry, visual.fillMode, radius);
-        if (node.id === selectedId) {
+        if (isSelected) {
+          ctx.shadowBlur = 0;
           ctx.lineWidth = 2.5;
-          ctx.strokeStyle = resolveColorToken("--accent-brass");
+          ctx.strokeStyle = resolveColorToken("--royal-primary");
           ctx.stroke();
         }
         ctx.restore();

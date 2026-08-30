@@ -77,7 +77,7 @@
 }
 
 .decisionButton:hover {
-  border-color: var(--royal-soft);
+  border-color: var(--border);
 }
 
 .decisionButtonActive {

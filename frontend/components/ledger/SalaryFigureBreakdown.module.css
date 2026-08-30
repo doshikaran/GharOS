@@ -11,7 +11,7 @@
   align-items: baseline;
   gap: var(--space-3);
   padding: var(--space-1) 0;
-  border-bottom: 1px solid var(--royal-soft);
+  border-bottom: 1px solid var(--border);
 }
 
 .row dt {

@@ -50,7 +50,7 @@
   margin: 0;
   padding: var(--space-3);
   background: var(--surface-overlay);
-  border: 1px solid var(--royal-soft);
+  border: 1px solid var(--border);
   border-radius: var(--radius-md);
   font-family: var(--font-body), monospace;
   font-size: 0.8125rem;

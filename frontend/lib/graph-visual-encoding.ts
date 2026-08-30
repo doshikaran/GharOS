@@ -52,25 +52,29 @@ export interface NodeVisual {
   readonly colorToken: string;
 }
 
+// Colour = category tint (--graph-* palette, or a semantic state colour
+// where the meaning is real: red CONSTRAINT, amber OBLIGATION, green
+// ACTION/APPROVAL). Geometry + fillMode still uniquely identify all 18
+// types, so nothing relies on colour alone.
 export const NODE_VISUALS: Record<NodeType, NodeVisual> = {
-  PERSON: { geometry: "circle", fillMode: "filled", colorToken: "--royal-primary" },
+  PERSON: { geometry: "circle", fillMode: "filled", colorToken: "--graph-1" },
   CONSTRAINT: { geometry: "diamond", fillMode: "filled", colorToken: "--state-danger" },
   OBLIGATION: { geometry: "triangle-up", fillMode: "filled", colorToken: "--state-warning" },
-  LEDGER_EVENT: { geometry: "square", fillMode: "filled", colorToken: "--accent-brass" },
-  RECURRING_COMMITMENT: { geometry: "hexagon", fillMode: "filled", colorToken: "--accent-brass" },
-  VENDOR: { geometry: "pentagon", fillMode: "filled", colorToken: "--state-info" },
-  PROVIDER: { geometry: "circle", fillMode: "outline", colorToken: "--state-info" },
-  DECISION: { geometry: "star", fillMode: "filled", colorToken: "--royal-deep" },
-  BRANCH: { geometry: "triangle-down", fillMode: "filled", colorToken: "--royal-deep" },
-  COUNCIL_POSITION: { geometry: "cross", fillMode: "filled", colorToken: "--royal-deep" },
-  OUTCOME: { geometry: "diamond", fillMode: "outline", colorToken: "--royal-deep" },
+  LEDGER_EVENT: { geometry: "square", fillMode: "filled", colorToken: "--graph-5" },
+  RECURRING_COMMITMENT: { geometry: "hexagon", fillMode: "filled", colorToken: "--graph-5" },
+  VENDOR: { geometry: "pentagon", fillMode: "filled", colorToken: "--graph-2" },
+  PROVIDER: { geometry: "circle", fillMode: "outline", colorToken: "--graph-2" },
+  DECISION: { geometry: "star", fillMode: "filled", colorToken: "--graph-3" },
+  BRANCH: { geometry: "triangle-down", fillMode: "filled", colorToken: "--graph-3" },
+  COUNCIL_POSITION: { geometry: "cross", fillMode: "filled", colorToken: "--graph-3" },
+  OUTCOME: { geometry: "diamond", fillMode: "outline", colorToken: "--graph-3" },
   SOURCE_DOCUMENT: { geometry: "rounded-rect", fillMode: "filled", colorToken: "--ink-secondary" },
   ACTION_RECORD: { geometry: "circle", fillMode: "filled-with-dot", colorToken: "--state-success" },
   APPROVAL_REQUEST: { geometry: "hexagon", fillMode: "outline", colorToken: "--state-success" },
-  PURCHASE_ITEM: { geometry: "triangle-up", fillMode: "outline", colorToken: "--accent-brass-muted" },
-  PATTERN: { geometry: "x-mark", fillMode: "filled", colorToken: "--ink-muted" },
-  ATTENDANCE_RECORD: { geometry: "square", fillMode: "outline", colorToken: "--state-info" },
-  VALUATION_PROFILE: { geometry: "star", fillMode: "outline", colorToken: "--accent-brass-muted" },
+  PURCHASE_ITEM: { geometry: "triangle-up", fillMode: "outline", colorToken: "--graph-5" },
+  PATTERN: { geometry: "x-mark", fillMode: "filled", colorToken: "--graph-8" },
+  ATTENDANCE_RECORD: { geometry: "square", fillMode: "outline", colorToken: "--graph-7" },
+  VALUATION_PROFILE: { geometry: "star", fillMode: "outline", colorToken: "--graph-3" },
 };
 
 // ---------------------------------------------------------------------------

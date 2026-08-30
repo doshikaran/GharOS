@@ -68,6 +68,30 @@ const ACCENT_TOKENS: TokenEntry[] = [
   { name: "on-brass", note: "text on brass fills" },
 ];
 
+const CYAN_TOKENS: TokenEntry[] = [
+  { name: "accent-cyan", note: "text-safe on surface-base" },
+  { name: "accent-cyan-muted", note: "fill/tint only" },
+  { name: "on-cyan", note: "text on cyan fills" },
+];
+
+const BORDER_TOKENS: TokenEntry[] = [
+  { name: "border", note: "default hairline" },
+  { name: "border-strong", note: "inputs, selected rows" },
+  { name: "focus-ring" },
+  { name: "glow", note: "halo behind a selected graph node" },
+];
+
+const GRAPH_PALETTE_TOKENS: TokenEntry[] = [
+  { name: "graph-1", note: "indigo, people" },
+  { name: "graph-2", note: "cyan, vendors" },
+  { name: "graph-3", note: "violet, decisions" },
+  { name: "graph-4", note: "emerald" },
+  { name: "graph-5", note: "amber, money" },
+  { name: "graph-6", note: "rose" },
+  { name: "graph-7", note: "blue, attendance" },
+  { name: "graph-8", note: "fuchsia, patterns" },
+];
+
 const STATE_TOKENS: TokenEntry[] = [
   { name: "state-success" },
   { name: "state-warning" },
@@ -132,26 +156,44 @@ export default function TokensPage() {
 
       <ColorSection
         title="Surfaces"
-        note="Base / raised / overlay, the paper stacked on paper of the ledger."
+        note="Base is the tinted page; raised and overlay are pure white, separated by border and shadow."
         tokens={SURFACE_TOKENS}
       />
 
       <ColorSection
         title="Ink"
-        note="Iron on stone (light) / porcelain on vault (dark). Contrast ratios verified against each theme's worst-case surface."
+        note="Near-black indigo (light) / near-white (dark). Contrast ratios target AA against each theme's worst-case surface."
         tokens={INK_TOKENS}
       />
 
       <ColorSection
-        title="Royal"
-        note="Banker's green (the token name predates the 2026-08-29 private-bank pass). -deep and -soft are fill/tint tokens; use --on-royal for text placed on top of a royal fill."
+        title="Royal — the house colour (electric indigo)"
+        note="Token name is a role, not a hue. -deep and -soft are fill/tint tokens; use --on-royal for text placed on top of a royal fill."
         tokens={ROYAL_TOKENS}
       />
 
       <ColorSection
-        title="Accent, brass"
-        note="Champagne (the token name predates the 2026-08-29 private-bank pass): darkened for text on stone in light mode, full strength in dark mode. -muted is a fill/tint token only."
+        title="Accent, brass — the warm accent (coral)"
+        note="Token name is a role, not a hue. --accent-brass is a deepened coral that clears AA for text; --accent-brass-muted is the pale coral fill/tint only."
         tokens={ACCENT_TOKENS}
+      />
+
+      <ColorSection
+        title="Accent 2 — cyan"
+        note="A deepened teal-cyan, text-safe on --surface-base; -muted is a fill/tint only."
+        tokens={CYAN_TOKENS}
+      />
+
+      <ColorSection
+        title="Borders, focus, glow"
+        note="--border is the default hairline, --border-strong for inputs and selected rows. --glow is the indigo halo behind a selected graph node."
+        tokens={BORDER_TOKENS}
+      />
+
+      <ColorSection
+        title="Graph node palette"
+        note="A vivid categorical ramp for at-a-glance node grouping on the canvas. Node shape still carries the precise type; this is the category tint."
+        tokens={GRAPH_PALETTE_TOKENS}
       />
 
       <ColorSection
@@ -189,7 +231,7 @@ export default function TokensPage() {
 
       <ColorSection
         title="Highlight surface"
-        note="A gold-tinted marked / edited region that DOES carry --ink-primary text on top (source-span highlight, re-allocated cost-matrix cell, commitment tag). Unlike --accent-brass-muted it is held to the text-contrast bar: >=7:1 with --ink-primary in both themes."
+        note="A pale indigo marked / edited region that DOES carry --ink-primary text on top (source-span highlight, re-allocated cost-matrix cell, commitment tag). Unlike --accent-brass-muted it is held to the text-contrast bar with --ink-primary in both themes."
         tokens={HIGHLIGHT_TOKENS}
       />
 
@@ -221,7 +263,7 @@ export default function TokensPage() {
 
       <section className={styles.section}>
         <h2 className={styles.sectionTitle}>Elevation</h2>
-        <p className={styles.sectionNote}>Cool-cast shadows, never pure black in light mode.</p>
+        <p className={styles.sectionNote}>Soft, indigo-cast shadows in light mode; pure-black cast in dark.</p>
         <div className={styles.flexWrapRow}>
           {ELEVATION_TOKENS.map((name) => (
             <div className={styles.elevationRow} key={name}>

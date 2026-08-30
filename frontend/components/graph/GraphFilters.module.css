@@ -46,7 +46,7 @@
 .chip {
   padding: var(--space-1) var(--space-3);
   border-radius: var(--radius-full);
-  border: 1px solid var(--ink-muted);
+  border: 1px solid var(--border-strong);
   background: var(--surface-overlay);
   color: var(--ink-muted);
   font-size: 0.75rem;
@@ -65,7 +65,7 @@
 .select {
   padding: var(--space-2) var(--space-3);
   border-radius: var(--radius-md);
-  border: 1px solid var(--ink-muted);
+  border: 1px solid var(--border-strong);
   background: var(--surface-overlay);
   color: var(--ink-primary);
   font-size: 0.875rem;
@@ -88,7 +88,7 @@
 .timeField input {
   padding: var(--space-2);
   border-radius: var(--radius-md);
-  border: 1px solid var(--ink-muted);
+  border: 1px solid var(--border-strong);
   background: var(--surface-overlay);
   color: var(--ink-primary);
   font-size: 0.8125rem;

@@ -22,7 +22,7 @@
 .select {
   padding: var(--space-2) var(--space-3);
   border-radius: var(--radius-md);
-  border: 1px solid var(--ink-muted);
+  border: 1px solid var(--border-strong);
   background: var(--surface-raised);
   color: var(--ink-primary);
   font-size: 0.9375rem;
@@ -44,7 +44,7 @@
 }
 
 .legend {
-  font-family: var(--font-display), serif;
+  font-family: var(--font-display), var(--font-body), sans-serif;
   font-size: 1rem;
   font-weight: 600;
   color: var(--ink-primary);

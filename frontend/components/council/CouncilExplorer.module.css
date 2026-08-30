@@ -16,7 +16,7 @@
 
 .question {
   margin: 0;
-  font-family: var(--font-display), serif;
+  font-family: var(--font-display), var(--font-body), sans-serif;
   font-size: 1.375rem;
   font-weight: 700;
   color: var(--ink-primary);
@@ -39,7 +39,7 @@
   margin: 0;
   padding: var(--space-3) var(--space-4);
   background: color-mix(in srgb, var(--royal-primary) 8%, var(--surface-raised));
-  border: 1px solid var(--royal-soft);
+  border: 1px solid var(--border);
   border-radius: var(--radius-md);
   color: var(--ink-primary);
   font-size: 0.875rem;
@@ -55,7 +55,7 @@
 
 .sectionHeading {
   margin: 0;
-  font-family: var(--font-display), serif;
+  font-family: var(--font-display), var(--font-body), sans-serif;
   font-size: 1.25rem;
   font-weight: 600;
   color: var(--ink-primary);

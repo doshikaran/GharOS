@@ -5,7 +5,7 @@
   height: 3.5rem;
   flex-shrink: 0;
   padding: 0 var(--space-5);
-  border-bottom: 1px solid var(--royal-soft);
+  border-bottom: 1px solid var(--border);
   /* 2026-08-29 royal redesign: same subtle graph-paper texture as
      NavSidebar.module.css — see that file's comment for the rationale. */
   background-color: var(--surface-raised);
@@ -34,7 +34,7 @@
 
 .title {
   margin: 0;
-  font-family: var(--font-display), serif;
+  font-family: var(--font-display), var(--font-body), sans-serif;
   font-size: 1.0625rem;
   font-weight: 600;
   color: var(--ink-primary);

@@ -37,7 +37,7 @@
 }
 
 .wordmark {
-  font-family: var(--font-display), serif;
+  font-family: var(--font-display), var(--font-body), sans-serif;
   font-weight: 600;
   font-size: 1.125rem;
   color: var(--ink-primary);
@@ -51,7 +51,7 @@
   color: var(--ink-primary);
   text-decoration: none;
   padding: var(--space-2) var(--space-4);
-  border: 1px solid var(--ink-muted);
+  border: 1px solid var(--border-strong);
   border-radius: var(--radius-md);
   transition: border-color var(--motion-fast) var(--motion-ease-standard),
     background-color var(--motion-fast) var(--motion-ease-standard);
