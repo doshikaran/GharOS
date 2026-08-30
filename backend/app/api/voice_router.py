@@ -107,7 +107,7 @@ from ..voice.session_manager import TurnRequest, VoiceSessionManager
 from ..voice.session_types import TurnResult, VoiceRoutingCallbacks
 from ..voice.speaker_identification import SpeakerIdentificationAgent
 from ..voice.speech_recognition_handler import SpeechRecognitionHandler
-from ..voice.tts_client import VertexTtsClient
+from ..voice.tts_client import DeterministicTtsClient, VertexTtsClient, create_tts_client
 from ..voice.types import EnrolledSpeaker
 from ..voice.voice_response_agent import VoiceResponseAgent
 
@@ -175,8 +175,14 @@ def get_gemini_client(model_router: Annotated[ModelRouter, Depends(get_model_rou
     return GeminiClient(router=model_router)
 
 
-def get_tts_client(settings: Annotated[Settings, Depends(get_settings)]) -> VertexTtsClient:
-    return VertexTtsClient(project_id=settings.gcp_project_id)
+def get_tts_client(
+    settings: Annotated[Settings, Depends(get_settings)],
+) -> VertexTtsClient | DeterministicTtsClient:
+    """The voice TTS seam. Real Vertex AI path by default; `ENV=demo`
+    swaps in `DeterministicTtsClient` so the on-camera voice beat has no
+    live external call to flake (PHASES.md Phase 15). See
+    `voice.tts_client.create_tts_client`."""
+    return create_tts_client(env=settings.env, project_id=settings.gcp_project_id)
 
 
 def get_approval_gate(
@@ -276,7 +282,7 @@ def _make_scan_mailbox_callback(
 
 def get_voice_session_manager(
     gemini_client: Annotated[GeminiClient, Depends(get_gemini_client)],
-    tts_client: Annotated[VertexTtsClient, Depends(get_tts_client)],
+    tts_client: Annotated[VertexTtsClient | DeterministicTtsClient, Depends(get_tts_client)],
     approval_gate: Annotated[ApprovalGate, Depends(get_approval_gate)],
     graph_writer: Annotated[FirestoreGraphWriter, Depends(get_graph_writer)],
     payload_store: Annotated[RawPayloadStore, Depends(get_payload_store)],

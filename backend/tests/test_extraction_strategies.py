@@ -14,6 +14,7 @@ from __future__ import annotations
 import pytest
 from contracts.graph_types import (
     AgentId,
+    AttendanceRecord,
     Constraint,
     Derivation,
     EdgeType,
@@ -21,6 +22,8 @@ from contracts.graph_types import (
     LedgerEvent,
     NodeId,
     Obligation,
+    ObligationDerivation,
+    ObligationStatus,
     Provider,
     PurchaseItem,
     RecurringCommitment,
@@ -197,22 +200,102 @@ class TestPermissionSlipStrategy:
         assert result.edges[0].edge_type is EdgeType.STATES
 
 
+_ATTENDANCE_MARKS = [
+    {"day": "01", "mark": "present"},
+    {"day": "02", "mark": "present"},
+    {"day": "03", "mark": "absent"},
+    {"day": "04", "mark": "leave"},
+    {"day": "05", "mark": "present"},
+]
+
+
 class TestAttendanceRegisterStrategy:
-    def test_produces_no_graph_writes_summarises_into_findings(self) -> None:
+    def test_clean_register_writes_attendance_record_and_salary_obligation(self) -> None:
+        """ADR-013 / DEBT-004: a confidently-extracted register now
+        produces a real `AttendanceRecord` (rollup + per-day marks) plus
+        the salary `Obligation` it feeds and the `implies` edge anchoring
+        that obligation to the SOURCE_DOCUMENT."""
         fields = (
             _f("staff_member", "Radha"),
-            _f("month", "August 2026"),
+            _f("month", "2026-08"),
+            _f("per_day_presence_marks", _ATTENDANCE_MARKS),
+            _f("advance_notations_margin", ["hasil 2000 - 10 tarikh"]),
         )
         result = AttendanceRegisterExtractionStrategy().map_to_graph(
             source_document_id=_SRC, extracted_fields=fields, deriving_agent=_AGENT
         )
-        assert result.nodes == ()
-        assert result.edges == ()
-        assert any("Radha" in finding for finding in result.verification_findings)
+        records = [n for n in result.nodes if isinstance(n, AttendanceRecord)]
+        obligations = [n for n in result.nodes if isinstance(n, Obligation)]
+        assert len(records) == 1
+        record = records[0]
+        assert record.month == "2026-08"
+        assert record.days_present == 3
+        assert record.days_absent == 1
+        assert record.days_on_leave == 1
+        assert record.total_days_in_period == 5
+        assert record.daily_marks["04"] == "leave"
+        assert record.advance_notations == ("hasil 2000 - 10 tarikh",)
+        assert record.provenance.source_ref is not None
+        assert str(record.provenance.source_ref.source_document_id) == str(_SRC)
+        assert len(obligations) == 1
+        assert obligations[0].obligation_type == "payment"
+        assert obligations[0].stated_or_implied is ObligationDerivation.IMPLIED
+        assert obligations[0].status is ObligationStatus.DERIVED
+        implies = [e for e in result.edges if e.edge_type is EdgeType.IMPLIES]
+        assert [e.from_id for e in implies] == [_SRC]
+        assert [e.to_id for e in implies] == [obligations[0].id]
 
-    def test_ambiguous_fields_surfaced_in_findings(self) -> None:
-        """Gate 3: below-floor attendance marks must surface, never be
-        silently accepted."""
+    def test_unresolved_staff_leaves_attendance_of_for_a_downstream_pass(self) -> None:
+        """ADR-008: `map_to_graph` has no `GraphReader`. With no injected
+        `staff_index`, the strategy does not fabricate an owner — it emits
+        the `AttendanceRecord` with an explicit unresolved sentinel, no
+        `attendance_of` edge, and a `verification_findings` note."""
+        fields = (
+            _f("staff_member", "Radha"),
+            _f("month", "2026-08"),
+            _f("per_day_presence_marks", _ATTENDANCE_MARKS),
+        )
+        result = AttendanceRegisterExtractionStrategy().map_to_graph(
+            source_document_id=_SRC, extracted_fields=fields, deriving_agent=_AGENT
+        )
+        record = next(n for n in result.nodes if isinstance(n, AttendanceRecord))
+        assert str(record.staff_person_id) == "person:unresolved"
+        assert not any(e.edge_type is EdgeType.ATTENDANCE_OF for e in result.edges)
+        assert any("downstream entity-resolution pass" in finding for finding in result.verification_findings)
+
+    def test_injected_staff_index_writes_the_attendance_of_edge(self) -> None:
+        person_id = NodeId("person-radha")
+        fields = (
+            _f("staff_member", "Radha"),
+            _f("month", "2026-08"),
+            _f("per_day_presence_marks", _ATTENDANCE_MARKS),
+        )
+        result = AttendanceRegisterExtractionStrategy(staff_index={"Radha": person_id}).map_to_graph(
+            source_document_id=_SRC, extracted_fields=fields, deriving_agent=_AGENT
+        )
+        record = next(n for n in result.nodes if isinstance(n, AttendanceRecord))
+        assert record.staff_person_id == person_id
+        attendance_of = [e for e in result.edges if e.edge_type is EdgeType.ATTENDANCE_OF]
+        assert [e.from_id for e in attendance_of] == [record.id]
+        assert [e.to_id for e in attendance_of] == [person_id]
+
+    def test_missing_required_field_raises_mapping_input_incomplete(self) -> None:
+        """`per_day_presence_marks` is required (spec §5.4.2). Its absence
+        routes the document to human triage, never a fabricated record."""
+        fields = (
+            _f("staff_member", "Radha"),
+            _f("month", "2026-08"),
+        )
+        with pytest.raises(MappingInputIncomplete) as excinfo:
+            AttendanceRegisterExtractionStrategy().map_to_graph(
+                source_document_id=_SRC, extracted_fields=fields, deriving_agent=_AGENT
+            )
+        assert "per_day_presence_marks" in excinfo.value.missing_fields
+
+    def test_ambiguous_marks_write_no_graph_content_and_surface_for_review(self) -> None:
+        """Gate 3 (spec §5.4.2): below-floor attendance marks must surface,
+        never be silently accepted — and an uncertain register must not
+        become an `AttendanceRecord` that feeds a wrong salary."""
         fields = (
             _f("staff_member", "Radha"),
             _f("month", "August 2026"),
@@ -227,6 +310,8 @@ class TestAttendanceRegisterStrategy:
         result = AttendanceRegisterExtractionStrategy().map_to_graph(
             source_document_id=_SRC, extracted_fields=fields, deriving_agent=_AGENT
         )
+        assert result.nodes == ()
+        assert result.edges == ()
         assert any("per_day_presence_marks" in finding for finding in result.verification_findings)
         assert any("never inferred" in finding for finding in result.verification_findings)
 

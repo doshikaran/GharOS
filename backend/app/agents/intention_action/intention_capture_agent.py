@@ -8,10 +8,14 @@
    Flash-tier language work — recognising an intention buried in ordinary
    conversation is genuine (if cheap) reasoning, not a template match.
 2. **Stale-obligation detection** — an already-written `Obligation` gone
-   stale. Purely deterministic (see `_is_stale`'s docstring for the real,
-   documented threshold) — no Gemini call backs this at all, mirroring
-   `app.agents.fair_allocator.load_monitor_agent`'s "the verdict itself is
-   a deterministic threshold comparison" precedent exactly.
+   stale. Purely deterministic — no Gemini call backs this at all,
+   mirroring `app.agents.fair_allocator.load_monitor_agent`'s "the verdict
+   itself is a deterministic threshold comparison" precedent exactly. The
+   rule itself lives in `app.solvers.staleness` (`is_stale` /
+   `StalenessCheck`), the shared, canonical home A11 Graph Maintainer also
+   reuses graph-wide (ADR-021); this agent imports it rather than carrying
+   its own copy. Repaying DEBT-013 (the byte-for-byte duplication that
+   existed while E1 could not edit this E2-owned file) — Phase 15.
 
 *Model tier:* Flash for passive capture; no model call for staleness
 detection (see above).
@@ -30,78 +34,15 @@ import uuid
 from datetime import datetime
 
 from contracts.agents import ModelTier
-from contracts.graph_types import AgentId, NodeId, Obligation, ObligationStatus
+from contracts.graph_types import AgentId, NodeId, Obligation
 
 from ...prompts.loader import load_prompt
 from ...reasoning.gemini_client import GeminiClient
+from ...solvers.staleness import is_stale
 from .json_utils import parse_json_response, require_float, require_str
 from .types import PassiveIntentionDetection, StaleObligationDetection
 
 AGENT_ID = AgentId("A22")
-
-_STALE_AFTER_DEADLINE_DAYS = 3
-"""An `Obligation` with a real `due_at` or `must_start_by` that has passed
-by at least this many days, with no status progression since (see
-`_is_stale`'s use of `provenance.created_at` as the last-touched signal),
-is stale — a short, deliberate grace period (not zero) so a routine
-same-week catch-up does not immediately count as "stale," while still
-catching the pattern spec §9.1's diary-study finding names: the intention
-was remembered and still didn't happen at the moment of action."""
-
-_STALE_NO_DEADLINE_DAYS = 21
-"""An `Obligation` with no `due_at` and no `must_start_by` at all (an
-open-ended intention, spec's own "call the dentist" worked example) is
-stale once its current version has sat untouched for this many days.
-Three weeks is a deliberately conservative floor — long enough that a
-task genuinely still "on the list, just not urgent yet" is not
-prematurely flagged, short enough to catch real languishing well before
-spec's own extreme "untouched for four months" demo case. A documented,
-revisitable product constant, not a guess (mirrors `app.agents.
-fair_allocator.load_monitor_agent._IMBALANCE_DRIFT_THRESHOLD`'s same
-role)."""
-
-_TERMINAL_STATUSES = frozenset(
-    {ObligationStatus.COMPLETED, ObligationStatus.DROPPED, ObligationStatus.SUPERSEDED}
-)
-
-
-def _is_stale(obligation: Obligation, *, now: datetime) -> tuple[bool, str, int, int]:
-    """The real, deterministic staleness rule.
-
-    "Last touched" is `obligation.provenance.created_at` — a graph write
-    creates a new version on any real update (PHASES.md §2.2: writes
-    create versions, never mutate in place), so the *current* version's
-    `created_at` is a real, non-fabricated signal of when this obligation
-    was last genuinely acted on, without inventing a new field.
-
-    Returns:
-        `(is_stale, reason, days_stale, threshold_days)`.
-    """
-    if obligation.status in _TERMINAL_STATUSES:
-        return False, "", 0, 0
-
-    deadline = obligation.due_at or obligation.must_start_by
-    if deadline is not None:
-        overdue_days = (now - deadline).days
-        if overdue_days >= _STALE_AFTER_DEADLINE_DAYS:
-            deadline_kind = "due" if obligation.due_at is not None else "must start by"
-            return (
-                True,
-                f"{deadline_kind} {overdue_days} day(s) ago, with no status change since",
-                overdue_days,
-                _STALE_AFTER_DEADLINE_DAYS,
-            )
-        return False, "", 0, 0
-
-    untouched_days = (now - obligation.provenance.created_at).days
-    if untouched_days >= _STALE_NO_DEADLINE_DAYS:
-        return (
-            True,
-            f"no deadline set, and untouched for {untouched_days} day(s)",
-            untouched_days,
-            _STALE_NO_DEADLINE_DAYS,
-        )
-    return False, "", 0, 0
 
 
 class IntentionCaptureAgent:
@@ -155,9 +96,9 @@ class IntentionCaptureAgent:
     def detect_stale_obligation(
         self, obligation: Obligation, *, now: datetime
     ) -> StaleObligationDetection | None:
-        """Deterministic: checks one real `Obligation` against the
-        documented staleness thresholds (`_STALE_AFTER_DEADLINE_DAYS` /
-        `_STALE_NO_DEADLINE_DAYS`). No Gemini call.
+        """Deterministic: checks one real `Obligation` against the shared,
+        canonical staleness rule in `app.solvers.staleness.is_stale`. No
+        Gemini call.
 
         Args:
             obligation: the real `Obligation` to check.
@@ -169,15 +110,15 @@ class IntentionCaptureAgent:
             not stale (including every terminal-status obligation, which
             is never stale by definition).
         """
-        is_stale, reason, days_stale, threshold_days = _is_stale(obligation, now=now)
-        if not is_stale:
+        check = is_stale(obligation, now=now)
+        if not check.is_stale:
             return None
         return StaleObligationDetection(
             obligation_id=obligation.id,
             title=obligation.title,
-            reason=reason,
-            days_stale=days_stale,
-            threshold_days=threshold_days,
+            reason=check.reason,
+            days_stale=check.days_stale,
+            threshold_days=check.threshold_days,
             detected_at=now,
         )
 

@@ -18,9 +18,14 @@ import type { GraphStreamEvent } from "./graph-stream";
 export interface GraphState {
   readonly nodesById: ReadonlyMap<string, GraphNode>;
   readonly edgesById: ReadonlyMap<string, GraphEdge>;
-  /** id -> epoch ms the id last arrived via the live stream. Never
-   * populated by `applySnapshot` — only by `applyStreamEvent`. An id
-   * present here is what the growth animation keys off of. */
+  /** id -> epoch ms at which the id's growth animation should begin.
+   * Never populated by `applySnapshot` — only by `applyStreamEvent`. An
+   * id present here is what the growth animation keys off of. Normally
+   * this is the moment the live frame arrived, but the caller may pass a
+   * paced (near-future) timestamp so a burst of arrivals reveals as a
+   * legible cadence rather than all at once — see
+   * `lib/graph-growth-pacing.ts`. `computeArrivalProgress` treats a
+   * still-future value as "not started yet" (opacity 0, min scale). */
   readonly liveArrivedAt: ReadonlyMap<string, number>;
 }
 
@@ -46,7 +51,10 @@ export function applySnapshot(
  * id in `liveArrivedAt` with `now` — every stream frame is a genuinely new
  * arrival per the endpoint's own contract, so this always (re-)triggers
  * the growth animation for that id, even on an update to an id the
- * snapshot already carried. */
+ * snapshot already carried. `now` is the timestamp the animation should
+ * treat as the arrival: pass raw `Date.now()` for an immediate reveal, or
+ * a paced future time (see `lib/graph-growth-pacing.ts`) to stagger a
+ * burst. */
 export function applyStreamEvent(state: GraphState, event: GraphStreamEvent, now: number = Date.now()): GraphState {
   const liveArrivedAt = new Map(state.liveArrivedAt);
   if (event.kind === "node") {

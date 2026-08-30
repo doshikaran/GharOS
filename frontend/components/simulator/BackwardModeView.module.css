@@ -9,7 +9,7 @@
   padding: var(--space-3);
   border-radius: var(--radius-md);
   border: 1px solid var(--accent-brass);
-  background: var(--accent-brass-muted);
+  background: var(--highlight-surface);
   color: var(--ink-primary);
   font-size: 0.875rem;
   line-height: 1.5;
@@ -62,5 +62,5 @@
   padding: var(--space-1) var(--space-2);
   border-radius: var(--radius-full);
   background: var(--royal-soft);
-  color: var(--on-royal);
+  color: var(--ink-primary);
 }

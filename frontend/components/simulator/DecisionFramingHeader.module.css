@@ -35,7 +35,7 @@
   gap: var(--space-2);
   padding: var(--space-4);
   border-radius: var(--radius-md);
-  background: var(--accent-brass-muted);
+  background: var(--highlight-surface);
 }
 
 .unconsideredLabel {

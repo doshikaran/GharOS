@@ -83,6 +83,14 @@ const DERIVATION_TOKENS: TokenEntry[] = [
 
 const EDGE_TOKENS: TokenEntry[] = [{ name: "edge-conflict", note: "the red that matters" }];
 
+const SCRIM_TOKENS: TokenEntry[] = [
+  { name: "scrim-overlay", note: "wash behind a dialog / mobile drawer" },
+];
+
+const HIGHLIGHT_TOKENS: TokenEntry[] = [
+  { name: "highlight-surface", note: "carries --ink-primary text: >=7:1 both themes" },
+];
+
 const SPACING_TOKENS = [
   "space-0",
   "space-1",
@@ -104,6 +112,7 @@ const MOTION_DURATION_TOKENS = [
   "motion-base",
   "motion-slow",
   "motion-graph-grow",
+  "motion-graph-stagger",
 ];
 
 export default function TokensPage() {
@@ -172,6 +181,18 @@ export default function TokensPage() {
         tokens={EDGE_TOKENS}
       />
 
+      <ColorSection
+        title="Scrim"
+        note="The one sanctioned non-palette colour literal: a translucent occlusion wash behind a modal dialog or the mobile nav drawer. Heavier on Vault, where the ground is already near-black."
+        tokens={SCRIM_TOKENS}
+      />
+
+      <ColorSection
+        title="Highlight surface"
+        note="A gold-tinted marked / edited region that DOES carry --ink-primary text on top (source-span highlight, re-allocated cost-matrix cell, commitment tag). Unlike --accent-brass-muted it is held to the text-contrast bar: >=7:1 with --ink-primary in both themes."
+        tokens={HIGHLIGHT_TOKENS}
+      />
+
       <section className={styles.section}>
         <h2 className={styles.sectionTitle}>Spacing</h2>
         <p className={styles.sectionNote}>4px base unit.</p>
@@ -215,7 +236,9 @@ export default function TokensPage() {
         <h2 className={styles.sectionTitle}>Motion</h2>
         <p className={styles.sectionNote}>
           Hover a row to preview its duration. The graph growing is the one place animation
-          carries real meaning (--motion-graph-grow), everything else stays quick and quiet.
+          carries real meaning: --motion-graph-grow is a single node/edge growing in,
+          --motion-graph-stagger is the gap between consecutive live arrivals so a burst
+          reads as a cadence on camera. Everything else stays quick and quiet.
         </p>
         {MOTION_DURATION_TOKENS.map((name) => (
           <div className={styles.motionRow} key={name}>

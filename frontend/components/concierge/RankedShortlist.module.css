@@ -49,7 +49,7 @@
   font-weight: 700;
   font-size: 0.9375rem;
   background: var(--royal-soft);
-  color: var(--on-royal);
+  color: var(--ink-primary);
 }
 
 .rankBadge[data-rank="1"] {

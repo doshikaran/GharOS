@@ -22,7 +22,7 @@ from __future__ import annotations
 from collections.abc import Sequence
 from dataclasses import dataclass
 from datetime import UTC, datetime
-from typing import Any, cast
+from typing import Any, Final, cast
 
 import structlog
 from contracts.agents import ModelTier
@@ -34,6 +34,35 @@ from .errors import GeminiCallFailed
 from .model_router import ModelRouter
 
 logger = structlog.get_logger(__name__)
+
+DETERMINISTIC_TEMPERATURE: Final[float] = 0.0
+"""Greedy decoding on **every** Vertex AI Gemini call this client makes
+(PHASES.md Phase 15 E2: "Deterministic behaviour on the demo path...
+temperature/seed pinned where a Gemini call is on the demo path"). Applied
+here, unconditionally, rather than per-call-site, for the same reason the
+Pro-tier allowlist lives in `model_router.py` and not in each agent: a
+single enforcement point cannot be forgotten by a caller. `0.0` selects
+the argmax token at each step, removing sampling as a source of run-to-run
+variation in the demo (spec §24's live exception beat must fire identically
+every rehearsal and on camera — spec §27.1 "Live demo brittleness").
+
+This is a real determinism lever, not a guarantee: Vertex AI does not
+contractually promise bit-identical output even at temperature 0 with a
+fixed `seed` (fleet/model-version drift, MoE routing, and batching can
+still perturb a response). The demo does not rely on that promise — the
+one beat that *must* be exact, A3c's missing-nut-free-item `absent_from`
+signal, is produced by deterministic code
+(`app.agents.intake.verification_agent.VerificationAgent._check_absent_from`)
+that never reads model output at all. Temperature/seed pinning removes the
+*avoidable* variation everywhere else on the path."""
+
+DETERMINISTIC_SEED: Final[int] = 20260831
+"""Fixed decode seed sent on every call alongside `DETERMINISTIC_TEMPERATURE`
+— at temperature 0 the seed is largely moot, but pinning it is free and
+closes the tie-break gap if a future call site raises the temperature. The
+value is arbitrary (the intended demo-capture date, YYYYMMDD); its only
+property that matters is that it never changes between rehearsal and the
+live run."""
 
 
 @dataclass(frozen=True, slots=True)
@@ -280,7 +309,11 @@ class GeminiClient:
                 returned a response with no text content.
         """
         routed = self._router.route(agent_id=agent_id, requested_tier=tier)
-        config = types.GenerateContentConfig(tools=[types.Tool(google_search=types.GoogleSearch())])
+        config = types.GenerateContentConfig(
+            tools=[types.Tool(google_search=types.GoogleSearch())],
+            temperature=DETERMINISTIC_TEMPERATURE,
+            seed=DETERMINISTIC_SEED,
+        )
 
         try:
             response = routed.client.models.generate_content(
@@ -343,10 +376,16 @@ class GeminiClient:
         method the caller used.
 
         `generate_text` passes `contents` through as the bare prompt
-        string it always has, unchanged from this module's original
-        (pre-multimodal) behaviour — callers and tests that depend on the
-        exact `generate_content(model=..., contents=<str>)` call shape for
-        a plain text call are unaffected by this method's existence.
+        string it always has — callers and tests that depend on the exact
+        `generate_content(model=..., contents=<str>)` call shape for a
+        plain text call are unaffected by this method's existence.
+
+        Every call built here now carries a `GenerateContentConfig` (it
+        was `None` for a bare `generate_text` call before Phase 15) so
+        `DETERMINISTIC_TEMPERATURE` and `DETERMINISTIC_SEED` are pinned on
+        every demo-path Gemini call in one place — see those constants'
+        docstrings for why this is a determinism lever and not a
+        guarantee.
 
         The `cast(Any, ...)` below is a narrow, justified interop
         boundary: the installed `google-genai` SDK spells
@@ -365,23 +404,21 @@ class GeminiClient:
         if that assumption is ever wrong.
         """
         routed = self._router.route(agent_id=agent_id, requested_tier=tier)
-        config_kwargs: dict[str, Any] = {}
+        config_kwargs: dict[str, Any] = {
+            "temperature": DETERMINISTIC_TEMPERATURE,
+            "seed": DETERMINISTIC_SEED,
+        }
         if response_mime_type:
             config_kwargs["response_mime_type"] = response_mime_type
         if thinking_budget is not None:
             config_kwargs["thinking_config"] = types.ThinkingConfig(thinking_budget=thinking_budget)
-        config = types.GenerateContentConfig(**config_kwargs) if config_kwargs else None
+        config = types.GenerateContentConfig(**config_kwargs)
         sdk_contents = cast(Any, contents)
 
         try:
-            if config is not None:
-                response = routed.client.models.generate_content(
-                    model=routed.model_name, contents=sdk_contents, config=config
-                )
-            else:
-                response = routed.client.models.generate_content(
-                    model=routed.model_name, contents=sdk_contents
-                )
+            response = routed.client.models.generate_content(
+                model=routed.model_name, contents=sdk_contents, config=config
+            )
         except genai_errors.APIError as exc:
             logger.warning(
                 "reasoning.gemini_client.call_failed",

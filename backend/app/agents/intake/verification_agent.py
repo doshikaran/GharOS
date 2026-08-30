@@ -156,6 +156,16 @@ class VerificationAgent:
             ModelResponseMalformed: the model's response could not be
                 parsed as the expected JSON shape.
         """
+        # Computed first, from the inputs alone — the `absent_from` beat
+        # (spec §5.5, and the spec §24 live-exception beat) is deliberately
+        # never a function of anything the model returns below, so a
+        # slow/varying/malformed model response can neither change it nor
+        # (being computed before the call) suppress a future edit that
+        # accidentally coupled it to `parsed`. See `_check_absent_from`.
+        absent_from_findings = self._check_absent_from(
+            candidate_constraints=candidate_constraints, purchase_items=purchase_items
+        )
+
         prompt = load_prompt("A3c")
         rendered = prompt.text.format(
             constraints_block=_constraints_block(candidate_constraints),
@@ -237,10 +247,6 @@ class VerificationAgent:
                     new_verdict=verdict,
                     prior_edge_type=opposite_edge_type.value,
                 )
-
-        absent_from_findings = self._check_absent_from(
-            candidate_constraints=candidate_constraints, purchase_items=purchase_items
-        )
 
         overall_confidence = sum(confidences) / len(confidences) if confidences else 0.0
         agent_output = AgentOutput(

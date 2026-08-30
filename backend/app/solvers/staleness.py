@@ -1,37 +1,32 @@
-"""Deterministic obligation staleness rule — the shared, canonical home
-for the rule A11 Graph Maintainer (PHASES.md Phase 14, ADR-021) reuses at
-graph-wide, scheduled scope.
+"""Deterministic obligation staleness rule — the single canonical home of
+the rule, shared by every consumer that needs it.
 
-**Provenance of this rule, and an acknowledged, documented duplication:**
-this is the exact same rule Phase 9's A22 Intention Capture agent already
-established as real, deterministic, grace-period-aware business logic —
-`backend/app/agents/intention_action/intention_capture_agent.py`'s private
-`_is_stale` (and its `_STALE_AFTER_DEADLINE_DAYS` / `_STALE_NO_DEADLINE_DAYS`
-/ `_TERMINAL_STATUSES` constants). ADR-021 (Phase 14) directs E1 to "reuse
-its rule ... rather than inventing a second staleness definition," and to
-extract it to a shared importable location if duplicating it would be
-real duplication, "E1's call, document either way."
+**Provenance of this rule:** it originated as Phase 9's A22 Intention
+Capture agent's private `_is_stale` (with its `_STALE_AFTER_DEADLINE_DAYS`
+/ `_STALE_NO_DEADLINE_DAYS` / `_TERMINAL_STATUSES` constants) — real,
+deterministic, grace-period-aware business logic established there first.
+ADR-021 (Phase 14) directed A11 Graph Maintainer to reuse that rule
+rather than invent a second staleness definition, and left it to E1
+whether to extract it to a shared importable location. E1 extracted it
+here in Phase 14, into `backend/app/solvers/` — E1's owned, established
+home for deterministic, no-model-call business logic
+(`calibration_stats.py`, `fair_allocation.py`, `salary_calculator.py` all
+live here). For part of Phase 14 the A22 agent kept a byte-for-byte
+private copy of the rule (E1 could not edit the E2-owned agent file to
+redirect it), so two copies briefly coexisted. DEBT-013 (Phase 15)
+removed that last duplicate: `intention_capture_agent` now imports
+`is_stale` from this module and its private `_is_stale` and `_STALE_*` /
+`_TERMINAL_STATUSES` constants are deleted. There is now exactly one
+definition of the rule, and it is this one.
 
-E1 cannot edit `backend/app/agents/intention_action/intention_capture_agent.py`
-to redirect its own private `_is_stale` call site to import from here —
-that file is E2-owned (`backend/app/agents/`, PHASES.md §1.1 hard file
-ownership; gharos-standards skill: "An engineer may not edit files outside
-their owned directories"). So this module is a genuine, acknowledged,
-**temporary** duplication of that rule's logic and thresholds, copied
-byte-for-byte (not reinterpreted or redefined), landed in `backend/app/
-solvers/` — E1's own owned, established home for deterministic,
-no-model-call business logic (`calibration_stats.py`, `fair_allocation.py`,
-`salary_calculator.py` all already live here). **Flagged explicitly in
-this phase's report to the CTO/E2:** the correct follow-up is a one-line
-change in `intention_capture_agent.py` importing `is_stale` from here and
-deleting its own private copy, eliminating the duplication for good — E1
-is not authorized to make that edit itself.
+**Consumers**, both via `is_stale` / `StalenessCheck`:
+  - A11 Graph Maintainer — graph-wide, scheduled scope (PHASES.md
+    Phase 14, ADR-021).
+  - A22 Intention Capture — per-obligation scope (Phase 9 origin;
+    switched to importing from here in Phase 15, DEBT-013).
 
-Both copies must be kept in lock-step until that follow-up lands: a
-change to either the thresholds or the rule here without a matching
-change there (or vice versa) would silently reintroduce the "two
-independent staleness definitions" failure mode ADR-021 explicitly warns
-against.
+Any change to the thresholds or the rule here changes behaviour for both
+consumers at once — which is the point of having a single definition.
 """
 
 from __future__ import annotations
@@ -48,16 +43,15 @@ by at least this many days, with no status progression since (see
 is stale — a short, deliberate grace period (not zero) so a routine
 same-week catch-up does not immediately count as "stale," while still
 catching the pattern spec §9.1's diary-study finding names: the intention
-was remembered and still didn't happen at the moment of action. Copied
-verbatim from `intention_capture_agent._STALE_AFTER_DEADLINE_DAYS` — see
-this module's docstring."""
+was remembered and still didn't happen at the moment of action. This is
+the canonical value of this threshold (see this module's docstring)."""
 
 _STALE_NO_DEADLINE_DAYS = 21
 """An `Obligation` with no `due_at` and no `must_start_by` at all (an
 open-ended intention, spec's own "call the dentist" worked example) is
 stale once its current version has sat untouched for this many days.
-Copied verbatim from `intention_capture_agent._STALE_NO_DEADLINE_DAYS` —
-see this module's docstring."""
+This is the canonical value of this threshold (see this module's
+docstring)."""
 
 _TERMINAL_STATUSES = frozenset(
     {ObligationStatus.COMPLETED, ObligationStatus.DROPPED, ObligationStatus.SUPERSEDED}

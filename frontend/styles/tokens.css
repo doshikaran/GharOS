@@ -162,6 +162,17 @@
      another error colour." 5.5:1 vs surface-base, value unchanged. */
   --edge-conflict: #bb301b;
 
+  /* HIGHLIGHT SURFACE, a gold-tinted marked/edited region that DOES
+     carry --ink-primary text on top of it: the source-span highlight in
+     the provenance panel, a re-allocated cell in the Fair Allocator cost
+     matrix, a "maps to a recurring commitment" tag in the Ledger, a
+     framing callout in the Simulator. Distinct from --accent-brass-muted
+     (a fill/tint/border token that is explicitly NOT held to the text
+     bar): this one is. Light #efdcae (pale parchment gold): --ink-primary
+     11.9:1, --ink-secondary 7.1:1 (both clear AA for normal text with
+     margin). Its dark sibling is in the [data-theme="dark"] block. */
+  --highlight-surface: #efdcae;
+
   /* ---------------------------------------------------------------- *
    * PAPER TEXTURE + MARGIN RULE, the literal callback to "a ledger
    * and archive that happens to think": a faint ruled grid and a red
@@ -250,6 +261,15 @@
   --elevation-3: 0 12px 32px rgba(22, 30, 26, 0.14),
     0 3px 8px rgba(22, 30, 26, 0.09);
 
+  /* SCRIM, the occlusion layer behind a modal dialog or the mobile nav
+     drawer — not a palette colour, a translucent wash that dims whatever
+     is behind it. Warm near-black to match the ink cast in light theme;
+     the dark-theme override goes heavier because Vault surfaces are
+     already dark and the raised panel still needs to separate from them.
+     The one place a non-token colour literal is sanctioned, and it lives
+     here so no component carries it. */
+  --scrim-overlay: rgba(20, 15, 8, 0.5);
+
   /* ---------------------------------------------------------------- *
    * MOTION, deliberately restrained. The graph growing (spec §5.8)
    * is the one place animation carries real meaning; everything else
@@ -259,7 +279,15 @@
   --motion-fast: 120ms;
   --motion-base: 200ms;
   --motion-slow: 360ms;
+  /* The single per-element grow-in for a node/edge arriving on the graph
+     canvas (mirrored in `lib/graph-animation.ts` — canvas draw code
+     cannot read a CSS custom property). */
   --motion-graph-grow: 600ms;
+  /* Reveal spacing between consecutive live arrivals during the §24
+     graph-growth beat, so a backend burst unfolds as a readable cadence
+     on camera rather than a single pop (mirrored in
+     `lib/graph-growth-pacing.ts`, same canvas-can't-read-CSS reason). */
+  --motion-graph-stagger: 450ms;
   --motion-ease-standard: cubic-bezier(0.4, 0, 0.2, 1);
   --motion-ease-emphasized: cubic-bezier(0.2, 0, 0, 1);
 }
@@ -323,6 +351,13 @@
   /* Edge conflict red, re-verified 4.7:1 vs overlay, value unchanged. */
   --edge-conflict: #eb5d47;
 
+  /* Highlight surface, dark sibling: a deep parchment gold #5a4a26 that
+     keeps --ink-primary (Porcelain) legible on top — 7.0:1, well clear of
+     AA for normal text (the light --accent-brass-muted this replaced was
+     only 3.7:1 here). Still reads as the same "gold-tinted mark" against
+     Vault. Border/fill-only gold stays on --accent-brass-muted. */
+  --highlight-surface: #5a4a26;
+
   /* Margin rule, dark theme: unchanged, still legible and rich against
      Vault rather than reading as pure alarm-red. Same distinct-hue-
      register rule as the light value above, never reused as a status
@@ -338,6 +373,11 @@
   --elevation-1: 0 1px 2px rgba(0, 0, 0, 0.4), 0 1px 1px rgba(0, 0, 0, 0.3);
   --elevation-2: 0 4px 14px rgba(0, 0, 0, 0.46), 0 1px 3px rgba(0, 0, 0, 0.3);
   --elevation-3: 0 12px 36px rgba(0, 0, 0, 0.52), 0 3px 10px rgba(0, 0, 0, 0.34);
+
+  /* Scrim: heavier on Vault — the ground is already near-black, so the
+     dialog/drawer wash needs more weight to read as an occlusion layer
+     and let the raised panel separate. */
+  --scrim-overlay: rgba(0, 0, 0, 0.62);
 
   /* Spacing, radius and motion scales are theme-invariant by design. */
 }

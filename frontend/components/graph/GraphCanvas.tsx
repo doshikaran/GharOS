@@ -33,8 +33,11 @@ export interface HighlightedPath {
 export interface GraphCanvasProps {
   readonly nodes: readonly GraphNode[];
   readonly edges: readonly GraphEdge[];
-  /** id -> epoch ms it arrived via the live stream (`GraphState.liveArrivedAt`).
-   * Only these ids ever animate — see `lib/graph-animation.ts`. */
+  /** id -> epoch ms its grow-in should begin (`GraphState.liveArrivedAt`;
+   * normally the live-stream arrival time, but paced into the near future
+   * for a burst — see `lib/graph-growth-pacing.ts`). Only ids in this map
+   * ever animate; a still-future value draws at opacity 0 until its slot
+   * (`computeArrivalProgress` clamps negative elapsed to 0). */
   readonly liveArrivedAt: ReadonlyMap<string, number>;
   readonly selectedNodeId: string | null;
   readonly onSelectNode: (nodeId: string | null) => void;

@@ -20,7 +20,7 @@
 }
 
 .highlight {
-  background: var(--accent-brass-muted);
+  background: var(--highlight-surface);
   color: var(--ink-primary);
   border-radius: var(--radius-sm);
   padding: 0 0.1em;

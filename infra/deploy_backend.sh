@@ -93,6 +93,79 @@ if [[ -n "$web_urls" ]]; then
 else
   log "gharos-web not deployed yet — CORS_ALLOWED_ORIGINS left empty (no CORSMiddleware installed). Re-run after deploying it."
 fi
+# --- OAuth ingestion-connector env vars (Phase 14.5, ADR-022) -----------
+#
+# `app.api.oauth_router` / the Gmail + Outlook connectors read these from
+# `app.settings.Settings`. They are OPTIONAL — with none set, the OAuth
+# routes return a clean 503 ("not configured") and the rest of the service
+# runs normally (verified: `get_oauth_client_for` raises 503, it does not
+# crash startup). Set them for a deploy that needs the live Connections
+# onboarding surface.
+#
+# HARD RULE, gharos-standards rule 8: the two *client secrets* are NEVER
+# passed here as literal values. `GOOGLE_OAUTH_CLIENT_SECRET_REF` /
+# `MICROSOFT_OAUTH_CLIENT_SECRET_REF` carry a Secret Manager secret id (or
+# full resource name) — a *pointer*, not the secret. `oauth_router`
+# resolves it through `SecretManagerAdapter` at request time. This script
+# reads every one of these from the operator's shell environment and
+# refuses (below) to forward a secret-ref value that looks like a raw
+# secret rather than a Secret Manager id.
+#
+# OAUTH_REDIRECT_BASE_URL must be the public base of THIS service
+# (gharos-api) so the provider callback lands back here — it defaults to
+# gharos-api's own looked-up URL when the operator doesn't pin it, exactly
+# like CORS/api-base-url lookups elsewhere in infra/. FRONTEND_CONNECTIONS_URL
+# is where the callback 302s the browser afterwards — defaults to
+# `<gharos-web>/connections` when gharos-web is deployed.
+oauth_google_id="${GOOGLE_OAUTH_CLIENT_ID:-}"
+oauth_google_secret_ref="${GOOGLE_OAUTH_CLIENT_SECRET_REF:-}"
+oauth_ms_id="${MICROSOFT_OAUTH_CLIENT_ID:-}"
+oauth_ms_secret_ref="${MICROSOFT_OAUTH_CLIENT_SECRET_REF:-}"
+oauth_ms_tenant="${MICROSOFT_OAUTH_TENANT:-}"
+oauth_redirect_base="${OAUTH_REDIRECT_BASE_URL:-}"
+frontend_connections_url="${FRONTEND_CONNECTIONS_URL:-}"
+
+reject_if_looks_like_raw_secret() {
+  # A Secret Manager id is a short slug (letters, digits, _ and -) or a
+  # `projects/.../secrets/.../versions/...` resource name. A raw Google
+  # client secret is ~35 chars starting `GOCSPX-`; an Azure secret value
+  # is long and contains characters a secret id never does (`~`, `.`, `/`
+  # mid-string outside the resource-name form). Fail closed on the
+  # obvious raw-secret shapes rather than silently baking a secret into a
+  # plaintext Cloud Run env var.
+  local name="$1" value="$2"
+  [[ -z "$value" ]] && return 0
+  if [[ "$value" == GOCSPX-* ]]; then
+    die "$name looks like a raw Google client secret (GOCSPX-...). Put the secret in Secret Manager and pass its id here, not the secret itself (gharos-standards rule 8)."
+  fi
+  if [[ "$value" == projects/*/secrets/* ]]; then
+    return 0  # a full Secret Manager resource name — fine
+  fi
+  if [[ ! "$value" =~ ^[A-Za-z0-9_-]+$ ]]; then
+    die "$name='$value' is neither a bare Secret Manager id ([A-Za-z0-9_-]) nor a projects/*/secrets/* resource name — refusing in case it is a raw secret (gharos-standards rule 8)."
+  fi
+}
+reject_if_looks_like_raw_secret "GOOGLE_OAUTH_CLIENT_SECRET_REF" "$oauth_google_secret_ref"
+reject_if_looks_like_raw_secret "MICROSOFT_OAUTH_CLIENT_SECRET_REF" "$oauth_ms_secret_ref"
+
+if [[ -z "$oauth_redirect_base" ]]; then
+  api_alias_url="$(gcloud run services describe "$GHAROS_API_SERVICE" \
+    --project "$project_id" --region "$GHAROS_REGION" --format='value(status.url)' 2>/dev/null || true)"
+  if [[ -n "$api_alias_url" ]]; then
+    oauth_redirect_base="$api_alias_url"
+    log "OAUTH_REDIRECT_BASE_URL not set — defaulting to gharos-api's live URL: $oauth_redirect_base"
+    log "  (the provider app registration's redirect URI must be ${oauth_redirect_base}/oauth/{google,microsoft}/callback)"
+  else
+    log "OAUTH_REDIRECT_BASE_URL not set and gharos-api has no URL yet — leaving unset (OAuth routes 503 until a re-run wires it)."
+  fi
+fi
+if [[ -z "$frontend_connections_url" && -n "$web_urls" ]]; then
+  frontend_connections_url="${web_urls%%,*}/connections"
+  log "FRONTEND_CONNECTIONS_URL not set — defaulting to <gharos-web>/connections: $frontend_connections_url"
+fi
+
+# --- assemble the env-var argument -------------------------------------
+#
 # `--set-env-vars` normally splits on `,` between KEY=VALUE pairs — but
 # CORS_ALLOWED_ORIGINS's own value legitimately contains a `,` (multiple
 # origins). gcloud's fix for exactly this is the `^DELIM^` prefix syntax:
@@ -103,7 +176,56 @@ fi
 # with no `=` and a wrong value for CORS_ALLOWED_ORIGINS) rather than
 # raising an obvious error — caught by inspecting the deployed env vars
 # after the first attempt, not from a `gcloud` error message.
-readonly BACKEND_ENV_VARS="^;^GCP_PROJECT_ID=${project_id};GCP_REGION=${GHAROS_REGION};VERTEX_AI_LOCATION=${GHAROS_REGION};ENV=production;CORS_ALLOWED_ORIGINS=${web_urls}"
+#
+# ENV: `production` by default; set GHAROS_ENV=demo for a demo-hardening
+# deploy — that is the single explicit switch that puts the deterministic
+# demo path in front of the flaky live external calls (voice TTS today;
+# see backend/app/voice/tts_client.py:create_tts_client and
+# docs/DEPLOYMENT_PROOF.md "Demo-mode determinism"). The real path stays
+# the default; nothing about `production` behaviour changes.
+deploy_env="${GHAROS_ENV:-production}"
+case "$deploy_env" in
+  production | demo | staging) : ;;
+  *) die "GHAROS_ENV must be one of: production, demo, staging (got: $deploy_env)" ;;
+esac
+log "ENV=$deploy_env"
+
+env_pairs=(
+  "GCP_PROJECT_ID=${project_id}"
+  "GCP_REGION=${GHAROS_REGION}"
+  "VERTEX_AI_LOCATION=${GHAROS_REGION}"
+  "ENV=${deploy_env}"
+  "CORS_ALLOWED_ORIGINS=${web_urls}"
+)
+# Only forward OAuth vars that actually have a value — an empty
+# `OAUTH_REDIRECT_BASE_URL=` would override Settings' own localhost
+# default with an empty string, which is worse than leaving it unset.
+[[ -n "$oauth_google_id" ]]        && env_pairs+=("GOOGLE_OAUTH_CLIENT_ID=${oauth_google_id}")
+[[ -n "$oauth_google_secret_ref" ]] && env_pairs+=("GOOGLE_OAUTH_CLIENT_SECRET_REF=${oauth_google_secret_ref}")
+[[ -n "$oauth_ms_id" ]]           && env_pairs+=("MICROSOFT_OAUTH_CLIENT_ID=${oauth_ms_id}")
+[[ -n "$oauth_ms_secret_ref" ]]    && env_pairs+=("MICROSOFT_OAUTH_CLIENT_SECRET_REF=${oauth_ms_secret_ref}")
+[[ -n "$oauth_ms_tenant" ]]       && env_pairs+=("MICROSOFT_OAUTH_TENANT=${oauth_ms_tenant}")
+[[ -n "$oauth_redirect_base" ]]   && env_pairs+=("OAUTH_REDIRECT_BASE_URL=${oauth_redirect_base}")
+[[ -n "$frontend_connections_url" ]] && env_pairs+=("FRONTEND_CONNECTIONS_URL=${frontend_connections_url}")
+
+# Guard: none of the assembled values may contain the `;` pair-separator.
+for pair in "${env_pairs[@]}"; do
+  case "$pair" in
+    *";"*) die "env var pair '$pair' contains ';', which is the --set-env-vars delimiter — refusing to deploy a corrupted env." ;;
+  esac
+done
+
+oauth_keys_set=0
+for pair in "${env_pairs[@]}"; do [[ "$pair" == *OAUTH* ]] && oauth_keys_set=$((oauth_keys_set + 1)); done
+if [[ "$oauth_keys_set" -eq 0 ]]; then
+  log "No OAuth connector env vars set — the /oauth/* routes will return 503 ('not configured'). This is fine for a deploy that doesn't demo the Connections page."
+else
+  log "OAuth connector env vars set: $oauth_keys_set (secrets by Secret Manager ref only — no literal secret in this deploy)."
+fi
+
+IFS=';'
+readonly BACKEND_ENV_VARS="^;^${env_pairs[*]}"
+unset IFS
 
 # --- stage a self-contained source tree for the buildpack upload ----------
 #

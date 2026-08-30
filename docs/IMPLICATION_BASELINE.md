@@ -83,3 +83,15 @@ A12's prompt was revised (`backend/app/prompts/a12_implication_agent/v2.md`) to 
 ## DEBT-008 — unaffected by this fix
 
 Both runs hit the same citation-validator span-fraction limitation on a different short document each time (`eval-13` in v1, `eval-18` in v2) — confirming this is a real, recurring characteristic of the 60%-span-fraction threshold interacting with short documents, not a one-off fluke. Tracked separately, lower urgency — it causes a real miss but not a hallucination, and the current behavior (reject rather than risk a gaming vulnerability) is the safer default while an ADR-level fix is designed properly.
+
+## Phase 15 re-check — 2026-08-30 (E2)
+
+**No new evaluation run was performed.** Deliberate, for the same reasons the v2 re-run's own closing paragraph gives: a third full pass over the 20 held-out documents costs real time and real Vertex AI spend, the documents are no longer blind (they have been scored twice), the one residual case is narrow and well-understood (`eval-20-library-books`, the single "a child needs an adult to prepare it" candidate), and the load-bearing guarantee for the demo is now "the system never *acts* on a hallucination," enforced downstream by the Approval Gate (Phase 5) and the Confidence Arbiter, not "A12 never hallucinates."
+
+**What was verified instead, so a current figure can be cited honestly:**
+
+- **The pinned prompt is unchanged.** `backend/app/prompts/manifest.json` still pins `"A12": "v2"`; `backend/app/prompts/a12_implication_agent/` contains exactly `v1.md` and `v2.md`, no newer version, no floating alias. Enforced by `backend/tests/test_prompt_manifest_pinning.py` (Phase 15). So the numbers in the "v2 re-run" section above are still the live agent's numbers.
+- **A12's guardrails around the prompt are unchanged.** `_MIN_CANDIDATE_CONFIDENCE = 0.5` (uncitable/low-confidence candidates discarded, not surfaced), `_ELEVATED_THINKING_BUDGET_TOKENS = 16_000`, mandatory citation validation via `citation_validator.locate_and_validate_citation`. No change this phase.
+- **Determinism pinning does not change these numbers.** Phase 15 pins `temperature = 0` and a fixed decode seed on every Vertex AI call (`app.reasoning.gemini_client.DETERMINISTIC_TEMPERATURE` / `DETERMINISTIC_SEED`). The v2 re-run was scored at the SDK default sampling temperature, so greedy decoding could only reduce run-to-run variance, not worsen the scored behaviour — but this has **not** been re-measured, and no improvement is claimed from it.
+
+**Monitoring status: unchanged.** DEBT-007 remains a tracked monitoring item (not struck), disposition exactly as recorded in `docs/DEBT.md`. The figure `docs/SUBMISSION_NOTES.md` should cite is the **v2** row above: organic (non-control) hallucination **0%**, overall hallucination **4%**, recall **71%**, citation validity **96%** — measured 2026-08-24, prompt unchanged since.

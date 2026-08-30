@@ -94,7 +94,7 @@
 
 .editedCell {
   color: var(--ink-primary);
-  background: var(--accent-brass-muted);
+  background: var(--highlight-surface);
 }
 
 .costValue {

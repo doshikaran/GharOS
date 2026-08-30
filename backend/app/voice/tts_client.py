@@ -48,6 +48,9 @@ call (via `reasoning.gemini_client.GeminiClient.generate_structured`,
 
 from __future__ import annotations
 
+import hashlib
+import math
+import struct
 from collections.abc import Callable
 from dataclasses import dataclass
 
@@ -164,4 +167,136 @@ class VertexTtsClient:
         raise TtsCallFailed(model_name=self._model_name, reason="response contained no inline audio data")
 
 
-__all__ = ["DEFAULT_TTS_LOCATION", "DEFAULT_TTS_MODEL", "TtsAudio", "TtsClientFactory", "VertexTtsClient"]
+# --- demo-mode deterministic TTS ------------------------------------------
+
+DETERMINISTIC_TTS_RATE_HZ = 24000
+"""Sample rate of `DeterministicTtsClient`'s output — deliberately equal
+to the real `VertexTtsClient` response format (`audio/L16;codec=pcm;
+rate=24000`, module docstring) so every downstream stage (the
+`/voice/session` `response_audio` frame, the browser player) behaves
+identically whether the bytes came from Vertex AI or from here."""
+
+DETERMINISTIC_TTS_MIME_TYPE = "audio/L16;codec=pcm;rate=24000"
+
+_DETERMINISTIC_MIN_SECONDS = 0.4
+_DETERMINISTIC_MAX_SECONDS = 6.0
+_DETERMINISTIC_SECONDS_PER_CHAR = 0.055
+_DETERMINISTIC_AMPLITUDE = 0.09  # ~ -21 dBFS: audible, clearly synthetic, never clips
+
+
+class DeterministicTtsClient:
+    """A network-free, byte-for-byte deterministic stand-in for
+    `VertexTtsClient`, used ONLY on the demo path (`ENV=demo`, wired by
+    `create_tts_client`).
+
+    Why it exists (PHASES.md Phase 15 — "flaky external calls cached or
+    sandboxed"): the real TTS path is a live Vertex AI Gemini
+    audio-output call to the `global` location against a `-preview-`
+    model. It genuinely works (see this module's docstring), but a
+    transient 5xx or a latency spike on that call during the 20-second
+    on-camera voice beat (spec §24, 2:20) would break the run. This class
+    removes that single external dependency from the demo while changing
+    nothing about the production path — `ENV=production` (the default)
+    never constructs it.
+
+    It is NOT a recording of a real response and does not claim to be:
+    `synthesize` returns a short, low-amplitude PCM16 tone whose
+    frequency, duration, and samples are derived purely from
+    `sha256(text | voice_name | language_code)`. Same inputs -> identical
+    bytes, every time, on every machine. Different inputs -> different
+    bytes. That determinism is the whole point, and it is what the
+    `tests/test_tts_demo_mode.py` regression asserts.
+
+    Structurally satisfies `voice_response_agent.TtsClientProtocol`
+    (the `synthesize(*, text, voice_name, language_code) -> TtsAudio`
+    shape) — it is a drop-in for `VertexTtsClient` at that seam and
+    nowhere else.
+    """
+
+    def synthesize(self, *, text: str, voice_name: str, language_code: str) -> TtsAudio:
+        """Renders `text` to a deterministic PCM16 tone.
+
+        Args:
+            text: the fully-composed line to "speak" — only its length and
+                content feed the seed; nothing is spoken.
+            voice_name: mixed into the seed so a different voice yields
+                different bytes (mirrors the real call's behaviour that a
+                different voice produces different audio).
+            language_code: mixed into the seed for the same reason.
+
+        Returns:
+            A `TtsAudio` with real PCM16 little-endian mono bytes at
+            `DETERMINISTIC_TTS_RATE_HZ` and `DETERMINISTIC_TTS_MIME_TYPE`
+            — the same shape `VertexTtsClient.synthesize` returns, so no
+            caller can tell the difference structurally.
+
+        Raises:
+            Nothing. There is no external call to fail — which is exactly
+            why the demo path uses it. (`VertexTtsClient.synthesize`'s
+            `errors.TtsCallFailed` contract is unaffected; that class is
+            still the only way the real client reports a failure.)
+        """
+        seed_digest = hashlib.sha256(" ".join((text, voice_name, language_code)).encode("utf-8")).digest()
+        seed_int = int.from_bytes(seed_digest[:8], "big")
+
+        seconds = min(
+            _DETERMINISTIC_MAX_SECONDS,
+            max(_DETERMINISTIC_MIN_SECONDS, len(text) * _DETERMINISTIC_SECONDS_PER_CHAR),
+        )
+        sample_count = int(DETERMINISTIC_TTS_RATE_HZ * seconds)
+        frequency_hz = 170.0 + (seed_int % 150)  # 170..319 Hz, a plausible speech fundamental
+        phase = (seed_int % 360) * math.pi / 180.0
+
+        amplitude = int(_DETERMINISTIC_AMPLITUDE * 32767)
+        step = 2.0 * math.pi * frequency_hz / DETERMINISTIC_TTS_RATE_HZ
+        samples = bytearray(sample_count * 2)
+        for i in range(sample_count):
+            value = int(amplitude * math.sin(phase + i * step))
+            struct.pack_into("<h", samples, i * 2, value)
+
+        data = bytes(samples)
+        logger.info(
+            "voice.tts_client.deterministic_synthesized",
+            size_bytes=len(data),
+            seconds=round(seconds, 2),
+            frequency_hz=round(frequency_hz, 1),
+        )
+        return TtsAudio(data=data, mime_type=DETERMINISTIC_TTS_MIME_TYPE)
+
+
+def create_tts_client(*, env: str, project_id: str) -> VertexTtsClient | DeterministicTtsClient:
+    """Composition-root factory for the voice TTS seam.
+
+    `ENV=demo` -> `DeterministicTtsClient` (no external call; see that
+    class). Any other value (`production` — the default — `staging`,
+    `local`, ...) -> the real `VertexTtsClient`. The real path is the
+    default; the demo opts in explicitly, and nothing here can disable
+    the real path for a non-demo deployment.
+
+    Args:
+        env: `app.settings.Settings.env` verbatim (case-insensitive match
+            on `"demo"`).
+        project_id: `Settings.gcp_project_id`, passed straight to
+            `VertexTtsClient` when the real path is chosen.
+
+    Returns:
+        The TTS client for this deployment. Both return types structurally
+        satisfy `voice_response_agent.TtsClientProtocol`.
+    """
+    if env.strip().lower() == "demo":
+        logger.info("voice.tts_client.demo_mode_selected", env=env)
+        return DeterministicTtsClient()
+    return VertexTtsClient(project_id=project_id)
+
+
+__all__ = [
+    "DETERMINISTIC_TTS_MIME_TYPE",
+    "DETERMINISTIC_TTS_RATE_HZ",
+    "DEFAULT_TTS_LOCATION",
+    "DEFAULT_TTS_MODEL",
+    "DeterministicTtsClient",
+    "TtsAudio",
+    "TtsClientFactory",
+    "VertexTtsClient",
+    "create_tts_client",
+]

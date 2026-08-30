@@ -111,7 +111,7 @@
 }
 
 .commitmentTag {
-  background: var(--accent-brass-muted);
+  background: var(--highlight-surface);
   color: var(--ink-primary);
   border-radius: var(--radius-full);
   padding: var(--space-1) var(--space-2);

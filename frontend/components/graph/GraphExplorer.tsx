@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { fetchGraphSnapshot, GraphApiError } from "@/lib/graph-api";
 import { subscribeToGraphStream } from "@/lib/graph-stream";
+import { createGrowthPacer } from "@/lib/graph-growth-pacing";
 import { applyGraphFilters, EMPTY_GRAPH_FILTER_STATE, type GraphFilterState } from "@/lib/graph-filters";
 import { applySnapshot, applyStreamEvent, createEmptyGraphState, listEdges, listNodes } from "@/lib/graph-state";
 import { GraphCanvas, type HighlightedPath } from "./GraphCanvas";
@@ -44,6 +45,11 @@ export function GraphExplorer({ baseUrl, initialSelectedNodeId = null }: GraphEx
   const [selectedNodeId, setSelectedNodeId] = useState<string | null>(initialSelectedNodeId);
   const [explainingNodeId, setExplainingNodeId] = useState<string | null>(null);
   const [highlightedPath, setHighlightedPath] = useState<HighlightedPath | null>(null);
+  // Paces the reveal of live arrivals so a backend burst of writes unfolds
+  // as a readable cadence on camera rather than a single pop (spec §24,
+  // the graph-growth beat). One instance per mount; lazy `useState` init so
+  // it is created exactly once, like `GraphCanvas`'s simulation object.
+  const [growthPacer] = useState(() => createGrowthPacer());
 
   // 1. Load the baseline snapshot once.
   useEffect(() => {
@@ -71,7 +77,10 @@ export function GraphExplorer({ baseUrl, initialSelectedNodeId = null }: GraphEx
     if (loadState.status !== "ready") return undefined;
     const unsubscribe = subscribeToGraphStream(baseUrl, {
       onEvent: (event) => {
-        setGraphState((prev) => applyStreamEvent(prev, event));
+        // Stamp the *paced* reveal time (not raw `Date.now()`) so a burst
+        // of frames animates in one after another — see `graph-growth-pacing`.
+        const revealAt = growthPacer.schedule(Date.now());
+        setGraphState((prev) => applyStreamEvent(prev, event, revealAt));
       },
       onError: (error) => {
         // A stream hiccup never invalidates the already-loaded graph — log
@@ -80,7 +89,7 @@ export function GraphExplorer({ baseUrl, initialSelectedNodeId = null }: GraphEx
       },
     });
     return unsubscribe;
-  }, [baseUrl, loadState.status]);
+  }, [baseUrl, loadState.status, growthPacer]);
 
   const allNodes = useMemo(() => listNodes(graphState), [graphState]);
   const allEdges = useMemo(() => listEdges(graphState), [graphState]);

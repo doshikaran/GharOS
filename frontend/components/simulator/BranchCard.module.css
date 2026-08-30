@@ -73,5 +73,5 @@
   padding: var(--space-1) var(--space-2);
   border-radius: var(--radius-full);
   background: var(--royal-soft);
-  color: var(--on-royal);
+  color: var(--ink-primary);
 }

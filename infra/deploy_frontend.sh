@@ -81,6 +81,34 @@ else
   log "Looked up gharos-api's live URL: $api_base_url"
 fi
 
+# --- build-time env vars -------------------------------------------------
+#
+# Next.js inlines every `NEXT_PUBLIC_*` var at `next build` time, so these
+# go via `--set-build-env-vars` (not the runtime `--set-env-vars`).
+#
+# Phase 14.5 (ADR-022) added two OPTIONAL ones for the Google Drive picker
+# on the Connections page: `NEXT_PUBLIC_GOOGLE_PICKER_API_KEY` (a browser
+# API key — referrer-restricted, NOT a secret; safe to inline) and
+# `NEXT_PUBLIC_GOOGLE_APP_ID` (the GCP project *number*, also not secret).
+# `frontend/components/connections/DrivePickerButton.tsx` degrades to a
+# clear "needs configuration" message when they are unset — so a deploy
+# that does not demo the Drive picker can leave them out. Read from the
+# operator's shell environment; forwarded only when non-empty.
+build_env_pairs=("NEXT_PUBLIC_API_BASE_URL=${api_base_url}")
+picker_key="${NEXT_PUBLIC_GOOGLE_PICKER_API_KEY:-}"
+picker_app_id="${NEXT_PUBLIC_GOOGLE_APP_ID:-}"
+[[ -n "$picker_key" ]]    && build_env_pairs+=("NEXT_PUBLIC_GOOGLE_PICKER_API_KEY=${picker_key}")
+[[ -n "$picker_app_id" ]] && build_env_pairs+=("NEXT_PUBLIC_GOOGLE_APP_ID=${picker_app_id}")
+for pair in "${build_env_pairs[@]}"; do
+  case "$pair" in
+    *","*) die "build env var pair '$pair' contains ',', the --set-build-env-vars delimiter — refusing." ;;
+  esac
+done
+IFS=','
+readonly BUILD_ENV_VARS="${build_env_pairs[*]}"
+unset IFS
+log "Build env vars: $BUILD_ENV_VARS"
+
 # --- deploy ----------------------------------------------------------------
 
 log "Deploying $GHAROS_WEB_SERVICE from $FRONTEND_DIR (source build, no Dockerfile)..."
@@ -91,7 +119,7 @@ gcloud run deploy "$GHAROS_WEB_SERVICE" \
   --min-instances=0 \
   --max-instances="$MAX_INSTANCES" \
   --allow-unauthenticated \
-  --set-build-env-vars="NEXT_PUBLIC_API_BASE_URL=${api_base_url}" \
+  --set-build-env-vars="$BUILD_ENV_VARS" \
   --quiet
 
 service_url="$(gcloud run services describe "$GHAROS_WEB_SERVICE" \

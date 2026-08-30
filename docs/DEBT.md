@@ -47,6 +47,10 @@ Original entry, for the record:
 
 ## OPEN
 
+> **Phase 15 gate note (CTO, 2026-08-30).** Gate 15 requires this file "empty or fully justified." Struck during the Phase 15 pass: **DEBT-009** (Phase 14.5 — end-to-end orchestrator), **DEBT-013** (staleness-rule duplication removed), and **DEBT-004** (a photographed attendance register now produces a provenance-chained `AttendanceRecord` through the production strategy on the real wire — see that entry for the strike date). Every remaining open entry (005, 006, 007, 008, 010, 011, 012) carries a dated **"Phase 15 disposition (CTO)"** block stating: why deferring past submission is honest, why no demo beat depends on the missing capability, why the submission write-up does not claim it, and the concrete repayment condition + owner. `docs/SUBMISSION_NOTES.md` is the single source the write-up draws its phrasing from and is consistent with these dispositions. None of these are "we'll get to it" — each is a reasoned argument that the submission is accurate without it.
+
+---
+
 ### DEBT-012 — constraint promotion and vendor reliability scoring are real per-item primitives, not yet wired into the automatic nightly consolidation run
 
 **Opened:** Phase 14, 2026-08-29
@@ -61,9 +65,18 @@ Original entry, for the record:
 
 **Repayment condition:** a real `GraphReader` "list by type" primitive (or an equivalent scoped query) and, if still needed at that point, an `OUTCOME`→`VENDOR` edge, designed against whichever phase's real consuming need makes the exact query pattern concrete — then `run_nightly_consolidation`'s two callbacks are wired for real, with a test proving a full unattended run performs constraint promotion and vendor scoring across more than one hand-picked item, and the two vendor-reliability writers' sequencing is resolved (e.g. one signal feeding into the other's `recent_outcomes`, or an explicit precedence rule) rather than left to write-order chance.
 
+**Phase 15 disposition (CTO, 2026-08-30) — JUSTIFIED, deferred past submission.**
+- *Why the demo is unaffected:* the demo's consolidation / overnight beat (spec §24, 3:40–4:00) is "an audit trail with real timestamps from a genuine overnight run" — that is A10 Pattern Miner and A11 Graph Maintainer firing unattended on the Cloud Scheduler cadence, which works end to end and is captured in Cloud Logging (`docs/DEPLOYMENT_PROOF.md` Requirement 4). Automatic *graph-wide* constraint promotion and vendor scoring are not a demo beat; the per-item primitives that exist are exercised by their own real tests, including a hand-verified worked scoring example.
+- *Why the write-up does not claim it:* `docs/SUBMISSION_NOTES.md` states consolidation demonstrates scheduled pattern mining and graph maintenance; it does not claim fully-automatic nightly constraint promotion or vendor-reliability re-scoring across the whole graph. The two vendor-reliability writers (A33 timestamp signal, E2's attribution-tag signal) are not sequenced against each other — safe here because neither runs unattended on the demo path, so there is no clobber on anything shown.
+- *Repayment condition / owner:* unchanged from above. Owner: e1 (the `GraphReader` list-by-type primitive / possible `OUTCOME`→`VENDOR` edge) + e2 (wiring the two callbacks once a real aggregate caller exists). Repay in the first phase that needs a fully-automatic nightly aggregate run demonstrated. **Non-blocking for Gate 15.**
+
 ---
 
-### DEBT-013 — staleness rule duplicated between `app.solvers.staleness` and `intention_capture_agent`'s private copy
+### ~~DEBT-013 — staleness rule duplicated between `app.solvers.staleness` and `intention_capture_agent`'s private copy~~ — STRUCK 2026-08-30 (Phase 15)
+
+**STRUCK:** 2026-08-30. E2 repaid it inside Phase 15's demo-hardening pass after all (the earlier disposition below judged it not worth the risk; on review the swap was clean and low-risk). `backend/app/agents/intention_action/intention_capture_agent.py` now imports `is_stale` / `StalenessCheck` from `app.solvers.staleness` and its private `_is_stale` + `_STALE_AFTER_DEADLINE_DAYS` / `_STALE_NO_DEADLINE_DAYS` / `_TERMINAL_STATUSES` are deleted — `app.solvers.staleness` is the single definition. The repayment condition ("`intention_capture_agent.py` imports `app.solvers.staleness.is_stale` instead of keeping its own private copy, verified by the existing A22 tests continuing to pass unchanged") is met: `backend/tests/test_intention_capture_agent.py::TestStaleObligationDetection` passes unchanged, and a new equivalence net `backend/tests/test_staleness_dedup.py` asserts (a) the agent entry point and a direct `is_stale` call agree on every field across every branch of the rule, and (b) the private names never reappear in the module. Full backend suite green (2019 passed / 12 skipped / 0 failed) at the Gate 15 review.
+
+Original entry, for the record:
 
 **Opened:** Phase 14, 2026-08-29
 **Owner:** e2 (owns `backend/app/agents/intention_action/`, the file that needs to change)
@@ -74,6 +87,8 @@ Original entry, for the record:
 **Why this isn't being fixed now:** the fix (swap A22's private `_is_stale` for an import of the new shared `app.solvers.staleness.is_stale`) is real but crosses a file-ownership boundary this phase's dispatch didn't include — a one-line owner's job, not worth a mid-phase escalation for.
 
 **Repayment condition:** `intention_capture_agent.py` imports `app.solvers.staleness.is_stale` instead of keeping its own private copy, verified by the existing A22 tests continuing to pass unchanged.
+
+**Phase 15 disposition (CTO, 2026-08-30) — SUPERSEDED by the strike above.** The disposition first written at this gate proposed deferring the one-line import swap to post-submission cleanup as lower-risk than touching A22's staleness path during demo hardening. On review the swap was in fact clean and fully covered by tests, so E2 made it inside the phase and the entry is struck. Retained here for history: *no demo beat depends on graph-wide staleness (A11) differing from A22's per-obligation rule; the "stale obligation detected unprompted" beat runs through the (now shared) rule, behaviourally unchanged since Phase 9; the write-up makes no claim about this either way.*
 
 ---
 
@@ -90,6 +105,11 @@ Original entry, for the record:
 **Why this isn't being fixed now:** no phase before this one, and no currently-planned phase, actually builds a "the person opens their own delegate's cost matrix and corrects it" UI flow — designing the persistence shape ahead of that real consumer risks exactly the "declared a shape nothing produces or consumes correctly" mistake this project has corrected multiple times already (DEBT-004/005/006/010's identical reasoning). E4's Phase 12 `DelegateScores` component reads `ValuationProfile` data from the `CouncilBrief` API response directly (not the graph), which is sufficient for this phase's own Gate 12 checklist and does not need this gap closed.
 
 **Repayment condition:** whichever phase first needs real, independently-addressable, correctable per-decision valuation data writes a `ValuationProfile` node (the type already exists, frozen since Phase 8 — this would be A49 gaining one more write, or a dedicated correction-flow writer) and updates A49/the pipeline accordingly, verified by a real round-trip test.
+
+**Phase 15 disposition (CTO, 2026-08-30) — JUSTIFIED, deferred past submission.**
+- *Why the demo is unaffected:* the demo's Council beat (spec §24, 2:40–3:05) requires the deliberation to "persist into the graph as a walkable record" — that is satisfied. A49 writes one `CouncilPosition` per specialist/delegate/adversary plus the arbiter's `CONCEDED_BY` edges, and every priced branch from A47's delegate is folded losslessly into that position's `evidence_refs`, so it is real, auditable, walkable evidence in the permanent record. The historical-decision browser reads it back.
+- *Why the write-up does not claim it:* `docs/SUBMISSION_NOTES.md` describes delegates scoring from behaviourally-derived valuation profiles that persist as evidence; it does not claim a person can open and edit their delegate's cost matrix in place. Spec §12.7's "valuation profiles are visible and confirmable" is honoured as *visible in the brief and the record*; independently-editable is the part deferred.
+- *Repayment condition / owner:* unchanged from above. Owner: e1 (graph shape) or e2 (A49 writes). Repay in the first phase that builds a real "correct your own delegate's valuation" UI flow. **Non-blocking for Gate 15.**
 
 ---
 
@@ -126,6 +146,11 @@ Original entry, for the record:
 
 **Repayment condition:** whichever phase first makes A30's drafts or A33's vendor requests durably trackable (real graph-resident lifecycle state, not just in-memory value objects) either adds a graph-resident node/edge shape carrying the `FollowUpTrackable` fields, or extends the existing types with them, designed against that phase's real need — verified by a real (not fake-double) object flowing through `FollowUpScanner`/`FollowUpDispatcher`.
 
+**Phase 15 disposition (CTO, 2026-08-30) — JUSTIFIED, deferred past submission.**
+- *Why the demo is unaffected:* no demo beat shows a draft being dispatched and then re-contacted across scheduler ticks. A31's scan/dispatch logic is real and tested; the `gharos-followup-sweep` Scheduler job is live and fires twice daily (`docs/DEPLOYMENT_PROOF.md`), producing an honest empty result against zero real trackables — an empty result, never a fabricated success (invariant 7).
+- *Why the write-up does not claim it:* `docs/SUBMISSION_NOTES.md` does not list autonomous multi-day recovery follow-up as a demonstrated capability. The Ledger beat shows leakage/price-hike/duplicate detection and drafted recovery, not the persistence loop closing over days.
+- *Repayment condition / owner:* unchanged from above. Owner: e2 (A30 `RecoveryDraft` lifecycle) + e3 (A33 / `FollowUpTrackable`). Repay when a draft is actually dispatched and following up on it becomes real. **Non-blocking for Gate 15.**
+
 ---
 
 ### DEBT-007 — A12 Implication Agent does not reliably recognize "nothing is genuinely implied" — DOWNGRADED (not struck) 2026-08-24
@@ -152,6 +177,12 @@ Organic hallucination reached the target (0%) and one of the two control documen
 
 **Repayment condition (revised, to actually strike this entry):** either (a) a future prompt iteration reaches 0/2 control documents clean without reintroducing organic hallucination or materially regressing recall further, verified by another full honest re-run: or (b) Phase 5's Approval Gate is shown in practice to catch this exact residual pattern before any downstream action, at which point the repayment condition shifts from "the agent never hallucinates" (unrealistic as a hard bar for any LLM-based agent) to "the system never acts on a hallucination" (the actually load-bearing guarantee) — and this entry is re-framed and closed against that guarantee instead.
 
+**Phase 15 disposition (CTO, 2026-08-30) — JUSTIFIED against condition (b), carried into submission as a stated monitoring item, NOT struck.**
+- *Why not struck:* condition (a) — 0/2 control documents clean — is still not met (`eval-20-library-books` emits one "a child needs an adult to prepare it" candidate). Honesty requires we not pretend otherwise.
+- *Why it is acceptable to submit:* the load-bearing guarantee is "the system never *acts* on a hallucination," not "A12 never hallucinates." Every A12 output flows through A57 Confidence Arbiter and, for anything that could become an action, the Approval Gate with a full evidence bundle that surfaces the cited span. A reviewer sees the citation and rejects a dressed-up-obvious "obligation." Organic hallucination on real household documents — the genuinely dangerous mode — is at **0%** (v2, `docs/IMPLICATION_BASELINE.md`).
+- *Why the write-up does not overclaim:* `docs/SUBMISSION_NOTES.md` and the submission text cite the real v2 numbers verbatim — recall 71%, organic hallucination 0%, overall 4%, citation validity 96%, 1 of 2 control documents fully clean — and explicitly state A12 is not hallucination-free and is backstopped by arbitration + approval. The demo's implication beat (spec §24, 0:40–1:40) uses the engineered field-trip document with known-good implications, not a control document.
+- *Repayment condition / owner:* unchanged (condition (a) or (b) above). Owner: e2 (further prompt iteration if pursued) + cto. **Non-blocking for Gate 15 — this is a disclosed limitation, not a hidden one.**
+
 ---
 
 ### DEBT-008 — citation-validator's span-length safeguard has a short-document blind spot
@@ -165,6 +196,12 @@ Organic hallucination reached the target (0%) and one of the two control documen
 **Why this isn't being fixed now:** the current behavior (reject rather than risk gaming) is the safer default while a better design is worked out — patching the threshold hastily, under the time pressure of finishing an evaluation write-up, risks reopening the exact "cite the whole email" vulnerability the threshold exists to prevent. A length-aware threshold (e.g. an absolute minimum span length combined with the fraction, rather than a bare fraction) needs its own considered design, not a reactive patch.
 
 **Repayment condition:** a designed, ADR-documented fix (e.g. document-length-aware thresholding) verified against both the original gaming case the 60% threshold was built for and this newly-discovered short-document false-negative case; this entry struck.
+
+**Phase 15 disposition (CTO, 2026-08-30) — JUSTIFIED, deferred past submission, with a Phase 15 rehearsal check.**
+- *Effect is a miss, never a hallucination:* the current behaviour (reject a located span covering >60% of a short document) is the safe default while a length-aware threshold is designed properly.
+- *Demo risk check (action item for E2 + E3 during the ≥3 rehearsals):* confirm no scripted demo beat that produces an obligation from a short source — in particular the Hinglish voice utterance at 2:20 and any WhatsApp-screenshot beat — trips `_MAX_SPAN_FRACTION_OF_DOCUMENT` and silently drops a citation the script expects on screen. If one does: lengthen the scripted source slightly, or land the length-aware-threshold ADR fix. Record the result in the rehearsal log.
+- *Why the write-up does not overclaim:* `docs/SUBMISSION_NOTES.md` notes the citation validator errs toward rejecting borderline-length citations rather than risk "cite the whole document" gaming.
+- *Owner:* cto (design) + e2 (implementation). Repay when chat/SMS-shaped citation cases become demo-relevant. **Non-blocking for Gate 15 provided the rehearsal check above passes.**
 
 ---
 
@@ -180,6 +217,11 @@ Organic hallucination reached the target (0%) and one of the two control documen
 
 **Repayment condition:** when a real scenario needs it (e.g. the demo's "book a dentist" flow implies a car/resource conflict, or a later phase's worked example names one explicitly), add the field with that concrete use in view, wire `ResourceIdentityResolver`, strike this entry.
 
+**Phase 15 disposition (CTO, 2026-08-30) — JUSTIFIED, deferred past submission.**
+- *Why the demo is unaffected:* the conflict shown in the demo (spec §24, 0:40–1:40) is the **temporal** collision — 1:30 pickup vs 1:00 meeting — plus the **hard-constraint** violation (nut allergy vs Tuesday's menu). Both are detected against real `Obligation`/`Person`/`Constraint` fields today. The "₹500 cash must travel with the child" line in the spec's worked example is narration of consequence-chaining, not a demonstrated resource-conflict graph query, and is not a demo beat.
+- *Why the write-up does not claim it:* `docs/SUBMISSION_NOTES.md` lists temporal, constraint-violation, capability, and load conflicts as detected; resource conflict (the car, cash on hand) is listed as designed-not-yet-demonstrated. `conflict_prepass.py` honestly reports `resource_detection_skipped=True` when no resolver is supplied — it never fabricates a resource check.
+- *Owner:* cto (contract). Repay against the first scenario that actually demonstrates resource-conflict detection. **Non-blocking for Gate 15.**
+
 ---
 
 ### DEBT-006 — `Person.availability` half REPAID 2026-08-27 (reused, not added); `Obligation.location` half still open
@@ -194,11 +236,20 @@ Organic hallucination reached the target (0%) and one of the two control documen
 
 **Repayment condition (remaining):** whenever a real scenario demonstrates travel-time-aware conflict detection, `Obligation.location`'s real shape is designed against that scenario's actual query pattern, and this entry is struck.
 
+**Phase 15 disposition (CTO, 2026-08-30) — availability half REPAID (Phase 9, ADR-015); `Obligation.location` half JUSTIFIED, deferred past submission.**
+- *Why the demo is unaffected:* no demo beat demonstrates travel-time-aware conflict detection. The concierge "book a dentist" flow does not surface a location/travel conflict as a demonstrated catch; the availability facts the demo *does* use (e.g. Dadi's nap window, the usual pickup person's work commitment) are carried by `Constraint(kind=SCHEDULE, severity=HARD/SOFT)`, which the availability-half repayment already formalised.
+- *Why the write-up does not claim it:* `docs/SUBMISSION_NOTES.md` does not list travel-time / geospatial conflict detection among demonstrated conflict types.
+- *Owner:* cto (contract). Repay against the first travel-time-aware conflict scenario. **Non-blocking for Gate 15.**
+
 ---
 
-### DEBT-004 — no graph node shape for per-day attendance marks — SUBSTANTIALLY REPAID, not struck, 2026-08-27
+### ~~DEBT-004 — no graph node shape for per-day attendance marks~~ — STRUCK 2026-08-30 (Phase 15)
 
-**Opened:** Phase 3, 2026-08-23. **Updated:** Phase 7, 2026-08-27; Phase 14.5, 2026-08-30.
+**STRUCK:** 2026-08-30. Repayment condition (a) is now fully met by a **production-path** test. `backend/app/agents/intake/strategies/attendance_register_strategy.py::AttendanceRegisterExtractionStrategy.map_to_graph` was rewritten (E2, Phase 15) from `nodes=(), edges=()` to a real deterministic mapper: for a confidently-extracted register it constructs one `AttendanceRecord` (per-day marks transcribed and tallied), the salary-payment `Obligation` it feeds (`IMPLIED` / `DERIVED`), and the `implies` edge SOURCE_DOCUMENT → that obligation (there is no direct SOURCE_DOCUMENT→ATTENDANCE_RECORD edge type, ADR-013). Entity resolution follows the `PermissionSlipExtractionStrategy` precedent: an optional `staff_index` may be injected (the registry constructs the strategy with none); with a hit the `attendance_of` edge is emitted here, without one `staff_person_id` is the explicit `person:unresolved` sentinel and a `verification_findings` note defers the edge to a downstream pass. The AMBIGUOUS-marks safety gate is preserved and hardened — an uncertain register writes **no** nodes (spec §5.4.2: a misread mark must never feed a salary). `backend/tests/test_attendance_register_ingest_wire.py::test_photographed_register_through_the_wire_writes_a_real_attendance_record` drives an `image/jpeg` through the real `IngestionOrchestrator` (`POST /ingest`'s engine) with the write produced by the **production** strategy — no test-local reference class — and asserts a real `AttendanceRecord` whose `provenance.source_ref.source_document_id` chains to the SOURCE_DOCUMENT the wire created, the salary `Obligation` + `implies` edge, the `attendance_of` edge to the pre-resolved staff `Person`, audit-before-write, and `FirestoreGraphIntegrityChecker.check("all") == ()`. The demo seed also carries a real `AttendanceRecord` (`attendance-salim-2026-08`) written through the provenance-guarded `FirestoreGraphWriter`. Full backend suite green (2022 passed / 12 skipped / 0 failed), `mypy --strict` clean, at the Gate 15 review. The Gate-3 planted illegible-register case (`test_golden_extraction.py`) stays green — the safety path is unchanged.
+
+Original entry, for the record:
+
+**Opened:** Phase 3, 2026-08-23. **Updated:** Phase 7, 2026-08-27; Phase 14.5, 2026-08-30; STRUCK Phase 15, 2026-08-30.
 
 **Update, Phase 14.5 (2026-08-30):** condition (a) of the repayment — "a dedicated end-to-end ingestion orchestrator is built" — is now met (DEBT-009 struck; `backend/app/pipelines/ingestion_orchestrator.py`). What is still missing for DEBT-004 specifically: an actual attendance register run *through that wire* to produce a real, graph-written `AttendanceRecord` (Phase 14.5's orchestrator integration test used a receipt, not a register). Remaining work is small — feed a register image through `POST /ingest` in Phase 15's demo-seed pass (or a targeted follow-up) and assert an `AttendanceRecord` node with provenance. Condition (b) (a standalone writer step) is no longer needed given (a) exists.
 **Owner:** cto (contract, done) + e1 (persistence wiring, done) + e2 (consumption via A34, done; production write-path, still open)
@@ -211,3 +262,5 @@ Organic hallucination reached the target (0%) and one of the two control documen
 **Why this isn't a Phase-7-specific miss, and why it isn't being force-fixed now:** the root cause is structural and pre-existing, not new to attendance data — `ExtractionStrategy.map_to_graph` has no `GraphReader` (ADR-008, by design), so it structurally cannot resolve a raw name mention ("Maya") to an existing PERSON node id, exactly the same limitation `PermissionSlipExtractionStrategy` already has for its own `owned_by` edge (see that strategy's own docstring — it deliberately does not fabricate a capability-aware owner and leaves that to "a downstream agent with real graph access"). Investigating this, the CTO confirmed **no phase of this project has yet built a genuine end-to-end raw-document → extraction → entity-resolution → graph-write orchestrator for any node type** — every gate so far (Phases 1, 3, 4) has been verified via staged, targeted tests of each agent/strategy in isolation (e.g. Phase 3's "receipt produces LEDGER_EVENT + PURCHASE_ITEM" gate item was proven by calling the strategy directly with pre-extracted fields, not by running a real uploaded receipt through a live pipeline). Attendance is not behind the rest of the project; the rest of the project has this same gap for every node type, undiscovered until this review because it was the first time a debt-repayment review specifically asked "does anything actually construct this node in production."
 
 **Repayment condition (revised):** either (a) a dedicated end-to-end ingestion orchestrator is built (naturally scoped to whichever phase first needs a real raw-document-to-graph demo path proven live, very plausibly Phase 15's Demo Hardening, or an earlier phase if the demo script needs it sooner) and attendance's write-path falls out of it like every other node type's, or (b) if attendance specifically needs to work standalone before then, a small, precisely-scoped writer step is added ahead of that (taking an already-entity-resolved staff `Person` plus the raw extracted register fields and performing the write) — either way, verified with a real test proving a raw extracted register produces a real, graph-written `AttendanceRecord`, not just a hand-constructed test fixture. Flagged to the operator as an open item this phase, not silently claimed complete.
+
+**Phase 15 disposition (CTO, 2026-08-30) — STRUCK.** The conditional strike condition written at the start of this gate ("a handwritten attendance-register image driven through the real wire produces a provenance-chained `AttendanceRecord` from the production strategy") is met — see the STRUCK block at the top of this entry. E2 rewrote the production `map_to_graph` (not a test-local reference) and the wire test exercises it end to end through `IngestionOrchestrator`. The submission write-up may now state that a photographed register drives extract → map → graph-write end to end on the real ingestion wire, with the AMBIGUOUS-marks safety gate intact. `docs/SUBMISSION_NOTES.md` §12 updated accordingly.

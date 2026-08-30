@@ -45,6 +45,8 @@ from google.genai import types
 
 from app.reasoning.errors import GeminiCallFailed, ProTierNotAllowlisted
 from app.reasoning.gemini_client import (
+    DETERMINISTIC_SEED,
+    DETERMINISTIC_TEMPERATURE,
     GeminiCallResult,
     GeminiClient,
     GroundedCitation,
@@ -119,7 +121,18 @@ class TestGenerateTextSuccess:
         assert result.text == "pong"
         assert result.model_name == _MODEL_FLASH
         assert result.tier is ModelTier.FLASH
-        assert fake_models.calls == [{"model": _MODEL_FLASH, "contents": "ping", "config": None}]
+        # Phase 15 (E2): every call now carries a `GenerateContentConfig`
+        # pinning `DETERMINISTIC_TEMPERATURE`/`DETERMINISTIC_SEED` — it was
+        # `None` for a bare `generate_text` call before. `contents` is still
+        # the bare prompt string.
+        assert len(fake_models.calls) == 1
+        call = fake_models.calls[0]
+        assert call["model"] == _MODEL_FLASH
+        assert call["contents"] == "ping"
+        assert call["config"] is not None
+        assert call["config"].temperature == 0.0
+        assert call["config"].seed == DETERMINISTIC_SEED
+        assert call["config"].response_mime_type is None
 
     def test_pro_tier_call_from_allowlisted_agent_uses_pro_model(self) -> None:
         fake_models = _FakeModels(text="deep thoughts")
@@ -201,6 +214,64 @@ class TestElevatedThinkingBudget:
         assert config.thinking_config is not None
         assert config.thinking_config.thinking_budget == 16000
         assert config.response_mime_type == "application/json"
+
+
+class TestDeterministicGenerationConfig:
+    """Phase 15 (E2): every Vertex AI call this client makes pins
+    `DETERMINISTIC_TEMPERATURE` (0.0 — greedy decoding) and
+    `DETERMINISTIC_SEED`, in one enforcement point, so no demo-path agent
+    call re-introduces sampling variation (PHASES.md Phase 15: "the
+    exception beat must be deterministic"). This test is the tripwire: a
+    future edit that drops either field, or lets a call bypass `_invoke`,
+    fails here."""
+
+    def test_generate_text_pins_temperature_and_seed(self) -> None:
+        fake_models = _FakeModels(text="pong")
+        client = GeminiClient(router=_router_with_fake_client(fake_models))
+
+        client.generate_text(agent_id=AgentId("A2"), tier=ModelTier.FLASH, prompt="ping")
+
+        config = fake_models.calls[0]["config"]
+        assert config is not None
+        assert config.temperature == DETERMINISTIC_TEMPERATURE == 0.0
+        assert config.seed == DETERMINISTIC_SEED
+
+    def test_generate_structured_pins_temperature_and_seed(self) -> None:
+        fake_models = _FakeModels(text='{"ok": true}')
+        client = GeminiClient(router=_router_with_fake_client(fake_models))
+
+        client.generate_structured(agent_id=AgentId("A12"), tier=ModelTier.PRO, prompt="x")
+
+        config = fake_models.calls[0]["config"]
+        assert config is not None
+        assert config.temperature == 0.0
+        assert config.seed == DETERMINISTIC_SEED
+        assert config.response_mime_type == "application/json"
+
+    def test_generate_multimodal_pins_temperature_and_seed(self) -> None:
+        fake_models = _FakeModels(text='{"ok": true}')
+        client = GeminiClient(router=_router_with_fake_client(fake_models))
+
+        client.generate_multimodal(agent_id=AgentId("A3"), tier=ModelTier.PRO, prompt="x")
+
+        config = fake_models.calls[0]["config"]
+        assert config is not None
+        assert config.temperature == 0.0
+        assert config.seed == DETERMINISTIC_SEED
+
+    def test_generate_grounded_text_pins_temperature_and_seed(self) -> None:
+        fake_models = _FakeModels(text="grounded answer", candidates=None)
+        client = GeminiClient(router=_router_with_fake_client(fake_models))
+
+        client.generate_grounded_text(agent_id=AgentId("A36"), tier=ModelTier.FLASH, prompt="ping")
+
+        config = fake_models.calls[0]["config"]
+        assert config is not None
+        assert config.temperature == 0.0
+        assert config.seed == DETERMINISTIC_SEED
+        # ...without disturbing the Search-tool / no-response-mime-type contract.
+        assert config.response_mime_type is None
+        assert config.tools is not None and len(config.tools) == 1
 
 
 class TestGenerateGroundedText:

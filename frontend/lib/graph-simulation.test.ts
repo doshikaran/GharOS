@@ -72,12 +72,20 @@ describe("graph simulation at demo scale (500+ nodes)", () => {
         expect(Number.isFinite(node.y)).toBe(true);
       }
 
-      // A generous ceiling — this is Node's plain JS engine with no JIT
-      // warmup tricks, no GPU, no browser compositor; the real per-frame
-      // budget in a browser draw loop is far smaller than this total. This
-      // assertion exists to catch a genuine algorithmic regression (e.g.
-      // an accidental O(n^2) blowup), not to certify 60fps in a browser.
-      expect(elapsedMs).toBeLessThan(5000);
+      // A deliberately generous ceiling. This is Node's plain JS engine
+      // with no JIT warmup tricks, no GPU, no browser compositor; the real
+      // per-frame budget in a browser draw loop is far smaller than this
+      // total. It runs as one of ~120 test files under a parallel
+      // (`forks`) pool, so on a busy CI box the same work that settles in
+      // ~1s in isolation is routinely 5-6x slower purely from CPU
+      // contention — a wall-clock assertion here has to absorb that or it
+      // flakes. The number that still matters is the tick count (asserted
+      // via `isSimulationActive` above: it must settle well under the
+      // 1000-tick cap); this ceiling only exists to catch a genuine
+      // algorithmic regression — an accidental O(n^2) force calc without
+      // Barnes-Hut pruning would be ~2 orders of magnitude slower per
+      // tick, i.e. minutes, not seconds — never to certify 60fps.
+      expect(elapsedMs).toBeLessThan(20000);
     },
   );
 
