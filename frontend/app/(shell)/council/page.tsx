@@ -17,8 +17,7 @@ export default function CouncilPage() {
           Major household decisions convene specialists who each query a genuinely different subgraph, member
           delegates who each carry a real conflicting interest, and an Adversary structurally tasked with
           attacking the leading option. A deterministic mechanism, never an LLM, computes the explicit
-          trade-off. The Council never makes the final call: it produces a brief, and the household decides
-          (PHASES.md Phase 12, spec §12).
+          trade-off. The Council never makes the final call: it produces a brief, and the household decides.
         </p>
       </div>
 
@@ -29,7 +28,7 @@ export default function CouncilPage() {
         <p className={styles.historyIntro}>
           Every past council decision, permanently recorded, its trigger, every branch it weighed, every
           position that named it, and who is recorded as having conceded. Institutional memory a family can
-          actually consult two years later (spec §12.4).
+          actually consult two years later.
         </p>
         <CouncilHistoryBrowser baseUrl={getApiBaseUrl()} />
       </section>

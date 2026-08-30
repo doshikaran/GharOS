@@ -21,9 +21,13 @@ function formatFieldKey(key: string): string {
 }
 
 function formatFieldValue(value: unknown): string {
-  if (value === null || value === undefined) return ", ";
+  if (value === null || value === undefined) return "—";
   if (typeof value === "string") return value;
   if (typeof value === "number" || typeof value === "boolean") return String(value);
+  if (Array.isArray(value)) {
+    if (value.length === 0) return "—";
+    return value.map((item) => (typeof item === "object" && item !== null ? JSON.stringify(item) : String(item))).join(" · ");
+  }
   return JSON.stringify(value);
 }
 

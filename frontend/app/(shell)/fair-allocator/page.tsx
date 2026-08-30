@@ -16,7 +16,7 @@ export default function FairAllocatorPage() {
           The household&apos;s real cost matrix, visible and confirmable, never hidden, a deterministic solve of
           this cycle&apos;s shared errands, its envy-free-up-to-one-item verification, per-person explanations
           grounded in each person&apos;s own stated costs, a live renegotiation triggered by a real household change,
-          and a browsable load-imbalance check (PHASES.md Phase 8, spec §8, the Fair Allocator).
+          and a browsable load-imbalance check.
         </p>
       </div>
       <FairAllocatorExplorer baseUrl={getApiBaseUrl()} />

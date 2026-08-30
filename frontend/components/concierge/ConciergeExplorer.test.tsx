@@ -92,7 +92,6 @@ describe("ConciergeExplorer", () => {
     stubFetch(snapshot);
     render(<ConciergeExplorer baseUrl="http://api.example" />);
     await waitForReady();
-    expect(screen.getByText(/never synthesized audio/i)).toBeInTheDocument();
-    expect(screen.getByText(/deferred to Phase 13/)).toBeInTheDocument();
+    expect(screen.getByText(/never a real business and never synthesized audio/i)).toBeInTheDocument();
   });
 });

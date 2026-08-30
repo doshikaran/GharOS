@@ -34,7 +34,7 @@ describe("RegisterImagePanel", () => {
     render(<RegisterImagePanel baseUrl="http://api.example" registerImageRef="doc-attendance-register-2026-07" month="2026-07" />);
 
     await waitFor(() => expect(screen.getByRole("status")).toHaveTextContent(/Static placeholder/));
-    expect(screen.getByRole("status")).toHaveTextContent(/not available right now/);
+    expect(screen.getByRole("status")).toHaveTextContent(/no scanned register page is stored/);
     expect(screen.getByRole("img", { name: /Static placeholder illustration/ })).toBeInTheDocument();
   });
 

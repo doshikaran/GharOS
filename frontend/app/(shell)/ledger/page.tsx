@@ -15,9 +15,8 @@ export default function LedgerPage() {
         <p className={styles.subheading}>
           Every recurring commitment and ledger event currently in the household graph, the running
           recovered-money counter, open disputes presented without a favoured side, and the last two payroll
-          cycles with the register image shown beside the computed figure (PHASES.md Phase 7, spec §10, the
-          Household Ledger). Cancelling a live mandate below routes through the same Approval Gate every
-          payment action does.
+          cycles with the register image shown beside the computed figure. Cancelling a live mandate below
+          routes through the same approval gate every payment action does.
         </p>
       </div>
       <LedgerExplorer baseUrl={getApiBaseUrl()} />

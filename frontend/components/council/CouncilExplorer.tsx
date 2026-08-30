@@ -60,7 +60,7 @@ export function CouncilExplorer() {
         <h2 className={styles.sectionHeading}>Specialist positions</h2>
         <p className={styles.sectionIntro}>
           Each specialist queried only its own subgraph, independently, before seeing any other agent&apos;s
-          output (spec §12.3 Phase 1, anti-anchoring isolation). Finance reports from real ledger figures;
+          output, so no specialist anchors on another&apos;s framing. Finance reports from real ledger figures;
           Care reports from a real mobility constraint. They are not arguing with each other, they are
           reporting from genuinely different data.
         </p>
@@ -70,9 +70,9 @@ export function CouncilExplorer() {
       <section className={styles.section} aria-label="Eliminated options">
         <h2 className={styles.sectionHeading}>Eliminated, not scored down</h2>
         <p className={styles.sectionIntro}>
-          A hard constraint removes an option from consideration entirely before any interest scoring runs
-          (Gate 12: Care&apos;s hard constraint eliminates, it does not score down). What survives below is a
-          genuinely different, smaller set, never the same list with a low number attached.
+          A hard constraint removes an option from consideration entirely before any interest scoring runs,
+          it eliminates rather than scoring down. What survives below is a genuinely different, smaller set,
+          never the same list with a low number attached.
         </p>
         <EliminatedBranches eliminatedBranchIds={brief.resolution.eliminatedBranchIds} positions={brief.specialistPositions} />
         <p className={styles.survivingNote}>
@@ -93,9 +93,9 @@ export function CouncilExplorer() {
       <section className={styles.section} aria-label="Adversary">
         <h2 className={styles.sectionHeading}>The Adversary&apos;s attack</h2>
         <p className={styles.sectionIntro}>
-          Structurally tasked with attacking the arbiter&apos;s own winning option (ADR-019 Decision 7), a
-          critique of another agent&apos;s output, rendered distinctly from the positions above, never a sixth
-          position among equals.
+          Structurally tasked with attacking the arbiter&apos;s own winning option, a critique of another
+          agent&apos;s output, rendered distinctly from the positions above, never a sixth position among
+          equals.
         </p>
         <AdversaryAttackView attack={brief.adversaryAttack} />
       </section>

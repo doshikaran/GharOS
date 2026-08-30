@@ -123,8 +123,8 @@ export default function TokensPage() {
           <h1 className={styles.heading}>GharOS design tokens</h1>
           <p className={styles.subheading}>
             Every token in <code>styles/tokens.css</code>, organised by category, both themes.
-            This is the review surface for the whole design system (PHASES.md Gate 0), toggle
-            theme below and confirm every swatch still reads correctly.
+            This is the review surface for the whole design system, toggle theme below and
+            confirm every swatch still reads correctly.
           </p>
         </div>
         <ThemeSwitcher />

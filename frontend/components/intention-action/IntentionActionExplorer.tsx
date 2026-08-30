@@ -149,16 +149,15 @@ export function IntentionActionExplorer({ baseUrl }: IntentionActionExplorerProp
       {loadState.status === "error" && (
         <p className={styles.statusWarning} role="alert">
           Could not reach the live graph ({loadState.message}), showing this household&apos;s own fixed member
-          names instead. Every diagnosis, unblock outcome, and escalation below is fixture data regardless (no HTTP
-          endpoint exists for A23-A26 this phase).
+          names instead. The diagnosis, unblock outcome, and escalation steps below are demonstration data.
         </p>
       )}
 
       <section aria-label="The six-type taxonomy">
         <h2 className={styles.sectionHeading}>The six-type blocker taxonomy</h2>
         <p className={styles.sectionIntro}>
-          spec §9.3&apos;s core reasoning step, the specific obstacle keeping an intention from becoming action is
-          always exactly one of these six, never a vague &ldquo;it&apos;s complicated.&rdquo;
+          The specific obstacle keeping an intention from becoming action is always exactly one of these six,
+          never a vague &ldquo;it&apos;s complicated.&rdquo;
         </p>
         <BlockerTaxonomyLegend />
       </section>

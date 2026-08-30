@@ -22,12 +22,12 @@ const VERDICT_VARIANT: Record<LoadImbalanceVerdict, BadgeVariant> = {
 };
 
 function formatPercent(share: number | null): string {
-  if (share === null) return ", ";
+  if (share === null) return "—";
   return `${Math.round(share * 100)}%`;
 }
 
 function formatDrift(drift: number | null): string {
-  if (drift === null) return ", ";
+  if (drift === null) return "—";
   const sign = drift > 0 ? "+" : "";
   return `${sign}${Math.round(drift * 100)} pts`;
 }

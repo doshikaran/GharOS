@@ -33,7 +33,7 @@ export function BranchGroundingCitations({ grounding }: BranchGroundingCitations
       {grounding.citations.length === 0 ? (
         <p className={styles.noCitations} role="status">
           No external source found, Google Search grounding returned nothing for this branch&apos;s query. Stated
-          plainly rather than invented (ADR-017).
+          plainly rather than invented.
         </p>
       ) : (
         <ul className={styles.citationList}>

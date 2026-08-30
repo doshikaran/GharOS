@@ -131,7 +131,7 @@ export function ApprovalsBoard({ initialItems, now, extraItems }: ApprovalsBoard
         <h2 className={styles.groupHeading}>Escalation surface</h2>
         <p className={styles.groupIntro}>
           What GharOS declines to decide for you, and why, the raw evidence and its own reasoning for not
-          resolving this, never a synthesized recommendation and never a silent default (spec §7.7, §18.1).
+          resolving this, never a synthesized recommendation and never a silent default.
         </p>
         <EscalationSurface
           items={items}

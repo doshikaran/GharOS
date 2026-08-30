@@ -67,7 +67,7 @@ export function LiveCallTranscript({ turns, outcomeReport, counterpartyName }: L
       <div className={styles.header}>
         <p className={styles.honestyNote} role="note">
           A real, sandboxed text conversation with {counterpartyName}, a live, turn-taking exchange in transcript
-          form, not synthesized audio (per ADR-016; Phase 13 is where real speech is built).
+          form, not synthesized audio.
         </p>
         {!fullyRevealed && (
           <Button variant="ghost" onClick={() => setSkipped(true)}>

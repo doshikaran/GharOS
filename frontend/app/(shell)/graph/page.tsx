@@ -17,9 +17,8 @@ export default async function GraphPage({ searchParams }: PageProps<"/graph">) {
       <div className={styles.header}>
         <h1 className={styles.heading}>Household knowledge graph</h1>
         <p className={styles.subheading}>
-          Every node and edge GharOS holds about this household, assembling itself live as documents arrive,
-          click a node to see where it came from, or trace a conclusion back to its source (PHASES.md Phase 6,
-          Gate 6).
+          Every node and edge GharOS holds about this household, assembling itself live as documents arrive.
+          Click a node to see where it came from, or trace a conclusion back to its source.
         </p>
       </div>
       <GraphExplorer

@@ -16,7 +16,7 @@ export default function IntentionActionPage() {
           Forgetting explains only ~10-14% of unfulfilled intentions, the rest is friction. Every blocked task
           below is diagnosed to one of six specific blocker types, with its diagnosis stated so it can be
           corrected, unblocked in a way that matches the real cause, and, when it slips repeatedly, escalated
-          with real options for a human to decide (PHASES.md Phase 9, spec §9, the Intention→Action Converter).
+          with real options for a human to decide.
         </p>
       </div>
       <IntentionActionExplorer baseUrl={getApiBaseUrl()} />

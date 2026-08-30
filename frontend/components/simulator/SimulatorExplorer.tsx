@@ -93,8 +93,8 @@ export function SimulatorExplorer() {
             <h2 className={styles.sectionHeading}>Branch comparison</h2>
             <p className={styles.sectionIntro}>
               Every projected impact below is traceable to either household graph data or a cited external
-              source with a retrieval timestamp, never an unsourced claim (Gate 11). The critic&apos;s pushback
-              is shown separately from each branch&apos;s own projection, not blended into it.
+              source with a retrieval timestamp, never an unsourced claim. The critic&apos;s pushback is shown
+              separately from each branch&apos;s own projection, not blended into it.
             </p>
             <BranchComparison
               projections={branchProjections}
@@ -117,7 +117,7 @@ export function SimulatorExplorer() {
             <p className={styles.sectionIntro}>
               This household&apos;s own variance for past decisions in the same category (
               <code>{DECISION_CATEGORY_TAG}</code>), stated honestly, including when the history is too thin to
-              support a confidence figure (spec §11.5).
+              support a confidence figure.
             </p>
             <CalibrationPanel estimate={calibrationEstimate} />
           </section>
@@ -144,7 +144,7 @@ export function SimulatorExplorer() {
             <h2 className={styles.sectionHeading}>Backward mode</h2>
             <p className={styles.sectionIntro}>
               Take a committed plan, assume it failed, and reason backwards using this household&apos;s own
-              OUTCOME history to identify the likely failure point (ADR-017).
+              outcome history to identify the likely failure point.
             </p>
             <BackwardModeView analysis={backwardModeAnalysis} />
           </section>

@@ -105,8 +105,7 @@ export function VoiceprintEnrollment({
       <h3 className={styles.heading}>Voiceprint enrollment</h3>
       <p className={styles.description}>
         Record a {Math.round(clipDurationMs / 1000)}-second reference clip of {voicePersonLabel(personId)}&apos;s
-        voice so GharOS can tell household members apart when more than one person talks to it (spec §14.9,
-        multi-speaker household voice identification).
+        voice so GharOS can tell household members apart when more than one person talks to it.
       </p>
       <Button variant="secondary" onClick={() => void record()} disabled={state !== "idle"}>
         {state === "recording" ? "Recording…" : state === "uploading" ? "Uploading…" : "Record voiceprint sample"}

@@ -135,15 +135,14 @@ export function ConciergeExplorer({ baseUrl }: ConciergeExplorerProps) {
       {loadState.status === "error" && (
         <p className={styles.statusWarning} role="alert">
           Could not reach the live graph ({loadState.message}), showing this household&apos;s own fixed member
-          names instead. Every clarification, ranking, call, verification, and fallback decision below is fixture
-          data regardless (no HTTP endpoint exists for A50-A56 this phase).
+          names instead. The clarification, ranking, call, verification, and fallback steps below are
+          demonstration data.
         </p>
       )}
 
       <p className={styles.scopeNote} role="note">
         Every call below is a real, live, multi-turn text conversation the household&apos;s calling agent has with
-        a real sandbox counterparty persona, never synthesized audio. See ADR-016: audio (text-to-speech and
-        speech recognition) is real infrastructure, deliberately deferred to Phase 13, not built or implied here.
+        a sandboxed counterparty persona, never a real business and never synthesized audio.
       </p>
 
       <section aria-label="Clarification">

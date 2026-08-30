@@ -54,8 +54,12 @@ export function RegisterImagePanel({ baseUrl, registerImageRef, month }: Registe
       })
       .catch((err: unknown) => {
         if (cancelled) return;
+        // Expected in local/seeded runs: a SourceDocument node exists but
+        // its raw bytes were never uploaded, so /documents/{id}/raw 404s.
+        // This is a handled fallback, not an error — log at debug only so
+        // it does not surface in the dev error overlay.
         const reason = err instanceof GraphApiError || err instanceof Error ? err.message : "unknown error";
-        console.error("RegisterImagePanel: falling back to the static placeholder, ", reason);
+        console.debug("RegisterImagePanel: no live register image, showing the placeholder", reason);
         setState({ status: "error" });
       });
     return () => {
@@ -116,8 +120,7 @@ export function RegisterImagePanel({ baseUrl, registerImageRef, month }: Registe
     <div className={styles.panel}>
       <StaticPlaceholderIllustration />
       <p className={styles.caption} role="status">
-        Static placeholder, the live register photograph for &quot;{registerImageRef}&quot; is not available right
-        now.
+        Static placeholder, no scanned register page is stored for {month} in this environment.
       </p>
     </div>
   );
