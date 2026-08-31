@@ -1,0 +1,40 @@
+%% GharOS - Diagram 6: The Household Council - specialisation + interest representation, not debate
+%% Render: paste into https://mermaid.live  or open ../diagrams/index.html
+sequenceDiagram
+  autonumber
+  participant HH as Household
+  participant A0 as A0 Coordinator
+  participant SR as ScopedGraphReader
+  participant SP as Specialists
+  participant DEL as Member Delegates
+  participant ADV as Adversary
+  participant ARB as Minimax-Regret Arbiter
+  participant G as Firestore graph
+
+  HH->>A0: a genuinely hard decision (buy a second car?)
+  A0->>SP: convene. each specialist gets exactly ONE domain scope
+
+  par Finance (isolated)
+    SP->>SR: query the Finance scope only
+  and Care (isolated)
+    SP->>SR: query the Care scope only
+  and Logistics (isolated)
+    SP->>SR: query the Logistics scope only
+  end
+  SP-->>A0: positions, each citing its own subgraph (never a blended paragraph)
+
+  A0->>A0: hard-constraint elimination (violating options are REMOVED, not scored down)
+  Note over A0: what survives is a smaller, genuinely different option set
+
+  A0->>DEL: score the surviving options
+  DEL-->>A0: per-person costs from behaviourally-derived ValuationProfiles (conflicting, named)
+
+  A0->>ADV: attack the CURRENT leading option using the household's own history
+  ADV-->>A0: an adversarial critique, rendered distinctly (never a 6th position)
+
+  A0->>ARB: surviving options + per-person regret vectors
+  ARB->>ARB: minimise the maximum regret, leximin tie-break (Savage 1951)
+  ARB-->>A0: the explicit trade-off, and who is recorded as having conceded
+
+  A0->>G: persist Decision, Branches, CouncilPositions, conceded_by edges
+  A0-->>HH: a BRIEF, not a verdict (walkable two years later)

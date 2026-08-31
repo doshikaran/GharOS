@@ -1,0 +1,56 @@
+%% GharOS — Diagram 5: The Household Knowledge Graph — node types, key edges, the provenance model
+%% Render: paste into https://mermaid.live  ·  or open ../diagrams/index.html
+flowchart TB
+  subgraph CORE["Household structure"]
+    PERSON["Person<br/>role · capabilities · language_profile"]
+    CONSTRAINT["Constraint<br/>DIETARY / MEDICAL / MOBILITY / SCHEDULE / EDUCATION<br/>severity: HARD | SOFT"]
+    RECUR["RecurringCommitment<br/>price_history · last_used_at"]
+  end
+
+  subgraph WORK["Obligations, decisions, learning"]
+    OBL["Obligation<br/>stated_or_implied · status · due_at / must_start_by"]
+    DEC["Decision"]
+    BR["Branch"]
+    CP["CouncilPosition"]
+    OUT["Outcome<br/>variance history → calibration"]
+    PAT["Pattern<br/>support_count · slip_rate"]
+    VP["ValuationProfile<br/>behaviourally-derived costs"]
+  end
+
+  subgraph MONEY["Financial and staff"]
+    LE["LedgerEvent"]
+    PI["PurchaseItem"]
+    VEND["Vendor<br/>reliability_score"]
+    ATT["AttendanceRecord<br/>daily_marks · advance_notations"]
+  end
+
+  subgraph PROVSYS["Provenance and action"]
+    SD["SourceDocument<br/>channel · raw_payload_ref"]
+    AR["ActionRecord"]
+    APR["ApprovalRequest"]
+    PROV["Provider"]
+  end
+
+  SD -->|"states"| OBL
+  SD -.->|"implies (inferred edge)"| OBL
+  OBL -->|"conflicts_with"| OBL
+  OBL -->|"violates"| CONSTRAINT
+  PI -->|"verifies / contradicts"| CONSTRAINT
+  LE -->|"discharges"| OBL
+  PI -->|"substitutes"| PI
+  ATT -->|"attendance_of"| PERSON
+  RECUR -->|"owed_by"| PERSON
+  DEC -->|"contains"| BR
+  DEC -->|"resolved_as"| BR
+  BR -->|"has_position"| CP
+  CP -->|"conceded_by"| PERSON
+  AR -->|"authorizes"| APR
+  APR -->|"approved_by"| PERSON
+  VEND -->|"booked_with"| PROV
+
+  PROVBOX["EVERY node and EVERY edge carries a Provenance record:<br/>• derivation ∈ { EXTRACTED · INFERRED · AMBIGUOUS }<br/>• source_ref — originating document + region within it<br/>• confidence · deriving_agent · created_at<br/><br/>A write missing any required field CANNOT be constructed (Hypothesis-fuzz proven).<br/>Writes create a new version — nodes are never mutated in place and never hard-deleted.<br/>unexplained(scope) returns the set of nodes with no derivation path — empty on a valid graph."]
+
+  classDef prov fill:#eef1ff,stroke:#4f46e5,color:#1f2340
+  classDef src fill:#0e7490,stroke:#155e75,color:#fff
+  class PROVBOX prov
+  class SD src

@@ -1,0 +1,72 @@
+%% GharOS — Diagram 2: Google Cloud deployment topology
+%% Render: paste into https://mermaid.live  ·  or open ../diagrams/index.html
+flowchart TB
+  BROWSER["Browser<br/>demo operator / household member"]
+
+  subgraph GCP["Google Cloud — project blissful-trail-506312-t0 · region asia-south1"]
+    direction TB
+
+    subgraph BUILD["Build and deploy — no Dockerfile anywhere"]
+      SRC["source tree<br/>gcloud run deploy --source"]
+      BP["Cloud Build + Google Cloud Buildpacks<br/>Python 3.13 · Node 20 builders"]
+      SRC --> BP
+    end
+
+    subgraph RUN["Cloud Run — min-instances = 0 · max-instances = 2 (never overridden)"]
+      API["gharos-api<br/>FastAPI · Python 3.13<br/>Pub/Sub push receiver · SSE · WebSocket"]
+      WEB["gharos-web<br/>Next.js 16 · TypeScript"]
+    end
+    BP --> API
+    BP --> WEB
+
+    FS[("Firestore (Native)<br/>knowledge graph · audit log · idempotency and dedupe stores<br/>node-per-collection + flat edges · versioned writes")]
+
+    subgraph PUBSUB["Cloud Pub/Sub"]
+      TOPIC["topics:<br/>gharos-heartbeat · consolidation-nightly · followup-sweep"]
+      SUBP["push subscriptions<br/>OIDC token · audience = gharos-api URL"]
+      TOPIC --> SUBP
+    end
+
+    subgraph SCHED["Cloud Scheduler (asia-south1)"]
+      J1["gharos-heartbeat-tick — */5 * * * *"]
+      J2["gharos-consolidation-nightly — 30 21 * * * UTC ≈ 03:00 IST"]
+      J3["gharos-followup-sweep — 0 7,19 * * *"]
+    end
+
+    SM[("Secret Manager<br/>OAuth refresh tokens, keyed {provider}:{principal}<br/>never in Firestore · never in an agent input")]
+    VAI["Vertex AI — Gemini 2.5<br/>Flash (regional) · Pro (global location)<br/>multimodal (image+audio) · native TTS · Google Search grounding"]
+    LOG[("Cloud Logging<br/>unattended overnight-run trace · per-revision build provenance")]
+    IAM["IAM<br/>per-service runtime SAs · dedicated Pub/Sub push SA · Secret Manager accessor"]
+  end
+
+  subgraph THIRD["External provider APIs"]
+    GMAIL["Gmail API — newer_than:1d"]
+    MSGRAPH["Microsoft Graph — Mail.Read"]
+  end
+
+  BROWSER -->|HTTPS| WEB
+  WEB -->|"NEXT_PUBLIC_API_BASE_URL · CORS-allowlisted origin"| API
+  BROWSER -.->|"SSE GET /graph/stream · WS /voice/session"| API
+
+  J1 --> TOPIC
+  J2 --> TOPIC
+  J3 --> TOPIC
+  SUBP -->|"HTTP POST + OIDC (verified before any work)"| API
+
+  API -->|"read / versioned write"| FS
+  FS -.->|"on_snapshot listeners"| API
+  API -->|"generate_content · grounded · TTS"| VAI
+  API -->|"access refresh token"| SM
+  API -->|"OAuth 2.0 + PKCE"| GMAIL
+  API -->|"OAuth 2.0 + PKCE"| MSGRAPH
+  API --> LOG
+  WEB --> LOG
+  IAM -. "binds" .- API
+  IAM -. "binds" .- SUBP
+
+  classDef run fill:#4f46e5,stroke:#3730a3,color:#fff
+  classDef store fill:#0e7490,stroke:#155e75,color:#fff
+  classDef sched fill:#d97706,stroke:#b45309,color:#fff
+  class API,WEB run
+  class FS,SM,LOG store
+  class J1,J2,J3 sched

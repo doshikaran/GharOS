@@ -1,0 +1,43 @@
+%% GharOS — Diagram 3: Event → Action — the single door between reasoning and the real world
+%% Render: paste into https://mermaid.live  ·  or open ../diagrams/index.html
+flowchart TB
+  EV(["Event: a forwarded school email lands on Pub/Sub<br/>nobody is present"])
+  EV --> WAKE["Cloud Run wakes from min-instances = 0"]
+  WAKE --> INTK["Intake — A2 route → A3 extract (Gemini) → A5 resolve"]
+  INTK --> W1{{"Provenance guard<br/>INVARIANT 3 — a write without provenance cannot be constructed<br/>(proven by a Hypothesis fuzz over every missing-field subset)"}}
+  W1 --> GW[("Graph write — SOURCE_DOCUMENT + extracted nodes<br/>each carrying derivation · source_ref · confidence · deriving_agent")]
+  GW --> ORCH["A0 orchestrator dispatches the Consequence Engine"]
+
+  ORCH --> A12["A12 Implication Agent (Gemini 2.5 Pro)<br/>produces IMPLIED obligations + verbatim source-span citations<br/>citation validator discards any span that does not support the claim"]
+  A12 --> CONF["A13–A16 — conflict detection<br/>temporal collisions · hard-constraint violations"]
+  CONF --> ALLOC["Fair Allocator — EF1 round-robin split<br/>+ an independent EF1 verifier (shares no code with the solver)"]
+
+  ALLOC --> ARB{"A57 Confidence Arbiter<br/>DETERMINISTIC table — confidence x risk tier → one decision<br/>INVARIANT 4 — low confidence escalates · absolute discard floor at every tier"}
+  ARB -->|"catastrophic confidence"| DISC["DISCARD — never reaches an action"]
+  ARB -->|"R0 / R1 — safe and reversible"| ACT
+  ARB -->|"R2 / R3 — financial / outward-facing"| GATE
+  ARB -->|"R4 — hard-constraint-bearing ambiguity"| ESC
+
+  subgraph GATE_BOX["Approval Gate — INVARIANTS 2 and 5 (enforced by construction, not convention)"]
+    direction TB
+    GATE["Assemble the evidence bundle<br/>proposed action · reasoning · every piece of evidence consulted · confidence · failure mode"]
+    GATE --> AUD1{{"Write an IMMUTABLE audit record BEFORE any side effect<br/>GatedAction.execute() raises on a null audit_ref"}}
+    AUD1 --> HUMAN["A named person approves or rejects<br/>an approval window that closes without a decision ESCALATES — it never auto-approves"]
+    HUMAN --> REREAD["Re-read live graph state at execution time<br/>(the world can change between approval and execution)"]
+  end
+  REREAD -->|approved and still valid| ACT
+  REREAD -->|rejected / expired| ESC
+
+  ACT["Action Layer<br/>idempotent per content-hash — forced-replay proven (fire twice → one effect)<br/>INVARIANT 1 — money reasoners hold no money tools (registry refuses gated tiers from agent-side call sites)<br/>INVARIANT 7 — a failed tool call returns failure, never a fabricated success"]
+  ACT --> EXTW["External world — booking / payment / message<br/>(sandboxed counterparty where the write-up says so)"]
+  ACT --> GW
+  ACT --> AUD2[("Audit Log")]
+
+  ESC --> ESCQ(["Escalation surface — the raw evidence and the system's own stated reason for NOT acting.<br/>No approve/resolve button: escalation is never visually conflated with approval."])
+
+  classDef gate fill:#c53d2e,stroke:#9a2f22,color:#fff
+  classDef guard fill:#d97706,stroke:#b45309,color:#fff
+  classDef store fill:#0e7490,stroke:#155e75,color:#fff
+  class ARB,GATE,GATE_BOX gate
+  class W1,AUD1 guard
+  class GW,AUD2 store

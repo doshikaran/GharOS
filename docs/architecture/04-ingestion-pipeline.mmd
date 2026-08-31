@@ -1,0 +1,55 @@
+%% GharOS — Diagram 4: The ingestion pipeline — raw input → provenance-linked graph nodes
+%% Render: paste into https://mermaid.live  ·  or open ../diagrams/index.html
+flowchart TB
+  subgraph TRIG["Triggers — all converge on one endpoint"]
+    direction LR
+    T1["Text: 'scan my mailbox'"]
+    T2["Voice: 'scan my Gmail'<br/>→ speaker-identity gate:<br/>an unidentified voice cannot trigger a private-mailbox read"]
+    T3["Drag-drop image / PDF"]
+    T4["Google Drive picker (drive.file scope)"]
+  end
+  T1 --> ENTRY
+  T2 --> ENTRY
+  T3 --> ENTRY
+  T4 --> ENTRY
+  ENTRY["POST /ingest — one synchronous entry (ADR-023)<br/>returns an IngestionRunResult with a per-document outcome"]
+
+  ENTRY --> FETCH["per-source fetch_since"]
+  subgraph CONN["Connectors"]
+    direction LR
+    GM["GmailConnector<br/>Gmail REST · newer_than:1d"]
+    OL["OutlookConnector<br/>MS Graph · $filter receivedDateTime ge"]
+    UP["upload / drive_picker helper"]
+  end
+  FETCH --> GM
+  FETCH --> OL
+  FETCH --> UP
+  GM -. "read refresh token" .-> SM[("Secret Manager<br/>{provider}:{principal}")]
+  OL -. "read refresh token" .-> SM
+
+  GM --> NORM
+  OL --> NORM
+  UP --> NORM
+  NORM["normalise → { headers, text } or media part"]
+  NORM --> HASH["compute_content_hash — frozen sha256 recipe (gharos.ingest.v1)"]
+  HASH --> DEDUPE{"IngestionDedupeStore — seen before?"}
+  DEDUPE -->|"hit"| SKIP(["DUPLICATE_SKIPPED — zero graph writes"])
+  DEDUPE -->|"miss"| RAW["RawPayloadStore.put — keep the original bytes"]
+  RAW --> AUDIT{{"Audit append — BEFORE any graph write (INVARIANT 2)<br/>an audit-write failure blocks every downstream write"}}
+  AUDIT --> A2["A2 Intake Router — classify document type (Gemini 2.5 Flash)"]
+  A2 -->|"unknown type"| GAP(["REGISTRY_GAP — logged for human triage, never guessed"])
+  A2 --> A3["A3 / A3b / A3c Extraction<br/>Gemini (Pro multimodal for photographed forms)<br/>a below-floor field is tagged AMBIGUOUS, never inferred"]
+  A3 -->|"unreadable"| XFAIL(["EXTRACTION_FAILED — SOURCE_DOCUMENT retained, visible outcome"])
+  A3 --> A5["A5 Entity Resolution"]
+  A5 -->|"cannot resolve"| ESCR(["ENTITY_RESOLUTION_ESCALATED"])
+  A5 --> STRAT["registered ExtractionStrategy.map_to_graph<br/>one of 14 document-type strategies"]
+  STRAT --> WRITER[("FirestoreGraphWriter — provenance guard<br/>SOURCE_DOCUMENT + typed nodes + edges,<br/>each provenance chained to the SOURCE_DOCUMENT the wire created")]
+  WRITER --> RECORD["IngestionDedupeStore.record — crash-recovery durable"]
+  WRITER --> OK(["INGESTED — new_node_ids deep-linked into the graph view"])
+
+  classDef term fill:#eef1ff,stroke:#c7c3f5,color:#1f2340
+  classDef guard fill:#d97706,stroke:#b45309,color:#fff
+  classDef store fill:#0e7490,stroke:#155e75,color:#fff
+  class SKIP,GAP,XFAIL,ESCR,OK term
+  class AUDIT guard
+  class SM,WRITER store

@@ -1,0 +1,83 @@
+%% GharOS — Diagram 1: System context and end-to-end flow
+%% Render: paste into https://mermaid.live  ·  or open ../diagrams/index.html
+flowchart TB
+  subgraph IN["Inbound stream — the household's real inputs"]
+    direction LR
+    E["Email<br/>Gmail / Outlook<br/>OAuth 2.0 + PKCE"]
+    C["Forwarded WhatsApp / SMS<br/>chat exports"]
+    D["Photographed forms and bills<br/>PDFs · receipts · registers"]
+    V["Voice<br/>browser microphone"]
+    T["Scheduled ticks<br/>Cloud Scheduler"]
+  end
+
+  PS[("Cloud Pub/Sub<br/>one topic · OIDC-verified push")]
+  ING["POST /ingest<br/>Ingestion Orchestrator<br/>synchronous · idempotent per content-hash"]
+  WS["/voice/session — WebSocket<br/>A62 Session Manager<br/>speaker-identity gate"]
+
+  T --> PS
+  E --> ING
+  C --> ING
+  D --> ING
+  V --> WS
+  PS --> INTAKE
+  ING --> INTAKE
+  WS --> INTAKE
+
+  INTAKE["Intake Layer<br/>A2 route → A3 / A3b / A3c extract → A5 resolve entities<br/>Gemini 2.5 Flash + Pro on Vertex AI · multimodal for image / audio"]
+
+  GRAPH[("Firestore (Native) — Household Knowledge Graph<br/>18 node types · 36 edge types<br/>every write provenance-tagged · versioned (never mutated)<br/>19 on_snapshot listeners → live Server-Sent Events")]
+
+  INTAKE --> GRAPH
+
+  A0{{"Google ADK Orchestrator<br/>A0 Household Coordinator<br/>sequential / parallel / loop · FunctionTool isolation · approval callbacks"}}
+  GRAPH --> A0
+
+  subgraph SUBS["Seven reasoning subsystems — Gemini on Vertex AI, Flash / Pro tier-routed"]
+    direction LR
+    S1["1 · Consequence Engine<br/>implication + conflict detection"]
+    S2["2 · Fair Allocator<br/>EF1 chore split"]
+    S3["3 · Household Ledger<br/>leakage · disputes · payroll"]
+    S4["4 · Intention → Action<br/>six-type blocker taxonomy"]
+    S5["5 · Simulator<br/>branch comparison · Search-grounded"]
+    S6["6 · Council<br/>specialisation + interest representation"]
+    S7["7 · Outbound Concierge<br/>calls / bookings · sandboxed counterparty"]
+  end
+  A0 --> S1
+  A0 --> S2
+  A0 --> S3
+  A0 --> S4
+  A0 --> S5
+  A0 --> S6
+  A0 --> S7
+
+  ARB{"A57 Confidence Arbiter<br/>deterministic policy — confidence x risk tier → one decision"}
+  S1 --> ARB
+  S2 --> ARB
+  S3 --> ARB
+  S4 --> ARB
+  S5 --> ARB
+  S6 --> ARB
+  S7 --> ARB
+
+  ARB -->|"R0 / R1 — safe, reversible"| ACT["Action Layer<br/>idempotent · permission-tiered tools T0–T6"]
+  ARB -->|"R2 / R3 — financial / outward-facing"| GATE["Approval Gate<br/>audit-before-execute · expiry escalates (never auto-approves) · re-reads live graph"]
+  ARB -->|"R4 — hard-constraint ambiguity"| ESC["A58 Escalation<br/>a human decides"]
+  GATE -->|approved| ACT
+
+  ACT --> EXT["External world<br/>calls · payments · messages<br/>(sandboxed where disclosed)"]
+  ACT --> GRAPH
+  ACT --> AUD[("Audit Log<br/>immutable · written BEFORE any side effect")]
+
+  GRAPH --> UI["Next.js on Cloud Run<br/>graph viz · approvals · council · ledger · voice"]
+
+  COST["All compute on Cloud Run · source deploys via Buildpacks (no Dockerfile) · min-instances = 0 → nothing billed at rest"]
+  UI -.-> COST
+
+  classDef store fill:#0e7490,stroke:#155e75,color:#fff
+  classDef gate fill:#c53d2e,stroke:#9a2f22,color:#fff
+  classDef brain fill:#4f46e5,stroke:#3730a3,color:#fff
+  classDef note fill:#eef1ff,stroke:#c7c3f5,color:#1f2340
+  class GRAPH,AUD,PS store
+  class ARB,GATE,ESC gate
+  class A0,INTAKE brain
+  class COST note

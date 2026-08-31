@@ -1,0 +1,24 @@
+%% GharOS — Diagram 7: The eight safety invariants, mapped to where each is enforced
+%% Render: paste into https://mermaid.live  ·  or open ../diagrams/index.html
+flowchart TB
+  A["1 · Ingest and extract"]:::stage
+  B["2 · Graph write"]:::stage
+  C["3 · Reason — 7 subsystems on ADK"]:::stage
+  D["4 · Arbitrate — A57 (deterministic)"]:::stage
+  E["5 · Approval Gate"]:::stage
+  F["6 · Action Layer"]:::stage
+  G["7 · External world + Audit Log"]:::stage
+  A --> B --> C --> D --> E --> F --> G
+
+  B --- INV3["INVARIANT 3 — Provenance on every node and edge<br/>write-path guard · Hypothesis fuzz over every missing-field subset<br/>(structurally impossible to bypass, not example-tested)"]
+  C --- INV6["INVARIANT 6 — No 'debate' framing<br/>repo-wide case-insensitive grep, run in CI"]
+  C --- INV1a["INVARIANT 1 — Money reasoners hold no money tools<br/>the tool registry refuses every T4/T5/T6 tier requested from an agent-side call site<br/>(real call-stack introspection)"]
+  C --- INV8["INVARIANT 8 — Voice confers no action capability<br/>AST import-boundary scan: no voice module may import arbitration or a gated tool<br/>+ behavioural proof: a max-affirmative R3 voice confirm → 'approval_pending', never execute"]
+  D --- INV4["INVARIANT 4 — Low confidence escalates<br/>deterministic tier bump · absolute discard floor at every risk tier · fail-closed on a malformed model response"]
+  E --- INV2["INVARIANT 2 — Audit BEFORE execute<br/>GatedAction.execute() raises AuditNotWritten on a null audit_ref<br/>(also enforced on the ingestion wire: an audit-write failure blocks every graph write)"]
+  E --- INV5["INVARIANT 5 — Financial / irreversible needs approval<br/>a GatedAction constructed directly (bypassing the gate) raises ApprovalRequired<br/>the only path that executes is request → explicit approve by a named person"]
+  F --- INV7["INVARIANT 7 — No fabricated tool success<br/>a tool over an always-raising writer returns ToolFailure — never ActionResult.success"]
+
+  classDef stage fill:#4f46e5,stroke:#3730a3,color:#fff
+  classDef inv fill:#eef1ff,stroke:#c7c3f5,color:#1f2340
+  class INV1a,INV2,INV3,INV4,INV5,INV6,INV7,INV8 inv
