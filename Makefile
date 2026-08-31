@@ -20,14 +20,18 @@ help:
 emulators:
 	./scripts/emulators.sh
 
+# `--env-file .env` so backend/.env (emulator hosts, project id, OAuth
+# config) reaches the process: `uv run` does NOT load .env on its own, and
+# the google client libs read FIRESTORE_EMULATOR_HOST / PUBSUB_EMULATOR_HOST
+# from the OS environment. Without it, local dev silently hits real Firestore.
 dev-backend:
-	cd backend && uv run uvicorn app.main:app --reload --port 8000
+	cd backend && uv run --env-file .env uvicorn app.main:app --reload --port 8000
 
 dev-frontend:
 	cd frontend && pnpm dev
 
 test-backend:
-	cd backend && uv run pytest --cov=app --cov-report=term-missing
+	cd backend && uv run --env-file .env pytest --cov=app --cov-report=term-missing
 
 test-frontend:
 	cd frontend && pnpm test

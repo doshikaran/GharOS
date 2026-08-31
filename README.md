@@ -113,10 +113,14 @@ This starts both emulators as background processes, writes their PIDs to `.emula
 ### Run the backend
 
 ```bash
-make dev-backend      # cd backend && uv run uvicorn app.main:app --reload --port 8000
+make dev-backend      # cd backend && uv run --env-file .env uvicorn app.main:app --reload --port 8000
 ```
 
 API on `http://localhost:8000`. OpenAPI at `/docs`. Health/debug: `/debug/gemini-ping`, `/debug/adk-demo` (these need a real GCP project + `gcloud auth application-default login`).
+
+> **Local dev uses the emulator, not real Firestore** — `make dev-backend` passes `--env-file .env` so `backend/.env`'s `FIRESTORE_EMULATOR_HOST` / `PUBSUB_EMULATOR_HOST` reach the process (`uv run` does not load `.env` on its own, and the Google client libraries read those from the OS environment). `app.main` also re-applies them from `Settings` at startup for any non-`production` `ENV` unless it detects Cloud Run (`K_SERVICE`). If you launch `uvicorn` by hand, either run it via `uv run --env-file .env` or `export` the two hosts first — otherwise the app connects to real Firestore.
+
+Order for a clean local run: **`make emulators` → `make seed-demo` → `make dev-backend`.** Re-run `./scripts/seed_demo.sh reset` between demo rehearsals; if you reset while the backend is running, restart the backend afterwards.
 
 ### Run the frontend
 

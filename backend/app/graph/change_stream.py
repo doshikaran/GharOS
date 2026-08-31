@@ -46,13 +46,18 @@ logger = structlog.get_logger(__name__)
 
 _FORWARDED_CHANGE_TYPES = (ChangeType.ADDED, ChangeType.MODIFIED)
 
-_INITIAL_SNAPSHOT_SETTLE_TIMEOUT_SECONDS = 10.0
+_INITIAL_SNAPSHOT_SETTLE_TIMEOUT_SECONDS = 30.0
 """How long `start()` waits for every one of the 17 listeners' initial
 "current state" snapshot to arrive and be swallowed (see `_node_callback`'s
 docstring) before returning. Blocking here — rather than returning
 immediately and racing a caller's first write against an in-flight initial
 snapshot — is what makes "a write before subscribing is not replayed"
-correct by construction instead of correct-by-favourable-timing."""
+correct by construction instead of correct-by-favourable-timing.
+
+Against real Firestore every listener's initial snapshot settles in ~1-2s;
+against the local emulator, opening ~19 concurrent `on_snapshot` gRPC
+streams at once on a loaded dev machine can genuinely take longer, so this
+is deliberately generous. It is a safety wait, not a latency SLA."""
 
 
 @dataclass(frozen=True, slots=True)

@@ -42,9 +42,11 @@ This module stays thin; it wires, it does not implement.
 
 from __future__ import annotations
 
+import os
 from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
 
+import structlog
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
@@ -56,7 +58,40 @@ from app.api.pubsub_receiver import router as pubsub_router
 from app.api.voice_router import router as voice_router
 from app.graph.change_stream import FirestoreGraphChangeStream
 from app.persistence.firestore_client import create_firestore_client
-from app.settings import get_settings
+from app.settings import Settings, get_settings
+
+_logger = structlog.get_logger(__name__)
+
+_PRODUCTION_ENVS = frozenset({"production", "staging"})
+
+
+def _configure_local_emulators(settings: Settings) -> None:
+    """Make the app honour its own `firestore_emulator_host` /
+    `pubsub_emulator_host` settings.
+
+    The `google.cloud.firestore` / `pubsub` client libraries read
+    `FIRESTORE_EMULATOR_HOST` / `PUBSUB_EMULATOR_HOST` from the OS
+    environment, NOT from our typed `Settings`. `uv run uvicorn ...` does
+    not load `backend/.env` into the OS environment, so without this the
+    app would silently connect to REAL Firestore for local development
+    (`make dev-backend`) even though `.env` says to use the emulator — the
+    exact failure this function exists to close.
+
+    Guard: skipped entirely on Cloud Run (Knative always sets
+    `K_SERVICE`) and for `ENV=production`/`staging`, so a real deployment
+    is never pointed at `localhost`. An explicitly-exported
+    `FIRESTORE_EMULATOR_HOST` always wins (`setdefault`).
+    """
+    on_cloud_run = bool(os.environ.get("K_SERVICE"))
+    if on_cloud_run or settings.env.strip().lower() in _PRODUCTION_ENVS:
+        return
+    for var, value in (
+        ("FIRESTORE_EMULATOR_HOST", settings.firestore_emulator_host),
+        ("PUBSUB_EMULATOR_HOST", settings.pubsub_emulator_host),
+    ):
+        if value and var not in os.environ:
+            os.environ[var] = value
+            _logger.info("main.local_emulator_configured", var=var, value=value, env=settings.env)
 
 
 @asynccontextmanager
@@ -65,6 +100,7 @@ async def lifespan(app: FastAPI) -> AsyncIterator[None]:
     ChangeStream` this process uses for `GET /graph/stream`, opens its 17
     Firestore listeners, and releases them cleanly on shutdown."""
     settings = get_settings()
+    _configure_local_emulators(settings)
     client = create_firestore_client(settings)
     change_stream = FirestoreGraphChangeStream(client)
     change_stream.start()
@@ -80,6 +116,11 @@ async def lifespan(app: FastAPI) -> AsyncIterator[None]:
 app = FastAPI(title="GharOS backend", lifespan=lifespan)
 
 _settings = get_settings()
+# Also run at import time: the router-level `get_firestore_client` DI
+# provider can build a client on the very first request, which may race
+# ahead of / bypass the lifespan on some server configs. `setdefault`
+# semantics make the double call harmless.
+_configure_local_emulators(_settings)
 _allowed_origins = _settings.cors_allowed_origins_list
 if _allowed_origins:
     # Exact-origin allowlist only — never a wildcard (see
