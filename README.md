@@ -131,10 +131,10 @@ Specialists read **disjoint** graph scopes in isolation (anti-anchoring by const
 
 Every reasoning call is routed through one `ModelRouter`:
 
-- **Gemini 2.5 Flash** for ingestion, normalisation, routing, classification;
-- **Gemini 2.5 Pro** only for the named hard-reasoning agents on an explicit allowlist (implication, the Council specialists and arbiter, the concierge clarifiers, backward-mode simulation).
+- **Gemini 3.5 Flash** for ingestion, normalisation, routing, classification;
+- **Gemini 3.5 Pro** only for the named hard-reasoning agents on an explicit allowlist (implication, the Council specialists and arbiter, the concierge clarifiers, backward-mode simulation).
 
-A Pro-tier call from a non-allowlisted agent is a **test failure**. Pro-tier resolves through Vertex AI's `global` location (`gemini-2.5-pro` 404s regionally in `asia-south1` — [ADR-010](docs/adr/010-per-tier-vertex-ai-location.md)).
+A Pro-tier call from a non-allowlisted agent is a **test failure**. Pro-tier resolves through Vertex AI's `global` location (`gemini-3.5-pro` 404s regionally in `asia-south1` — [ADR-010](docs/adr/010-per-tier-vertex-ai-location.md)).
 
 ---
 
@@ -146,7 +146,7 @@ An autonomous household system has an unusual shape: it must wake on its own wit
 
 | Service | What GharOS uses it for | Why it's the right primitive |
 |---|---|---|
-| **Vertex AI + Gemini 2.5** | Every reasoning call. **Flash** for routing/classification; **Pro** for allowlisted hard reasoning. Multimodal (image + audio) in the same call shape. Native TTS in 4 languages. Google Search grounding as a built-in tool | Collapses text + vision + audio + TTS + web-grounding into one IAM-governed, regionally-addressable surface. Tier and region are config knobs |
+| **Vertex AI + Gemini 3.5** | Every reasoning call. **Flash** for routing/classification; **Pro** for allowlisted hard reasoning. Multimodal (image + audio) in the same call shape. Native TTS in 4 languages. Google Search grounding as a built-in tool | Collapses text + vision + audio + TTS + web-grounding into one IAM-governed, regionally-addressable surface. Tier and region are config knobs |
 | **Google ADK** | The agent topology — A0 orchestrating 7 subsystems; sequential/parallel/loop composition; `FunctionTool` isolation; callbacks as the approval hook | Makes the safe thing the default: an agent is *constructed* with a tool set and physically cannot call one it wasn't given |
 | **Firestore (Native)** | The knowledge graph, audit log, dedupe & idempotency stores. Node-per-collection + flat `edges`. Versioned writes. **19 `on_snapshot` listeners** fanned out over Server-Sent Events | Versioned history falls out of the document model → "why did we decide this two years ago?" is a real feature. Real-time listeners *are* the live graph stream — no polling |
 | **Cloud Pub/Sub** | One topic; every inbound signal enters through the same intake. Push subscriptions with **OIDC verification** | Makes "the loop runs with nobody present" literally true. At-least-once delivery is safe because every path is idempotent per content hash |
@@ -213,7 +213,7 @@ Eight invariants, each with a real, passing, **never-skipped** test, each enforc
 | Layer | Choice |
 |---|---|
 | Backend | Python 3.13 · FastAPI · Google ADK · `uv` · `pydantic` |
-| Reasoning | Gemini 2.5 Flash + Pro via **Vertex AI** · native TTS · Google Search grounding |
+| Reasoning | Gemini 3.5 Flash + Pro via **Vertex AI** · native TTS · Google Search grounding |
 | Data | **Firestore** (Native) · **Cloud Pub/Sub** |
 | Runtime | **Cloud Run** (source deploys, `min-instances=0`) · **Cloud Scheduler** · **Secret Manager** · **Cloud Logging** · Cloud Build + Buildpacks |
 | Frontend | Next.js 16 · TypeScript · Tailwind CSS v4 · canvas-rendered D3 force graph · `pnpm` |
