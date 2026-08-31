@@ -43,3 +43,6 @@ gcp-service-account*.json
 
 # Draft submission content (published externally, not part of the repo)
 medium.md
+
+# Devpost architecture diagram assets (published to Devpost, not the repo)
+diagrams/
