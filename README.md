@@ -115,7 +115,7 @@ Between reasoning and action there is exactly one path: the **A57 Confidence Arb
 
 The Fair Allocator delivers **EF1 (envy-free up to one item) for chores under additive cost valuations**, by fixed-order round-robin picking: for every ordered pair of people `(i, j)`, there exists one task `g` in person `i`'s bundle such that `cost_i(bundle_i \ {g}) ≤ cost_i(bundle_j)`.
 
-It **does not** claim Pareto-optimality or Maximum Nash Welfare (MNW's combined result is for *goods*, not chores), and there is **no algorithmic novelty** — round-robin is textbook. The contribution is the *input pipeline*: the auto-derived task list and behaviourally-derived cost valuations. See [`docs/FAIRNESS_GUARANTEE.md`](docs/FAIRNESS_GUARANTEE.md).
+It **does not** claim Pareto-optimality or Maximum Nash Welfare (MNW's combined result is for *goods*, not chores), and there is **no algorithmic novelty** — round-robin is textbook. The contribution is the *input pipeline*: the auto-derived task list and behaviourally-derived cost valuations.
 
 ### The Council's arbiter
 
@@ -256,7 +256,7 @@ Eight invariants, each with a real, passing, **never-skipped** test, each enforc
 | Citation validity (span real, verbatim, *and* supports the claim) | 85% | **96%** |
 | Control documents fully clean | 0 of 2 | **1 of 2** |
 
-Tracked as a monitoring item in [`docs/DEBT.md`](docs/DEBT.md) — **not** marked resolved, because the 0/2-control-docs bar isn't fully met. The load-bearing guarantee is that the *system* never *acts* on a hallucination, enforced by the Arbiter and the Approval Gate. Full detail: [`docs/IMPLICATION_BASELINE.md`](docs/IMPLICATION_BASELINE.md).
+This is carried as a tracked monitoring item — **not** marked resolved, because the 0/2-control-docs bar isn't fully met. The load-bearing guarantee is that the *system* never *acts* on a hallucination, enforced by the Arbiter and the Approval Gate.
 
 ---
 
@@ -267,7 +267,7 @@ Tracked as a monitoring item in [`docs/DEBT.md`](docs/DEBT.md) — **not** marke
 | **Contract-first** | Every shared interface (`contracts/`) is frozen before any implementation; `mypy --strict` proves conformance |
 | **Gated, incremental build** | The system was built in reviewed increments; each had a Green-Light Gate checklist, and no increment started until the previous gate was signed |
 | **Append-only verification log** | Every reported number was re-run independently from a cold shell, not taken on report |
-| **The DEBT ledger** | [`docs/DEBT.md`](docs/DEBT.md) — every shortcut has an entry, an owner, and a repayment condition; undocumented shortcuts are rejected at review; struck through with a date when repaid, never deleted |
+| **A tracked-shortcut ledger** | Every shortcut has an entry, an owner, and a repayment condition; undocumented shortcuts are rejected at review; struck through with a date when repaid, never deleted |
 | **~23 ADRs** | Every non-obvious decision (traversal strategy, Firestore edge layout, EF1-not-MNW, minimax-regret-not-MNW, OAuth in a backend-only architecture, the ingestion-orchestrator boundary…) is a written, dated record in [`docs/adr/`](docs/adr/) |
 | **"Never fabricate a success"** | A standing rule — a failed tool call is reported as a failure. When the A12 eval showed 100% control-doc hallucination, it was logged and disclosed, not rounded up |
 | **No Docker, ever** | `find . -iname "Dockerfile*"` → empty; the deploy scripts abort before `gcloud` if one appears |
@@ -304,8 +304,7 @@ GharOS/
 ├── docs/
 │   ├── architecture/          # the 7 canonical diagrams (.png + .mmd)
 │   ├── adr/                   # ~23 Architecture Decision Records
-│   ├── DEBT.md  DEPLOYMENT_PROOF.md  FAIRNESS_GUARANTEE.md
-│   ├── IMPLICATION_BASELINE.md  SUBMISSION_NOTES.md  PROGRESS.md
+│   ├── DEPLOYMENT_PROOF.md  PROGRESS.md
 ├── Makefile  .env.example  README.md
 ```
 
@@ -431,15 +430,13 @@ Overclaiming discredits everything else. For the record:
 - **The implication agent is not hallucination-free.** The reported figures are the honest post-revision numbers above. The guarantee is that the *system* never acts on a hallucination.
 - **The fairness guarantee is EF1 for chores, and nothing more.** Not Pareto-optimal, not MNW, no algorithmic novelty.
 
-Full honesty pass: [`docs/SUBMISSION_NOTES.md`](docs/SUBMISSION_NOTES.md).
-
 ---
 
 ## Status & roadmap
 
 **Built and verified:** the full reasoning core (7 subsystems, ~49 of the 69-agent roster), the safety architecture (8 invariants), the provenance-guarded graph, the end-to-end ingestion orchestrator with real OAuth Gmail/Outlook, voice + multilingual, the live canvas graph, and the Google Cloud spine (deployed, with a captured unattended overnight run).
 
-**Deferred, with a dated argument in [`docs/DEBT.md`](docs/DEBT.md):** a handful of narrow capabilities (resource- and travel-time-aware conflict detection, the autonomous multi-day recovery loop, one more A12 prompt iteration). None is a demo beat; the write-up claims none of them.
+**Deferred, each with a dated rationale:** a handful of narrow capabilities (resource- and travel-time-aware conflict detection, the autonomous multi-day recovery loop, one more A12 prompt iteration). None is a demo beat; the write-up claims none of them.
 
 ### What's next
 
@@ -450,7 +447,7 @@ After the build we showed GharOS to **6 families**. Every one is a **dual-income
 | **P0** | **Native desktop / mobile companion** (macOS/Windows menu-bar + iOS/Android) | A deployed web app cannot read the local filesystem, Apple Photos, iMessage, or a WhatsApp export directory — and that's where most of a real household's stream lives. A native companion is the only route. Unlocks offline capture and push-notification approvals |
 | **P1** | **Google OAuth verification** (out of test mode) | Real households need durable mailbox connections, not a 7-day token |
 | **P1** | **Guided household onboarding** | Replace the engineered seed with "connect your mail, upload last month's bills, tell us who's in the house" |
-| **P2** | Autonomous multi-day recovery loop · resource/travel-time conflict detection · close remaining `DEBT.md` items | Fewer disclosed caveats; "found ₹X of leakage" becomes "recovered ₹X" |
+| **P2** | Autonomous multi-day recovery loop · resource/travel-time conflict detection · close the remaining deferred items | Fewer disclosed caveats; "found ₹X of leakage" becomes "recovered ₹X" |
 | **P3** | Real Calendar & payment write integrations behind the Approval Gate · a per-person mobile approval surface | The concierge booking lands on a real calendar; the "Unlikely Hero" stops being the only one who can approve |
 
 The through-line is the goal the six families named: **take the anticipation and the monitoring off one person's shoulders.**
@@ -463,11 +460,7 @@ The through-line is the goal the six families named: **take the anticipation and
 |---|---|
 | [`docs/architecture/`](docs/architecture/) | The 7 canonical diagrams (`.png` + `.mmd` source) |
 | [`docs/adr/`](docs/adr/) | ~23 Architecture Decision Records |
-| [`docs/DEBT.md`](docs/DEBT.md) | Every tracked shortcut, its owner, and its repayment condition |
 | [`docs/DEPLOYMENT_PROOF.md`](docs/DEPLOYMENT_PROOF.md) | Real command output against the real project, incl. the overnight run |
-| [`docs/FAIRNESS_GUARANTEE.md`](docs/FAIRNESS_GUARANTEE.md) | The exact, code-matching EF1 claim |
-| [`docs/IMPLICATION_BASELINE.md`](docs/IMPLICATION_BASELINE.md) | The hand-scored A12 evaluation, v1 vs v2 |
-| [`docs/SUBMISSION_NOTES.md`](docs/SUBMISSION_NOTES.md) | The honesty pass — what's claimed and what isn't |
 
 ---
 

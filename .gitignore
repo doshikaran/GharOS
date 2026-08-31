@@ -46,6 +46,10 @@ gcp-service-account*.json
 PHASES.md
 verification.md
 GharOS_Build_Spec_v2.md
+docs/DEBT.md
+docs/FAIRNESS_GUARANTEE.md
+docs/IMPLICATION_BASELINE.md
+docs/SUBMISSION_NOTES.md
 
 # Draft submission content (published externally, not part of the repo)
 medium.md
